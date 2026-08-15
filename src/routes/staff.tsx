@@ -556,7 +556,11 @@ function Dashboard({
       ) : null}
 
       <GuidedTour
-        steps={TOUR_STEPS}
+        steps={TOUR_STEPS.filter(
+          (step) =>
+            (step.target !== "team" || isManager) &&
+            (step.target !== "triage" || canTriage),
+        )}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
       />
