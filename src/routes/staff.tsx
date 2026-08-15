@@ -238,6 +238,12 @@ function Dashboard({
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  useEffect(() => {
+    if (demo) setTourOpen(true);
+  }, [demo]);
+
 
 
   useEffect(() => {
