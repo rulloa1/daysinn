@@ -79,21 +79,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Rodeway Hub — Your Digital Front Desk" },
-      {
-        name: "description",
-        content:
-          "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
-      },
-      { property: "og:title", content: "Rodeway Hub — Your Digital Front Desk" },
-      {
-        property: "og:description",
-        content:
-          "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
-      },
+      { property: "og:site_name", content: "Rodeway Hub" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Rodeway Hub",
+          url: "https://rodewayinn.lovable.app",
+          publisher: {
+            "@type": "Organization",
+            name: "Rodeway Hub",
+            url: "https://rodewayinn.lovable.app",
+            telephone: "+1-352-793-5010",
+          },
+        }),
+      },
+    ],
+
     links: [
       {
         rel: "stylesheet",
