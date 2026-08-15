@@ -189,7 +189,7 @@ function GuestView() {
       <main>
         <section className="grid gap-6 px-6 pb-8 pt-6 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-10 md:px-12">
           <div>
-            <Eyebrow>Your digital front desk · Room 214</Eyebrow>
+            <Eyebrow>Your digital front desk</Eyebrow>
             <h1 className="mt-2 max-w-xl text-4xl leading-[1.05] md:text-5xl">
               Good evening,{" "}
               <em className="text-amber">make yourself at home.</em>
