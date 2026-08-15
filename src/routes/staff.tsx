@@ -474,7 +474,10 @@ function Dashboard({
                   ) : null}
                 </div>
                 {canTriage ? (
-                  <div className="flex gap-2">
+                  <div
+                    className="flex gap-2"
+                    data-tour={row.id === visible[0]?.id ? "triage" : undefined}
+                  >
                     {STATUSES.filter((status) => status !== row.status).map(
                       (status) => (
                         <Button
