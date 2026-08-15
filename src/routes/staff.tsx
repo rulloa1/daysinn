@@ -166,6 +166,10 @@ function SignIn() {
 function Dashboard() {
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [filter, setFilter] = useState<string>("all");
+  const { loading: roleLoading, isManager, canTriage, refresh } = useStaffRole();
+  const claimManager = useServerFn(claimFirstManager);
+  const [claiming, setClaiming] = useState(false);
+
 
   useEffect(() => {
     let active = true;
