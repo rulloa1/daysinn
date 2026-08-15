@@ -184,17 +184,17 @@ function GuestView() {
       </header>
 
       <main>
-        <section className="grid gap-10 px-6 pb-16 pt-12 md:grid-cols-[1.05fr_1fr] md:items-end md:px-12">
+        <section className="grid gap-8 px-6 pb-10 pt-8 md:grid-cols-[1.05fr_1fr] md:items-end md:px-12">
           <div>
             <Eyebrow>Your digital front desk</Eyebrow>
-            <h1 className="mt-6 max-w-xl text-5xl leading-[1.04] md:text-6xl">
+            <h1 className="mt-4 max-w-xl text-5xl leading-[1.04] md:text-6xl">
               Good evening,{" "}
               <em className="text-amber">make yourself at home.</em>
             </h1>
-            <p className="mt-6 max-w-md text-muted-foreground">
+            <p className="mt-4 max-w-md text-muted-foreground">
               Need something for the room? Send it once. We'll route it from here.
             </p>
-            <div className="signage mt-8 flex flex-wrap items-center gap-3 text-muted-foreground">
+            <div className="signage mt-6 flex flex-wrap items-center gap-3 text-muted-foreground">
               <span className="rounded-full border border-border px-3 py-1.5">
                 Room 214
               </span>
@@ -217,11 +217,11 @@ function GuestView() {
           </div>
         </section>
 
-        <section className="border-t border-border px-6 py-16 md:px-12">
+        <section className="border-t border-border px-6 py-10 md:px-12">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <Eyebrow>Dispatch desk · Room 214</Eyebrow>
-              <h2 className="mt-4 text-4xl md:text-5xl">Tell us what you need.</h2>
+              <h2 className="mt-3 text-4xl md:text-5xl">Tell us what you need.</h2>
             </div>
             <p className="max-w-xs text-sm text-muted-foreground">
               We route each request to the right person{" "}
@@ -229,13 +229,13 @@ function GuestView() {
             </p>
           </div>
 
-          <ul className="mt-10 border-y border-border">
+          <ul className="mt-6 border-y border-border">
             {REQUESTS.map((request, index) => (
               <li key={request.id} className="border-b border-border last:border-b-0">
                 <button
                   type="button"
                   onClick={() => setOpen(request)}
-                  className="group flex w-full items-center gap-6 py-6 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
+                  className="group flex w-full items-center gap-6 py-4 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
                 >
                   <span className="signage w-10 shrink-0 text-amber tabular-nums">
                     {String(index + 1).padStart(2, "0")}
@@ -257,7 +257,7 @@ function GuestView() {
           </ul>
         </section>
 
-        <section className="mx-6 flex flex-wrap items-center gap-8 bg-ink px-6 py-12 text-cream md:mx-12 md:px-12">
+        <section className="mx-6 flex flex-wrap items-center gap-8 bg-ink px-6 py-9 text-cream md:mx-12 md:px-12">
           <span className="font-display text-6xl leading-none text-amber">05</span>
           <div className="min-w-64 flex-1">
             <p className="signage flex items-center gap-2 text-cream/60">
@@ -286,7 +286,7 @@ function GuestView() {
           </Button>
         </section>
 
-        <section className="px-6 py-16 md:px-12">
+        <section className="px-6 py-10 md:px-12">
           <Eyebrow>Nearby, on purpose</Eyebrow>
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
             <h2 className="text-4xl md:text-5xl">Good stops around here.</h2>
@@ -299,7 +299,7 @@ function GuestView() {
               Open property map ↗
             </a>
           </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
             {STOPS.map((stop, index) => (
               <article
                 key={stop.title}
@@ -315,10 +315,10 @@ function GuestView() {
           </div>
         </section>
 
-        <section className="border-t border-border px-6 py-16 md:px-12">
+        <section className="border-t border-border px-6 py-10 md:px-12">
           <Eyebrow>Stay connected</Eyebrow>
-          <h2 className="mt-4 text-4xl md:text-5xl">Need a hand?</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <h2 className="mt-3 text-4xl md:text-5xl">Need a hand?</h2>
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
             <a
               href={MAP_URL}
               target="_blank"
@@ -356,7 +356,7 @@ function GuestView() {
         </section>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-6 py-8 md:px-12">
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-6 py-6 md:px-12">
         <BrandLockup />
         <p className="signage text-muted-foreground">
           Simple stays. Thoughtful service.
