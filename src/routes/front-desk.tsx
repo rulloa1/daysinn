@@ -48,7 +48,7 @@ const STATUS_CLASS: Record<RoomStatus, string> = {
   occupied: "border-cream/25 bg-cream/10 text-cream",
   vacant_clean: "border-sage/50 bg-sage/20 text-sage",
   vacant_dirty: "border-amber/50 bg-amber/15 text-amber",
-  out_of_order: "border-clay/50 bg-clay/20 text-clay",
+  out_of_order: "border-cream/20 bg-transparent text-cream/45 line-through",
 };
 
 export const Route = createFileRoute("/front-desk")({
