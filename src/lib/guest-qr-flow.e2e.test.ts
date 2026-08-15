@@ -67,7 +67,7 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
     const first = await signIn({ room, lastName, token });
     expect(first.ok).toBe(true);
 
-    expect((await tokenRow(token))?.used_at).not.toBeNull();
+    expect((await tokenRow(token))?.['used_at']).not.toBeNull();
   });
 
   it("rejects re-using the same code (single-use)", async () => {
