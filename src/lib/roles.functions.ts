@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertManager } from "./roles.guard";
 
 export type AppRole = "manager" | "staff" | "viewer";
 
@@ -9,23 +10,11 @@ export type TeamMember = {
   roles: AppRole[];
 };
 
-async function assertManager(
-  supabase: { from: (t: "user_roles") => any },
-  userId: string,
-) {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "manager")
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden");
-}
-
 export const listTeam = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TeamMember[]> => {
-    await assertManager(context.supabase as never, context.userId);
+    await assertManager(context.supabase, context.userId);
+
 
 
     const { supabaseAdmin } = await import(
