@@ -359,21 +359,26 @@ function Dashboard() {
                     <p className="mt-3 max-w-2xl text-sm">{row.details}</p>
                   ) : null}
                 </div>
-                <div className="flex gap-2">
-                  {STATUSES.filter((status) => status !== row.status).map(
-                    (status) => (
-                      <Button
-                        key={status}
-                        size="sm"
-                        variant="outline"
-                        className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
-                        onClick={() => setStatus(row.id, status)}
-                      >
-                        {STATUS_LABEL[status]}
-                      </Button>
-                    ),
-                  )}
-                </div>
+                {canTriage ? (
+                  <div className="flex gap-2">
+                    {STATUSES.filter((status) => status !== row.status).map(
+                      (status) => (
+                        <Button
+                          key={status}
+                          size="sm"
+                          variant="outline"
+                          className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+                          onClick={() => setStatus(row.id, status)}
+                        >
+                          {STATUS_LABEL[status]}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className="signage text-cream/40">View only</p>
+                )}
+
               </div>
             </li>
           ))}
