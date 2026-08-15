@@ -21,6 +21,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
 export function TeamPanel() {
   const fetchTeam = useServerFn(listTeam);
   const assignRole = useServerFn(setTeamRole);
+  const revokeRole = useServerFn(revokeTeamRole);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
