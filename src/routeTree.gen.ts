@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FrontDeskRouteImport } from './routes/front-desk'
 import { Route as StaffRouteImport } from './routes/staff'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FrontDeskRoute = FrontDeskRouteImport.update({
+  id: '/front-desk',
+  path: '/front-desk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffRoute = StaffRouteImport.update({
@@ -25,27 +31,31 @@ const StaffRoute = StaffRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/front-desk': typeof FrontDeskRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/front-desk': typeof FrontDeskRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/front-desk': typeof FrontDeskRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/staff'
+  fullPaths: '/' | '/front-desk' | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/staff'
-  id: '__root__' | '/' | '/staff'
+  to: '/' | '/front-desk' | '/staff'
+  id: '__root__' | '/' | '/front-desk' | '/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FrontDeskRoute: typeof FrontDeskRoute
   StaffRoute: typeof StaffRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/front-desk': {
+      id: '/front-desk'
+      path: '/front-desk'
+      fullPath: '/front-desk'
+      preLoaderRoute: typeof FrontDeskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/staff': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FrontDeskRoute: FrontDeskRoute,
   StaffRoute: StaffRoute,
 }
 export const routeTree = rootRouteImport
