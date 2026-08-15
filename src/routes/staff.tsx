@@ -419,7 +419,7 @@ function Dashboard({
         ))}
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-8 flex flex-wrap gap-2" data-tour="filters">
         {["all", ...STATUSES].map((option) => (
           <Button
             key={option}
