@@ -184,26 +184,47 @@ function GuestView() {
       </header>
 
       <main>
-        <section className="grid gap-8 px-6 pb-10 pt-8 md:grid-cols-[1.05fr_1fr] md:items-end md:px-12">
+        <section className="grid gap-6 px-6 pb-8 pt-6 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-10 md:px-12">
           <div>
-            <Eyebrow>Your digital front desk</Eyebrow>
-            <h1 className="mt-4 max-w-xl text-5xl leading-[1.04] md:text-6xl">
+            <Eyebrow>Your digital front desk · Room 214</Eyebrow>
+            <h1 className="mt-2 max-w-xl text-4xl leading-[1.05] md:text-5xl">
               Good evening,{" "}
               <em className="text-amber">make yourself at home.</em>
             </h1>
-            <p className="mt-4 max-w-md text-muted-foreground">
-              Need something for the room? Send it once. We'll route it from here.
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Tell us what you need. We route each request to the right person{" "}
+              <strong className="font-medium text-ink">under 10 min</strong>
+              {today ? ` · Tonight, ${today}` : ""}
             </p>
-            <div className="signage mt-6 flex flex-wrap items-center gap-3 text-muted-foreground">
-              <span className="rounded-full border border-border px-3 py-1.5">
-                Room 214
-              </span>
-              <span className="rounded-full border border-border px-3 py-1.5">
-                Tonight{today ? `, ${today}` : ""}
-              </span>
-            </div>
+
+            <ul className="mt-4 border-y border-border">
+              {REQUESTS.map((request, index) => (
+                <li key={request.id} className="border-b border-border last:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(request)}
+                    className="group flex w-full items-center gap-4 py-2.5 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
+                  >
+                    <span className="signage w-8 shrink-0 text-amber tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="flex-1">
+                      <span className="block font-display text-lg leading-tight">
+                        {request.label}
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        {request.blurb}
+                      </span>
+                    </span>
+                    <span className="signage pr-1 text-muted-foreground transition-colors duration-200 group-hover:text-ink">
+                      Route request →
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="relative overflow-hidden border border-ink/15">
+          <div className="relative hidden overflow-hidden border border-ink/15 md:block">
             <img
               src={roomDusk}
               alt="Motel room at dusk with warm lamp light and crisp white bedding"
@@ -217,45 +238,6 @@ function GuestView() {
           </div>
         </section>
 
-        <section className="border-t border-border px-6 py-10 md:px-12">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <Eyebrow>Dispatch desk · Room 214</Eyebrow>
-              <h2 className="mt-3 text-4xl md:text-5xl">Tell us what you need.</h2>
-            </div>
-            <p className="max-w-xs text-sm text-muted-foreground">
-              We route each request to the right person{" "}
-              <strong className="font-medium text-ink">under 10 min</strong>
-            </p>
-          </div>
-
-          <ul className="mt-6 border-y border-border">
-            {REQUESTS.map((request, index) => (
-              <li key={request.id} className="border-b border-border last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => setOpen(request)}
-                  className="group flex w-full items-center gap-6 py-4 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
-                >
-                  <span className="signage w-10 shrink-0 text-amber tabular-nums">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-display text-xl">
-                      {request.label}
-                    </span>
-                    <span className="block text-sm text-muted-foreground">
-                      {request.blurb}
-                    </span>
-                  </span>
-                  <span className="signage pr-1 text-muted-foreground transition-colors duration-200 group-hover:text-ink">
-                    Route request →
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
 
         <section className="mx-6 flex flex-wrap items-center gap-8 bg-ink px-6 py-9 text-cream md:mx-12 md:px-12">
           <span className="font-display text-6xl leading-none text-amber">05</span>
