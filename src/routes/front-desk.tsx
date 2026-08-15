@@ -523,37 +523,140 @@ function Board() {
         </aside>
       </div>
 
-      <Dialog open={qrRoom !== null} onOpenChange={(next) => !next && setQrRoom(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Room {qrRoom?.number} sign-in</DialogTitle>
-            <DialogDescription>
-              Have the guest scan this with their phone camera to sign in and
-              send requests from their room.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-3">
-            {qrRoom ? <QrCode value={qrUrl(qrRoom.number)} size={220} alt={`Sign-in QR for room ${qrRoom.number}`} /> : null}
-            <p className="text-xs text-muted-foreground break-all text-center">
-              {qrRoom ? qrUrl(qrRoom.number) : ""}
+      <RoomQrDialog room={qrRoom} onClose={() => setQrRoom(null)} />
+    </div>
+  );
+}
+
+function RoomQrDialog({
+  room,
+  onClose,
+}: {
+  room: RoomRow | null;
+  onClose: () => void;
+}) {
+  const rotate = useServerFn(rotateRoomQr);
+  const revoke = useServerFn(revokeRoomQr);
+  const [state, setState] = useState<{ url: string; expiresAt: string } | null>(
+    null,
+  );
+  const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  const number = room?.number ?? null;
+
+  const issue = useCallback(
+    async (roomNumber: string) => {
+      setBusy(true);
+      try {
+        const result = await rotate({ data: { room: roomNumber } });
+        setState({
+          url: `${window.location.origin}/checkin?room=${encodeURIComponent(
+            roomNumber,
+          )}&t=${result.token}`,
+          expiresAt: result.expiresAt,
+        });
+      } catch {
+        toast.error("Could not issue a sign-in code.");
+        setState(null);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [rotate],
+  );
+
+  useEffect(() => {
+    setState(null);
+    if (number) void issue(number);
+  }, [number, issue]);
+
+  useEffect(() => {
+    if (!state) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [state]);
+
+  const msLeft = state ? Date.parse(state.expiresAt) - now : 0;
+  const expired = state !== null && msLeft <= 0;
+  const countdown = (() => {
+    const total = Math.max(0, Math.floor(msLeft / 1000));
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+  })();
+
+  return (
+    <Dialog open={room !== null} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Room {room?.number} sign-in</DialogTitle>
+          <DialogDescription>
+            Single-use code. It expires on its own and is burned the moment the
+            guest signs in, so an old scan or screenshot won't work later.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-3">
+          {state && !expired ? (
+            <>
+              <QrCode
+                value={state.url}
+                size={220}
+                alt={`Sign-in QR for room ${room?.number}`}
+              />
+              <p className="signage text-amber">Expires in {countdown}</p>
+              <p className="break-all text-center text-xs text-muted-foreground">
+                {state.url}
+              </p>
+            </>
+          ) : (
+            <p className="py-10 text-sm text-muted-foreground">
+              {busy
+                ? "Issuing a fresh code…"
+                : expired
+                  ? "This code expired. Generate a new one."
+                  : "No active code."}
             </p>
+          )}
+          <div className="flex flex-wrap justify-center gap-2">
             <Button
-              variant="outline"
               size="sm"
+              variant="outline"
+              disabled={busy || !room}
+              onClick={() => room && void issue(room.number)}
+            >
+              {state ? "New code" : "Generate code"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy || !room || !state}
+              onClick={async () => {
+                if (!room) return;
+                setBusy(true);
+                try {
+                  await revoke({ data: { room: room.number } });
+                  setState(null);
+                  toast.success("Codes for this room are revoked.");
+                } catch {
+                  toast.error("Could not revoke codes.");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Revoke
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!state || expired}
               onClick={() => window.print()}
             >
               Print
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
-}
-
-function qrUrl(room: string) {
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
-  return `${origin}/checkin?room=${encodeURIComponent(room)}`;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
