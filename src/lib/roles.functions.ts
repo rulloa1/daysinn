@@ -67,6 +67,32 @@ export const setTeamRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const revokeTeamRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => {
+    if (typeof input?.userId !== "string" || !input.userId) {
+      throw new Error("A user is required");
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertManager(context.supabase, context.userId);
+
+    if (data.userId === context.userId) {
+      throw new Error("You can't remove your own manager access");
+    }
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 export const claimFirstManager = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
