@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { QrCode } from "@/components/qr-code";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type RoomStatus = "occupied" | "vacant_clean" | "vacant_dirty" | "out_of_order";
 
@@ -134,6 +142,7 @@ function Board() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
+  const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [loading, setLoading] = useState(true);
   const { canTriage, loading: roleLoading } = useStaffRole();
   const day = today();
@@ -264,6 +273,13 @@ function Board() {
             Request queue
           </Link>
           <Link
+            to="/checkin"
+            search={{}}
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            Guest sign-in
+          </Link>
+          <Link
             to="/"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
           >
@@ -388,6 +404,16 @@ function Board() {
                         </p>
                       ) : null}
 
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setQrRoom(room)}
+                          className="signage text-cream/60 underline-offset-4 transition-colors duration-200 hover:text-amber hover:underline"
+                        >
+                          Guest QR →
+                        </button>
+                      </div>
+
                       {canTriage ? (
                         <div className="mt-4 flex flex-wrap gap-2">
                           {STATUS_ORDER.filter((s) => s !== room.status).map(
@@ -496,8 +522,38 @@ function Board() {
           </div>
         </aside>
       </div>
+
+      <Dialog open={qrRoom !== null} onOpenChange={(next) => !next && setQrRoom(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Room {qrRoom?.number} sign-in</DialogTitle>
+            <DialogDescription>
+              Have the guest scan this with their phone camera to sign in and
+              send requests from their room.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-3">
+            {qrRoom ? <QrCode value={qrUrl(qrRoom.number)} size={220} alt={`Sign-in QR for room ${qrRoom.number}`} /> : null}
+            <p className="text-xs text-muted-foreground break-all text-center">
+              {qrRoom ? qrUrl(qrRoom.number) : ""}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+            >
+              Print
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+function qrUrl(room: string) {
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  return `${origin}/checkin?room=${encodeURIComponent(room)}`;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
