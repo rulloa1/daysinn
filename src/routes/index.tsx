@@ -76,8 +76,31 @@ export const Route = createFileRoute("/")({
         content:
           "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
+      { property: "og:url", content: "https://rodewayinn.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://rodewayinn.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Hotel",
+          name: "Rodeway Hub",
+          url: "https://rodewayinn.lovable.app/",
+          telephone: "+1-352-793-5010",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "2224 W. County Road 48",
+            addressLocality: "Bushnell",
+            addressRegion: "FL",
+            postalCode: "33513",
+            addressCountry: "US",
+          },
+        }),
+      },
     ],
   }),
+
   component: GuestView,
 });
 
