@@ -406,6 +406,9 @@ function Dashboard() {
           ))}
         </ul>
       )}
+
+      {isManager ? <TeamPanel /> : null}
     </div>
+
   );
 }
