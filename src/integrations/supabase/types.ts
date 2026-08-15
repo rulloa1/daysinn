@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rooms: {
+        Row: {
+          bed_type: string
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          floor: number
+          guest_name: string | null
+          id: string
+          notes: string | null
+          number: string
+          status: Database["public"]["Enums"]["room_status"]
+          updated_at: string
+        }
+        Insert: {
+          bed_type?: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          floor?: number
+          guest_name?: string | null
+          id?: string
+          notes?: string | null
+          number: string
+          status?: Database["public"]["Enums"]["room_status"]
+          updated_at?: string
+        }
+        Update: {
+          bed_type?: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          floor?: number
+          guest_name?: string | null
+          id?: string
+          notes?: string | null
+          number?: string
+          status?: Database["public"]["Enums"]["room_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -84,6 +126,7 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "staff" | "viewer"
+      room_status: "occupied" | "vacant_clean" | "vacant_dirty" | "out_of_order"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -212,6 +255,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "staff", "viewer"],
+      room_status: ["occupied", "vacant_clean", "vacant_dirty", "out_of_order"],
     },
   },
 } as const
