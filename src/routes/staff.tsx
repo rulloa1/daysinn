@@ -52,9 +52,49 @@ export const Route = createFileRoute("/staff")({
   component: StaffPage,
 });
 
+const DEMO_ROWS: RequestRow[] = [
+  {
+    id: "demo-1",
+    room: "214",
+    guest_name: "M. Alvarez",
+    type: "Extra towels",
+    details: "Two bath towels, please — no rush.",
+    status: "new",
+    created_at: new Date(Date.now() - 4 * 60000).toISOString(),
+  },
+  {
+    id: "demo-2",
+    room: "118",
+    guest_name: "J. Whitfield",
+    type: "Maintenance",
+    details: "The AC unit is rattling when it kicks on.",
+    status: "new",
+    created_at: new Date(Date.now() - 21 * 60000).toISOString(),
+  },
+  {
+    id: "demo-3",
+    room: "307",
+    guest_name: null,
+    type: "Housekeeping",
+    details: "Room refresh after 2pm if possible.",
+    status: "in_progress",
+    created_at: new Date(Date.now() - 58 * 60000).toISOString(),
+  },
+  {
+    id: "demo-4",
+    room: "102",
+    guest_name: "R. Ulloa",
+    type: "Front desk question",
+    details: "What time does the shuttle run to the airport?",
+    status: "done",
+    created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
+  },
+];
+
 function StaffPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [demo, setDemo] = useState(false);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -75,7 +115,9 @@ function StaffPage() {
     );
   }
 
-  return session ? <Dashboard /> : <SignIn />;
+  if (session) return <Dashboard />;
+  if (demo) return <Dashboard demo onExitDemo={() => setDemo(false)} />;
+  return <SignIn onDemo={() => setDemo(true)} />;
 }
 
 function SignIn() {
