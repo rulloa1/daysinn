@@ -346,6 +346,7 @@ function GuestView() {
                 <Input
                   id="room"
                   value={room}
+                  placeholder="Your room number"
                   maxLength={10}
                   onChange={(event) => setRoom(event.target.value)}
                   required
