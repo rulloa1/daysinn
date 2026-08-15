@@ -15,6 +15,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import roomDusk from "@/assets/room-dusk.jpg";
+import { z } from "zod";
+
+const requestSchema = z.object({
+  room: z
+    .string()
+    .trim()
+    .min(1, { message: "Room number is required." })
+    .max(10, { message: "Room number must be 10 characters or less." }),
+  guest_name: z
+    .string()
+    .trim()
+    .max(80, { message: "Name must be less than 80 characters." }),
+  details: z
+    .string()
+    .trim()
+    .max(1000, { message: "Details must be less than 1000 characters." }),
+});
 
 const MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=28.80252200339344,-82.13464007721517";
