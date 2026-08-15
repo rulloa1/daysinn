@@ -50,11 +50,7 @@ export const setTeamRole = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const { data: isManager } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "manager",
-    });
-    if (!isManager) throw new Error("Forbidden");
+    await assertManager(context.supabase, context.userId);
 
     if (data.userId === context.userId && data.role !== "manager") {
       throw new Error("You can't remove your own manager access");
@@ -74,7 +70,17 @@ export const setTeamRole = createServerFn({ method: "POST" })
 export const claimFirstManager = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.rpc("claim_first_manager");
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { count } = await supabaseAdmin
+      .from("user_roles")
+      .select("id", { count: "exact", head: true });
+    if ((count ?? 0) > 0) return { claimed: false };
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: context.userId, role: "manager" });
     if (error) throw error;
-    return { claimed: Boolean(data) };
+    return { claimed: true };
   });
+
