@@ -83,12 +83,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Send a room request once and we route it to the right person in under 10 minutes.",
+          "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
       { property: "og:title", content: "Rodeway Hub — Your Digital Front Desk" },
       {
         property: "og:description",
-        content: "Guest requests, routed fast, from your room.",
+        content:
+          "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
