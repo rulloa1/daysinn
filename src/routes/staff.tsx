@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { BrandLockup } from "@/components/brand-lockup";
+import { TeamPanel } from "@/components/team-panel";
+import { useStaffRole } from "@/hooks/use-staff-role";
+import { claimFirstManager } from "@/lib/roles.functions";
+
 
 type RequestRow = {
   id: string;
