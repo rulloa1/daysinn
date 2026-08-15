@@ -120,7 +120,7 @@ function StaffPage() {
   return <SignIn onDemo={() => setDemo(true)} />;
 }
 
-function SignIn() {
+function SignIn({ onDemo }: { onDemo: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
