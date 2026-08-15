@@ -10,10 +10,42 @@
  * Database setup/teardown uses the service-role REST API directly.
  */
 
-import { toJSON, fromJSON } from "seroval";
-import { getDefaultSerovalPlugins } from "@tanstack/start-client-core";
+import { toJSON } from "seroval";
 
-const serovalPlugins = getDefaultSerovalPlugins();
+type SerovalNode = {
+  t: number;
+  s?: unknown;
+  p?: { k: string[]; v: SerovalNode[] };
+  a?: SerovalNode[];
+};
+
+/**
+ * Decodes the plain-data subset of seroval that server functions return
+ * (objects, arrays, strings, numbers, booleans, null/undefined). Avoids
+ * `fromJSON`, which needs Start's plugin context that only exists on the server.
+ */
+function decode(node: SerovalNode | undefined): unknown {
+  if (!node) return undefined;
+  switch (node.t) {
+    case 1: // string / primitive literal
+    case 0:
+      return node.s;
+    case 2: // constants: 1 = undefined, 2 = true, 3 = false, 4 = null
+      return { 1: undefined, 2: true, 3: false, 4: null }[node.s as number];
+    case 9: // array
+      return (node.a ?? []).map(decode);
+    default: {
+      if (node.a) return node.a.map(decode);
+      if (!node.p) return node.s;
+      const out: Record<string, unknown> = {};
+      node.p.k.forEach((key, index) => {
+        out[key] = decode(node.p!.v[index]);
+      });
+      return out;
+    }
+  }
+}
+
 
 export const APP_URL = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
 
