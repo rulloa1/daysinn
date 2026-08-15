@@ -10,6 +10,11 @@
  * Database setup/teardown uses the service-role REST API directly.
  */
 
+import { toJSON, fromJSON } from "seroval";
+import { getDefaultSerovalPlugins } from "@tanstack/start-client-core";
+
+const serovalPlugins = getDefaultSerovalPlugins();
+
 export const APP_URL = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
 
 const SUPABASE_URL =
@@ -38,19 +43,33 @@ export async function callServerFn<T = unknown>(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-tsr-redirect": "manual",
+      Origin: APP_URL,
+      "x-tsr-serverFn": "true",
       ...init.headers,
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify(toJSON({ data }, { plugins: serovalPlugins })),
   });
   const text = await response.text();
   let body: unknown = text;
   try {
-    body = JSON.parse(text);
+    body = fromJSON(JSON.parse(text), { plugins: serovalPlugins });
   } catch {
     /* keep raw text */
   }
   return { status: response.status, body: body as T };
+}
+
+/**
+ * The dev server compiles server functions lazily; hit a page that imports
+ * them once so the RPC ids resolve.
+ */
+export async function warmApp(path = "/checkin"): Promise<boolean> {
+  try {
+    const response = await fetch(`${APP_URL}${path}`);
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 /** Minimal service-role REST client for fixtures. */
