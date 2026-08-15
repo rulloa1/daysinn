@@ -285,6 +285,28 @@ function Dashboard() {
         </div>
       </header>
 
+      {!roleLoading && !canTriage ? (
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
+          <div>
+            <p className="signage text-amber">View-only access</p>
+            <p className="mt-2 text-sm text-cream/70">
+              You can watch the queue, but a manager must grant you staff access
+              before you can triage requests.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            disabled={claiming}
+            className="bg-amber text-ink hover:bg-amber/90"
+            onClick={claim}
+          >
+            {claiming ? "Setting up…" : "I'm the first manager"}
+          </Button>
+        </div>
+      ) : null}
+
+
+
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {STATUSES.map((status) => (
           <div
