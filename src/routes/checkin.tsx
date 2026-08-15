@@ -11,9 +11,8 @@ import { guestSignIn } from "@/lib/guest.functions";
 import { writeGuestSession } from "@/lib/guest-session";
 
 export const Route = createFileRoute("/checkin")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    room: typeof search['room'] === "string" ? search['room'] : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { room?: string } =>
+    typeof search['room'] === "string" ? { room: search['room'] } : {},
   head: () => ({
     meta: [
       { title: "Room Sign-In — Rodeway Hub" },
