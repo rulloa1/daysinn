@@ -170,10 +170,13 @@ function GuestView() {
       <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-12">
         <BrandLockup />
         <div className="flex items-center gap-4">
-          <span className="signage hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 text-muted-foreground sm:flex">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-sage" />
-            Room 214
-          </span>
+          <Link
+            to="/checkin"
+            search={{}}
+            className="signage rounded-full border border-amber bg-amber/10 px-3 py-1.5 text-ink transition-colors duration-200 hover:bg-amber/20"
+          >
+            Sign in to your room
+          </Link>
           <Link
             to="/staff"
             className="signage text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
