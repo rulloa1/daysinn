@@ -217,6 +217,11 @@ function Dashboard() {
   );
 
   async function setStatus(id: string, status: string) {
+    if (!canTriage) {
+      toast.error("You don't have permission to triage requests.");
+      return;
+    }
+    const previous = rows;
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, status } : row)),
     );
@@ -224,8 +229,28 @@ function Dashboard() {
       .from("requests")
       .update({ status })
       .eq("id", id);
-    if (error) toast.error("Update failed.");
+    if (error) {
+      setRows(previous);
+      toast.error("Update failed — your role may not allow this.");
+    }
   }
+
+  async function claim() {
+    setClaiming(true);
+    try {
+      const { claimed } = await claimManager({ data: undefined });
+      if (claimed) {
+        toast.success("You're now the manager.");
+        await refresh();
+      } else {
+        toast.error("A manager already exists — ask them for access.");
+      }
+    } catch {
+      toast.error("Couldn't complete setup.");
+    }
+    setClaiming(false);
+  }
+
 
   async function signOut() {
     await supabase.auth.signOut();
