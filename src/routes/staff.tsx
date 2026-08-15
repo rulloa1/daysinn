@@ -344,6 +344,13 @@ function Dashboard({
           <h1 className="mt-3 text-4xl">Request queue</h1>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setTourOpen(true)}
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            Walkthrough
+          </button>
           <Link
             to="/front-desk"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
