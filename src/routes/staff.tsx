@@ -442,7 +442,7 @@ function Dashboard({
           Nothing here yet. New guest requests land automatically.
         </p>
       ) : (
-        <ul className="mt-8 space-y-3">
+        <ul className="mt-8 space-y-3" data-tour="queue">
           {visible.map((row) => (
             <li
               key={row.id}
