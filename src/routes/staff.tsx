@@ -399,7 +399,7 @@ function Dashboard({
 
 
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-3" data-tour="counts">
         {STATUSES.map((status) => (
           <div
             key={status}
