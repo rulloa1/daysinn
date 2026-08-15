@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLockup } from "@/components/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,17 +81,28 @@ export const Route = createFileRoute("/")({
   component: GuestView,
 });
 
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="signage flex items-center gap-2 text-muted-foreground">
+      <span aria-hidden className="h-3 w-[3px] bg-amber" />
+      {children}
+    </p>
+  );
+}
+
 function GuestView() {
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
   const [room, setRoom] = useState("214");
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
+  const [today, setToday] = useState("");
 
-  const today = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    );
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -116,45 +128,52 @@ function GuestView() {
       toast.error("We couldn't send that. Please call the front desk.");
       return;
     }
-    toast.success("Sent. We're routing it now.");
+    toast.success("Sent. We're routing it now.", {
+      description: "The front desk is notified and will follow up shortly.",
+    });
     setDetails("");
     setOpen(null);
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="flex items-center justify-between px-6 py-5 md:px-12">
-        <span className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-          Your digital front desk
-        </span>
-        <Link
-          to="/staff"
-          className="text-xs uppercase tracking-[0.18em] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          Staff dashboard
-        </Link>
+      <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-12">
+        <BrandLockup />
+        <div className="flex items-center gap-4">
+          <span className="signage hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 text-muted-foreground sm:flex">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-sage" />
+            Room 214
+          </span>
+          <Link
+            to="/staff"
+            className="signage text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+          >
+            Staff
+          </Link>
+        </div>
       </header>
 
       <main>
-        <section className="grid gap-10 px-6 pb-16 pt-6 md:grid-cols-2 md:items-end md:px-12">
+        <section className="grid gap-10 px-6 pb-16 pt-12 md:grid-cols-[1.05fr_1fr] md:items-end md:px-12">
           <div>
-            <h1 className="max-w-xl text-5xl leading-[1.05] md:text-6xl">
+            <Eyebrow>Your digital front desk</Eyebrow>
+            <h1 className="mt-6 max-w-xl text-5xl leading-[1.04] md:text-6xl">
               Good evening,{" "}
-              <em className="text-primary">make yourself at home.</em>
+              <em className="text-amber">make yourself at home.</em>
             </h1>
             <p className="mt-6 max-w-md text-muted-foreground">
               Need something for the room? Send it once. We'll route it from here.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              <span className="rounded-full border border-border px-3 py-1">
+            <div className="signage mt-8 flex flex-wrap items-center gap-3 text-muted-foreground">
+              <span className="rounded-full border border-border px-3 py-1.5">
                 Room 214
               </span>
-              <span className="rounded-full border border-border px-3 py-1">
-                Tonight, {today}
+              <span className="rounded-full border border-border px-3 py-1.5">
+                Tonight{today ? `, ${today}` : ""}
               </span>
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-lg border border-border">
+          <div className="relative overflow-hidden border border-ink/15">
             <img
               src={roomDusk}
               alt="Motel room at dusk with warm lamp light and crisp white bedding"
@@ -162,40 +181,44 @@ function GuestView() {
               height={1100}
               className="h-full w-full object-cover"
             />
-            <div className="absolute bottom-4 left-4 rounded-md bg-card/90 px-4 py-2 text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
-              Scan. Ask. Stay easy.
+            <div className="signage absolute bottom-4 left-4 bg-ink px-4 py-2.5 text-cream">
+              Scan. Ask. <span className="text-amber">Stay easy.</span>
             </div>
           </div>
         </section>
 
         <section className="border-t border-border px-6 py-16 md:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-            Dispatch desk · Room 214
-          </p>
-          <h2 className="mt-4 text-4xl md:text-5xl">Tell us what you need.</h2>
-          <p className="mt-3 text-muted-foreground">
-            We route each request to the right person{" "}
-            <strong className="font-medium text-foreground">under 10 min</strong>
-          </p>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <Eyebrow>Dispatch desk · Room 214</Eyebrow>
+              <h2 className="mt-4 text-4xl md:text-5xl">Tell us what you need.</h2>
+            </div>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              We route each request to the right person{" "}
+              <strong className="font-medium text-ink">under 10 min</strong>
+            </p>
+          </div>
 
-          <ul className="mt-10 divide-y divide-border border-y border-border">
+          <ul className="mt-10 border-y border-border">
             {REQUESTS.map((request, index) => (
-              <li key={request.id}>
+              <li key={request.id} className="border-b border-border last:border-b-0">
                 <button
                   type="button"
                   onClick={() => setOpen(request)}
-                  className="group flex w-full items-center gap-6 py-6 text-left transition-colors hover:bg-secondary/60"
+                  className="group flex w-full items-center gap-6 py-6 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
                 >
-                  <span className="w-10 shrink-0 pl-1 text-xs tabular-nums text-muted-foreground">
+                  <span className="signage w-10 shrink-0 text-amber tabular-nums">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span className="flex-1">
-                    <span className="block text-xl">{request.label}</span>
+                    <span className="block font-display text-xl">
+                      {request.label}
+                    </span>
                     <span className="block text-sm text-muted-foreground">
                       {request.blurb}
                     </span>
                   </span>
-                  <span className="pr-1 text-xs uppercase tracking-[0.18em] text-muted-foreground group-hover:text-primary">
+                  <span className="signage pr-1 text-muted-foreground transition-colors duration-200 group-hover:text-ink">
                     Route request →
                   </span>
                 </button>
@@ -204,18 +227,22 @@ function GuestView() {
           </ul>
         </section>
 
-        <section className="mx-6 rounded-lg border border-border bg-secondary/60 px-6 py-12 md:mx-12 md:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-            Revenue signal
-          </p>
-          <h2 className="mt-4 max-w-lg text-3xl md:text-4xl">
-            Extend your stay by an hour.
-          </h2>
-          <p className="mt-3 max-w-lg text-muted-foreground">
-            Enjoy a slower morning with 1:00 PM checkout, subject to availability.
-          </p>
+        <section className="mx-6 flex flex-wrap items-center gap-8 bg-ink px-6 py-12 text-cream md:mx-12 md:px-12">
+          <span className="font-display text-6xl leading-none text-amber">05</span>
+          <div className="min-w-64 flex-1">
+            <p className="signage flex items-center gap-2 text-cream/60">
+              <span aria-hidden className="h-3 w-[3px] bg-amber" />
+              Revenue signal
+            </p>
+            <h2 className="mt-3 text-3xl md:text-4xl">
+              Extend your stay by an hour.
+            </h2>
+            <p className="mt-2 max-w-lg text-sm text-cream/70">
+              Enjoy a slower morning with 1:00 PM checkout, subject to availability.
+            </p>
+          </div>
           <Button
-            className="mt-6"
+            className="bg-amber text-ink hover:bg-amber/90"
             onClick={() =>
               setOpen({
                 id: "late-checkout",
@@ -225,32 +252,30 @@ function GuestView() {
               })
             }
           >
-            Ask about late checkout
+            Ask about late checkout ↗
           </Button>
         </section>
 
         <section className="px-6 py-16 md:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-            Nearby, on purpose
-          </p>
+          <Eyebrow>Nearby, on purpose</Eyebrow>
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
             <h2 className="text-4xl md:text-5xl">Good stops around here.</h2>
             <a
               href={MAP_URL}
               target="_blank"
               rel="noreferrer"
-              className="text-sm text-primary underline-offset-4 hover:underline"
+              className="signage text-ink underline decoration-amber decoration-2 underline-offset-4"
             >
-              Open property map
+              Open property map ↗
             </a>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {STOPS.map((stop, index) => (
               <article
                 key={stop.title}
-                className="rounded-lg border border-border bg-card p-6"
+                className="border border-border bg-card p-6 transition-colors duration-200 hover:border-amber"
               >
-                <span className="text-xs tabular-nums text-muted-foreground">
+                <span className="signage text-amber tabular-nums">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <h3 className="mt-3 text-xl">{stop.title}</h3>
@@ -261,18 +286,16 @@ function GuestView() {
         </section>
 
         <section className="border-t border-border px-6 py-16 md:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-            Stay connected
-          </p>
+          <Eyebrow>Stay connected</Eyebrow>
           <h2 className="mt-4 text-4xl md:text-5xl">Need a hand?</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <a
               href={MAP_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-border p-6 transition-colors hover:bg-secondary/60"
+              className="border border-border p-6 transition-colors duration-200 hover:border-amber"
             >
-              <span className="text-xs tabular-nums text-muted-foreground">01</span>
+              <span className="signage text-amber tabular-nums">01</span>
               <h3 className="mt-3 text-xl">Find us</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 2224 W. County Road 48
@@ -282,9 +305,9 @@ function GuestView() {
             </a>
             <a
               href="tel:+13527935010"
-              className="rounded-lg border border-border p-6 transition-colors hover:bg-secondary/60"
+              className="border border-border p-6 transition-colors duration-200 hover:border-amber"
             >
-              <span className="text-xs tabular-nums text-muted-foreground">02</span>
+              <span className="signage text-amber tabular-nums">02</span>
               <h3 className="mt-3 text-xl">Call the front desk</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 (352) 793-5010
@@ -292,8 +315,8 @@ function GuestView() {
                 We're happy to help.
               </p>
             </a>
-            <div className="rounded-lg border border-border p-6">
-              <span className="text-xs tabular-nums text-muted-foreground">03</span>
+            <div className="border border-border p-6">
+              <span className="signage text-amber tabular-nums">03</span>
               <h3 className="mt-3 text-xl">Wi-Fi access</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Ask the front desk for the current network name and password.
@@ -302,6 +325,13 @@ function GuestView() {
           </div>
         </section>
       </main>
+
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-6 py-8 md:px-12">
+        <BrandLockup />
+        <p className="signage text-muted-foreground">
+          Simple stays. Thoughtful service.
+        </p>
+      </footer>
 
       <Dialog open={open !== null} onOpenChange={(next) => !next && setOpen(null)}>
         <DialogContent>
@@ -342,7 +372,11 @@ function GuestView() {
                 placeholder="Anything we should know?"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={sending}>
+            <Button
+              type="submit"
+              className="w-full bg-amber text-ink hover:bg-amber/90"
+              disabled={sending}
+            >
               {sending ? "Sending…" : "Send request"}
             </Button>
           </form>

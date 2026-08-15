@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { BrandLockup } from "@/components/brand-lockup";
 
 type RequestRow = {
   id: string;
@@ -63,7 +64,7 @@ function StaffPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-ink text-sm text-cream/60">
         Loading…
       </div>
     );
@@ -100,17 +101,18 @@ function SignIn() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
+    <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
       <div className="w-full max-w-sm">
+        <BrandLockup tone="cream" />
         <Link
           to="/"
-          className="text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+          className="signage mt-8 inline-block text-cream/60 transition-colors duration-200 hover:text-amber"
         >
           ← Guest view
         </Link>
-        <h1 className="mt-6 text-4xl">Staff sign in</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The request queue is limited to front-desk staff.
+        <h1 className="mt-4 text-4xl">Staff sign in</h1>
+        <p className="mt-2 text-sm text-cream/60">
+          A cleaner queue means a calmer shift. Sign in to work the board.
         </p>
         <form onSubmit={submit} className="mt-8 space-y-4">
           <div className="space-y-2">
@@ -134,14 +136,18 @@ function SignIn() {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>
+          <Button
+            type="submit"
+            className="w-full bg-amber text-ink hover:bg-amber/90"
+            disabled={busy}
+          >
             {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
         <button
           type="button"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="mt-4 text-sm text-muted-foreground underline-offset-4 hover:underline"
+          className="mt-4 text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
         >
           {mode === "signin"
             ? "Need a staff account? Create one"
@@ -217,22 +223,29 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen px-6 py-8 md:px-12">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen bg-ink px-6 py-8 text-cream md:px-12">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 pb-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-            Dispatch desk
+          <BrandLockup tone="cream" />
+          <p className="signage mt-6 flex items-center gap-2 text-cream/60">
+            <span aria-hidden className="h-3 w-[3px] bg-amber" />
+            Dispatch desk · Live shift
           </p>
-          <h1 className="mt-2 text-4xl">Request queue</h1>
+          <h1 className="mt-3 text-4xl">Request queue</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link
             to="/"
-            className="text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
           >
             Guest view
           </Link>
-          <Button variant="outline" size="sm" onClick={signOut}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+            onClick={signOut}
+          >
             Sign out
           </Button>
         </div>
@@ -240,11 +253,20 @@ function Dashboard() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {STATUSES.map((status) => (
-          <div key={status} className="rounded-lg border border-border bg-card p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <div
+            key={status}
+            className="border border-cream/15 bg-cream/[0.04] p-5"
+          >
+            <p className="signage flex items-center gap-2 text-cream/60">
+              <span
+                aria-hidden
+                className={`h-3 w-[3px] ${status === "new" ? "bg-amber" : status === "in_progress" ? "bg-sage" : "bg-cream/30"}`}
+              />
               {STATUS_LABEL[status]}
             </p>
-            <p className="mt-2 text-3xl tabular-nums">{counts[status]}</p>
+            <p className="mt-3 font-display text-4xl tabular-nums">
+              {counts[status]}
+            </p>
           </div>
         ))}
       </div>
@@ -254,7 +276,12 @@ function Dashboard() {
           <Button
             key={option}
             size="sm"
-            variant={filter === option ? "default" : "outline"}
+            variant="outline"
+            className={
+              filter === option
+                ? "border-amber bg-amber text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+            }
             onClick={() => setFilter(option)}
           >
             {option === "all" ? "All" : STATUS_LABEL[option]}
@@ -263,7 +290,7 @@ function Dashboard() {
       </div>
 
       {visible.length === 0 ? (
-        <p className="mt-12 text-sm text-muted-foreground">
+        <p className="mt-12 text-sm text-cream/60">
           Nothing here yet. New guest requests land automatically.
         </p>
       ) : (
@@ -271,17 +298,25 @@ function Dashboard() {
           {visible.map((row) => (
             <li
               key={row.id}
-              className="rounded-lg border border-border bg-card p-5"
+              className="border border-cream/15 bg-cream/[0.04] p-5 transition-colors duration-200 hover:border-amber/60"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-lg">{row.type}</span>
-                    <Badge variant={row.status === "done" ? "secondary" : "default"}>
+                    <span className="font-display text-xl">{row.type}</span>
+                    <Badge
+                      className={
+                        row.status === "new"
+                          ? "bg-amber text-ink"
+                          : row.status === "in_progress"
+                            ? "bg-sage text-ink"
+                            : "bg-cream/15 text-cream"
+                      }
+                    >
                       {STATUS_LABEL[row.status] ?? row.status}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm text-cream/60">
                     Room {row.room}
                     {row.guest_name ? ` · ${row.guest_name}` : ""} ·{" "}
                     {new Date(row.created_at).toLocaleString()}
@@ -297,6 +332,7 @@ function Dashboard() {
                         key={status}
                         size="sm"
                         variant="outline"
+                        className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
                         onClick={() => setStatus(row.id, status)}
                       >
                         {STATUS_LABEL[status]}
