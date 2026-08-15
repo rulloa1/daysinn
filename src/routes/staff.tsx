@@ -322,7 +322,7 @@ function Dashboard({
           <BrandLockup tone="cream" />
           <p className="signage mt-6 flex items-center gap-2 text-cream/60">
             <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            Dispatch desk · Live shift
+            {demo ? "Dispatch desk · Demo shift" : "Dispatch desk · Live shift"}
           </p>
           <h1 className="mt-3 text-4xl">Request queue</h1>
         </div>
@@ -337,14 +337,24 @@ function Dashboard({
             variant="outline"
             size="sm"
             className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-            onClick={signOut}
+            onClick={demo ? onExitDemo : signOut}
           >
-            Sign out
+            {demo ? "Exit demo" : "Sign out"}
           </Button>
         </div>
       </header>
 
-      {!roleLoading && !canTriage ? (
+      {demo ? (
+        <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
+          <p className="signage text-amber">Demo view</p>
+          <p className="mt-2 max-w-2xl text-sm text-cream/70">
+            Sample requests for presentation only — nothing here is real guest
+            data, and status changes are not saved.
+          </p>
+        </div>
+      ) : null}
+
+      {!demo && !roleLoading && !canTriage ? (
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
           <div>
             <p className="signage text-amber">View-only access</p>
