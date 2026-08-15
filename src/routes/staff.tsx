@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { BrandLockup } from "@/components/brand-lockup";
+import { TeamPanel } from "@/components/team-panel";
+import { useStaffRole } from "@/hooks/use-staff-role";
+import { claimFirstManager } from "@/lib/roles.functions";
+
 
 type RequestRow = {
   id: string;
@@ -161,6 +166,10 @@ function SignIn() {
 function Dashboard() {
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [filter, setFilter] = useState<string>("all");
+  const { loading: roleLoading, isManager, canTriage, refresh } = useStaffRole();
+  const claimManager = useServerFn(claimFirstManager);
+  const [claiming, setClaiming] = useState(false);
+
 
   useEffect(() => {
     let active = true;
@@ -208,6 +217,11 @@ function Dashboard() {
   );
 
   async function setStatus(id: string, status: string) {
+    if (!canTriage) {
+      toast.error("You don't have permission to triage requests.");
+      return;
+    }
+    const previous = rows;
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, status } : row)),
     );
@@ -215,8 +229,28 @@ function Dashboard() {
       .from("requests")
       .update({ status })
       .eq("id", id);
-    if (error) toast.error("Update failed.");
+    if (error) {
+      setRows(previous);
+      toast.error("Update failed — your role may not allow this.");
+    }
   }
+
+  async function claim() {
+    setClaiming(true);
+    try {
+      const { claimed } = await claimManager({ data: undefined });
+      if (claimed) {
+        toast.success("You're now the manager.");
+        await refresh();
+      } else {
+        toast.error("A manager already exists — ask them for access.");
+      }
+    } catch {
+      toast.error("Couldn't complete setup.");
+    }
+    setClaiming(false);
+  }
+
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -250,6 +284,28 @@ function Dashboard() {
           </Button>
         </div>
       </header>
+
+      {!roleLoading && !canTriage ? (
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
+          <div>
+            <p className="signage text-amber">View-only access</p>
+            <p className="mt-2 text-sm text-cream/70">
+              You can watch the queue, but a manager must grant you staff access
+              before you can triage requests.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            disabled={claiming}
+            className="bg-amber text-ink hover:bg-amber/90"
+            onClick={claim}
+          >
+            {claiming ? "Setting up…" : "I'm the first manager"}
+          </Button>
+        </div>
+      ) : null}
+
+
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {STATUSES.map((status) => (
@@ -325,26 +381,34 @@ function Dashboard() {
                     <p className="mt-3 max-w-2xl text-sm">{row.details}</p>
                   ) : null}
                 </div>
-                <div className="flex gap-2">
-                  {STATUSES.filter((status) => status !== row.status).map(
-                    (status) => (
-                      <Button
-                        key={status}
-                        size="sm"
-                        variant="outline"
-                        className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
-                        onClick={() => setStatus(row.id, status)}
-                      >
-                        {STATUS_LABEL[status]}
-                      </Button>
-                    ),
-                  )}
-                </div>
+                {canTriage ? (
+                  <div className="flex gap-2">
+                    {STATUSES.filter((status) => status !== row.status).map(
+                      (status) => (
+                        <Button
+                          key={status}
+                          size="sm"
+                          variant="outline"
+                          className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+                          onClick={() => setStatus(row.id, status)}
+                        >
+                          {STATUS_LABEL[status]}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className="signage text-cream/40">View only</p>
+                )}
+
               </div>
             </li>
           ))}
         </ul>
       )}
+
+      {isManager ? <TeamPanel /> : null}
     </div>
+
   );
 }
