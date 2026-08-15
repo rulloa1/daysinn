@@ -345,6 +345,12 @@ function Dashboard({
         </div>
         <div className="flex items-center gap-4">
           <Link
+            to="/front-desk"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            Front desk
+          </Link>
+          <Link
             to="/"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
           >
