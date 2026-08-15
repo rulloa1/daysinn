@@ -499,7 +499,17 @@ function Dashboard({
         </ul>
       )}
 
-      {isManager ? <TeamPanel /> : null}
+      {isManager ? (
+        <div data-tour="team">
+          <TeamPanel />
+        </div>
+      ) : null}
+
+      <GuidedTour
+        steps={TOUR_STEPS}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+      />
     </div>
 
   );
