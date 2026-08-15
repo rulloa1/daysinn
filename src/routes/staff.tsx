@@ -200,6 +200,23 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
             ? "Need a staff account? Create one"
             : "Already have an account? Sign in"}
         </button>
+        <div className="mt-8 border-t border-cream/15 pt-6">
+          <p className="signage flex items-center gap-2 text-cream/50">
+            <span aria-hidden className="h-3 w-[3px] bg-amber" />
+            Presenting?
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+            onClick={onDemo}
+          >
+            Open demo view
+          </Button>
+          <p className="mt-2 text-xs text-cream/40">
+            Sample requests only — no real guest data, nothing is saved.
+          </p>
+        </div>
       </div>
     </div>
   );
