@@ -130,24 +130,28 @@ function GuestView() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!open) return;
-    const trimmedRoom = room.trim();
-    if (!trimmedRoom || trimmedRoom.length > 10) {
-      toast.error("Add a valid room number.");
+    const parsed = requestSchema.safeParse({ room, guest_name: name, details });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      if (issue.path[0] === "room") setRoomError(issue.message);
+      toast.error(issue.message);
       return;
     }
-    if (details.length > 1000 || name.length > 80) {
-      toast.error("That's a little too long — trim it down.");
-      return;
-    }
+    setRoomError(null);
     setSending(true);
     const { error } = await supabase.from("requests").insert({
-      room: trimmedRoom,
-      guest_name: name.trim() || null,
+      room: parsed.data.room,
+      guest_name: parsed.data.guest_name || null,
       type: open.label,
-      details: details.trim() || null,
+      details: parsed.data.details || null,
     });
     setSending(false);
     if (error) {
+      if (error.code === "23514") {
+        setRoomError("Enter a valid room number.");
+        toast.error("Enter a valid room number.");
+        return;
+      }
       toast.error("We couldn't send that. Please call the front desk.");
       return;
     }
