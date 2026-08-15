@@ -9,14 +9,24 @@ export type TeamMember = {
   roles: AppRole[];
 };
 
+async function assertManager(
+  supabase: { from: (t: "user_roles") => any },
+  userId: string,
+) {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "manager")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden");
+}
+
 export const listTeam = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TeamMember[]> => {
-    const { data: isManager } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "manager",
-    });
-    if (!isManager) throw new Error("Forbidden");
+    await assertManager(context.supabase as never, context.userId);
+
 
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
