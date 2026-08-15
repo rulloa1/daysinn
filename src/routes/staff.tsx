@@ -64,6 +64,26 @@ const STATUS_LABEL: Record<string, string> = {
   in_progress: "In progress",
   done: "Done",
 };
+const STATUS_ACCENT: Record<string, string> = {
+  new: "bg-amber",
+  in_progress: "bg-sage",
+  done: "bg-cream/25",
+};
+const NEXT_ACTION: Record<string, { status: string; label: string } | null> = {
+  new: { status: "in_progress", label: "Start" },
+  in_progress: { status: "done", label: "Complete" },
+  done: null,
+};
+
+function timeAgo(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
+
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
@@ -373,16 +393,22 @@ function Dashboard({
   }
 
   return (
-    <div className="min-h-screen bg-ink px-6 py-8 text-cream md:px-12">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 pb-6">
-        <div>
+    <div className="min-h-screen bg-ink px-6 pb-16 text-cream md:px-12">
+      <header className="sticky top-0 z-20 -mx-6 flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 bg-ink/95 px-6 py-4 backdrop-blur md:-mx-12 md:px-12">
+        <div className="flex items-center gap-5">
           <BrandLockup tone="cream" />
-          <p className="signage mt-6 flex items-center gap-2 text-cream/60">
-            <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            {demo ? "Dispatch desk · Demo shift" : "Dispatch desk · Live shift"}
-          </p>
-          <h1 className="mt-3 text-4xl">Request queue</h1>
+          <div className="hidden h-8 w-px bg-cream/15 md:block" />
+          <div className="hidden md:block">
+            <p className="signage flex items-center gap-2 text-cream/60">
+              <span aria-hidden className="h-3 w-[3px] bg-amber" />
+              {demo ? "Demo shift" : "Live shift"}
+            </p>
+            <h1 className="mt-1 font-display text-2xl leading-none">
+              Request queue
+            </h1>
+          </div>
         </div>
+
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -446,27 +472,41 @@ function Dashboard({
 
 
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3" data-tour="counts">
-        {STATUSES.map((status) => (
-          <div
-            key={status}
-            className="border border-cream/15 bg-cream/[0.04] p-5"
-          >
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span
-                aria-hidden
-                className={`h-3 w-[3px] ${status === "new" ? "bg-amber" : status === "in_progress" ? "bg-sage" : "bg-cream/30"}`}
-              />
-              {STATUS_LABEL[status]}
-            </p>
-            <p className="mt-3 font-display text-4xl tabular-nums">
-              {counts[status]}
-            </p>
-          </div>
-        ))}
+      <div className="mt-6 grid gap-3 sm:grid-cols-3" data-tour="counts">
+        {STATUSES.map((status) => {
+          const active = filter === status;
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFilter(active ? "all" : status)}
+              aria-pressed={active}
+              className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
+                active
+                  ? "border-amber/70 bg-cream/[0.07]"
+                  : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+              }`}
+            >
+              <p className="signage flex items-center gap-2 text-cream/60">
+                <span
+                  aria-hidden
+                  className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`}
+                />
+                {STATUS_LABEL[status]}
+              </p>
+              <p className="font-display text-3xl leading-none tabular-nums">
+                {counts[status]}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2" data-tour="filters">
+      <div
+        className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4"
+        data-tour="filters"
+      >
+        <span className="signage mr-1 text-cream/40">Filter</span>
         {["all", ...STATUSES].map((option) => (
           <Button
             key={option}
@@ -482,72 +522,102 @@ function Dashboard({
             {option === "all" ? "All" : STATUS_LABEL[option]}
           </Button>
         ))}
+        <span className="ml-auto text-xs text-cream/40">
+          {visible.length} shown
+        </span>
       </div>
 
+
       {visible.length === 0 ? (
-        <p className="mt-12 text-sm text-cream/60">
-          Nothing here yet. New guest requests land automatically.
-        </p>
+        <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
+          <p className="font-display text-2xl">Queue is clear</p>
+          <p className="mt-2 text-sm text-cream/60">
+            New guest requests land here automatically.
+          </p>
+        </div>
       ) : (
-        <ul className="mt-8 space-y-3" data-tour="queue">
-          {visible.map((row) => (
-            <li
-              key={row.id}
-              className="border border-cream/15 bg-cream/[0.04] p-5 transition-colors duration-200 hover:border-amber/60"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-display text-xl">{row.type}</span>
-                    <Badge
-                      className={
-                        row.status === "new"
-                          ? "bg-amber text-ink"
-                          : row.status === "in_progress"
-                            ? "bg-sage text-ink"
-                            : "bg-cream/15 text-cream"
-                      }
-                    >
-                      {STATUS_LABEL[row.status] ?? row.status}
-                    </Badge>
+        <ul className="mt-6 space-y-2" data-tour="queue">
+          {visible.map((row) => {
+            const next = NEXT_ACTION[row.status];
+            const others = STATUSES.filter(
+              (status) => status !== row.status && status !== next?.status,
+            );
+            return (
+              <li
+                key={row.id}
+                className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
+              >
+                <span
+                  aria-hidden
+                  className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
+                />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-3">
+                      <span className="font-display text-2xl tabular-nums">
+                        {row.room}
+                      </span>
+                      <span className="text-base text-cream">{row.type}</span>
+                      <Badge
+                        className={
+                          row.status === "new"
+                            ? "bg-amber text-ink"
+                            : row.status === "in_progress"
+                              ? "bg-sage text-ink"
+                              : "bg-cream/15 text-cream"
+                        }
+                      >
+                        {STATUS_LABEL[row.status] ?? row.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-cream/50">
+                      {row.guest_name ? `${row.guest_name} · ` : ""}
+                      <span title={new Date(row.created_at).toLocaleString()}>
+                        {timeAgo(row.created_at)}
+                      </span>
+                    </p>
+                    {row.details ? (
+                      <p className="mt-2 max-w-2xl text-sm text-cream/85">
+                        {row.details}
+                      </p>
+                    ) : null}
                   </div>
-                  <p className="mt-1 text-sm text-cream/60">
-                    Room {row.room}
-                    {row.guest_name ? ` · ${row.guest_name}` : ""} ·{" "}
-                    {new Date(row.created_at).toLocaleString()}
-                  </p>
-                  {row.details ? (
-                    <p className="mt-3 max-w-2xl text-sm">{row.details}</p>
-                  ) : null}
-                </div>
-                {canTriage ? (
-                  <div
-                    className="flex gap-2"
-                    data-tour={row.id === visible[0]?.id ? "triage" : undefined}
-                  >
-                    {STATUSES.filter((status) => status !== row.status).map(
-                      (status) => (
+                  {canTriage ? (
+                    <div
+                      className="flex flex-wrap items-center gap-2"
+                      data-tour={row.id === visible[0]?.id ? "triage" : undefined}
+                    >
+                      {next ? (
+                        <Button
+                          size="sm"
+                          className="bg-amber text-ink hover:bg-amber/90"
+                          onClick={() => setStatus(row.id, next.status)}
+                        >
+                          {next.label}
+                        </Button>
+                      ) : null}
+                      {others.map((status) => (
                         <Button
                           key={status}
                           size="sm"
                           variant="outline"
-                          className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+                          className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
                           onClick={() => setStatus(row.id, status)}
                         >
                           {STATUS_LABEL[status]}
                         </Button>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="signage text-cream/40">View only</p>
-                )}
-
-              </div>
-            </li>
-          ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="signage text-cream/40">View only</p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
+
 
       {isManager ? (
         <div data-tour="team">
