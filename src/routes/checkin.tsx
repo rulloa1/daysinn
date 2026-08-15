@@ -11,8 +11,10 @@ import { guestSignIn } from "@/lib/guest.functions";
 import { writeGuestSession } from "@/lib/guest-session";
 
 export const Route = createFileRoute("/checkin")({
-  validateSearch: (search: Record<string, unknown>): { room?: string } =>
-    typeof search['room'] === "string" ? { room: search['room'] } : {},
+  validateSearch: (search: Record<string, unknown>): { room?: string; t?: string } => ({
+    ...(typeof search['room'] === "string" ? { room: search['room'] } : {}),
+    ...(typeof search['t'] === "string" ? { t: search['t'] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Room Sign-In — Rodeway Hub" },
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/checkin")({
 });
 
 function CheckInPage() {
-  const { room: roomParam } = Route.useSearch();
+  const { room: roomParam, t: tokenParam } = Route.useSearch();
   const navigate = useNavigate();
   const signIn = useServerFn(guestSignIn);
   const [room, setRoom] = useState(roomParam ?? "");
@@ -55,7 +57,11 @@ function CheckInPage() {
     setBusy(true);
     try {
       const result = await signIn({
-        data: { room: room.trim(), lastName: lastName.trim() },
+        data: {
+          room: room.trim(),
+          lastName: lastName.trim(),
+          ...(tokenParam ? { token: tokenParam } : {}),
+        },
       });
       if (!result.ok) {
         toast.error(result.error);
@@ -66,6 +72,7 @@ function CheckInPage() {
         lastName: lastName.trim(),
         guestName: result.guest.guestName,
         checkOut: result.guest.checkOut,
+        expiresAt: result.expiresAt,
       });
       navigate({ to: "/room" });
     } catch {
@@ -141,7 +148,8 @@ function CheckInPage() {
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             Point your camera here to open this page on your phone
-            {roomParam ? ` for room ${roomParam}` : ""}.
+            {roomParam ? ` for room ${roomParam}` : ""}. Room codes handed out
+            at the desk expire and can only be used once.
           </p>
         </section>
       </main>
