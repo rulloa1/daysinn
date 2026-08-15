@@ -74,7 +74,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Guest requests, routed fast. Towels, housekeeping, repairs, and front-desk questions from your room.",
+          "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
     ],
   }),
