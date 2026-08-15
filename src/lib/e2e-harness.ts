@@ -79,12 +79,12 @@ export async function callServerFn<T = unknown>(
       "x-tsr-serverFn": "true",
       ...init.headers,
     },
-    body: JSON.stringify(toJSON({ data }, { plugins: serovalPlugins })),
+    body: JSON.stringify(toJSON({ data })),
   });
   const text = await response.text();
   let body: unknown = text;
   try {
-    body = fromJSON(JSON.parse(text), { plugins: serovalPlugins });
+    body = decode(JSON.parse(text) as SerovalNode);
   } catch {
     /* keep raw text */
   }
