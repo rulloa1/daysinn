@@ -274,6 +274,12 @@ function Dashboard({
       toast.error("You don't have permission to triage requests.");
       return;
     }
+    if (demo) {
+      setRows((prev) =>
+        prev.map((row) => (row.id === id ? { ...row, status } : row)),
+      );
+      return;
+    }
     const previous = rows;
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, status } : row)),
