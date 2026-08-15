@@ -142,6 +142,7 @@ function Board() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
+  const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [loading, setLoading] = useState(true);
   const { canTriage, loading: roleLoading } = useStaffRole();
   const day = today();
