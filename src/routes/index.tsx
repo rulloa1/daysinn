@@ -151,8 +151,9 @@ function GuestView() {
     const parsed = requestSchema.safeParse({ room, guest_name: name, details });
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
-      if (issue.path[0] === "room") setRoomError(issue.message);
-      toast.error(issue.message);
+      const message = issue?.message ?? "Please check your details.";
+      if (issue?.path[0] === "room") setRoomError(message);
+      toast.error(message);
       return;
     }
     setRoomError(null);
