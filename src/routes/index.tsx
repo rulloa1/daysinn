@@ -394,9 +394,19 @@ function GuestView() {
                   value={room}
                   placeholder="Your room number"
                   maxLength={10}
-                  onChange={(event) => setRoom(event.target.value)}
+                  aria-invalid={roomError ? true : undefined}
+                  aria-describedby={roomError ? "room-error" : undefined}
+                  onChange={(event) => {
+                    setRoom(event.target.value);
+                    if (roomError) setRoomError(null);
+                  }}
                   required
                 />
+                {roomError ? (
+                  <p id="room-error" className="text-xs text-destructive">
+                    {roomError}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Name (optional)</Label>
