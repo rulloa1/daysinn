@@ -92,7 +92,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 
 function GuestView() {
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
-  const [room, setRoom] = useState("214");
+  const [room, setRoom] = useState("");
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
