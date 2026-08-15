@@ -15,6 +15,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import roomDusk from "@/assets/room-dusk.jpg";
+import { z } from "zod";
+
+const requestSchema = z.object({
+  room: z
+    .string()
+    .trim()
+    .min(1, { message: "Room number is required." })
+    .max(10, { message: "Room number must be 10 characters or less." }),
+  guest_name: z
+    .string()
+    .trim()
+    .max(80, { message: "Name must be less than 80 characters." }),
+  details: z
+    .string()
+    .trim()
+    .max(1000, { message: "Details must be less than 1000 characters." }),
+});
 
 const MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=28.80252200339344,-82.13464007721517";
@@ -116,6 +133,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function GuestView() {
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
   const [room, setRoom] = useState("");
+  const [roomError, setRoomError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
@@ -130,24 +148,29 @@ function GuestView() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!open) return;
-    const trimmedRoom = room.trim();
-    if (!trimmedRoom || trimmedRoom.length > 10) {
-      toast.error("Add a valid room number.");
+    const parsed = requestSchema.safeParse({ room, guest_name: name, details });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      const message = issue?.message ?? "Please check your details.";
+      if (issue?.path[0] === "room") setRoomError(message);
+      toast.error(message);
       return;
     }
-    if (details.length > 1000 || name.length > 80) {
-      toast.error("That's a little too long — trim it down.");
-      return;
-    }
+    setRoomError(null);
     setSending(true);
     const { error } = await supabase.from("requests").insert({
-      room: trimmedRoom,
-      guest_name: name.trim() || null,
+      room: parsed.data.room,
+      guest_name: parsed.data.guest_name || null,
       type: open.label,
-      details: details.trim() || null,
+      details: parsed.data.details || null,
     });
     setSending(false);
     if (error) {
+      if (error.code === "23514") {
+        setRoomError("Enter a valid room number.");
+        toast.error("Enter a valid room number.");
+        return;
+      }
       toast.error("We couldn't send that. Please call the front desk.");
       return;
     }
@@ -371,9 +394,19 @@ function GuestView() {
                   value={room}
                   placeholder="Your room number"
                   maxLength={10}
-                  onChange={(event) => setRoom(event.target.value)}
+                  aria-invalid={roomError ? true : undefined}
+                  aria-describedby={roomError ? "room-error" : undefined}
+                  onChange={(event) => {
+                    setRoom(event.target.value);
+                    if (roomError) setRoomError(null);
+                  }}
                   required
                 />
+                {roomError ? (
+                  <p id="room-error" className="text-xs text-destructive">
+                    {roomError}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Name (optional)</Label>
