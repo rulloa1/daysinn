@@ -12,6 +12,40 @@ import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { claimFirstManager } from "@/lib/roles.functions";
+import { GuidedTour, type TourStep } from "@/components/guided-tour";
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    title: "The dispatch desk",
+    body: "Every guest request lands here the moment it's submitted — no phone tag, no paper slips. This walkthrough shows how a shift works it.",
+  },
+  {
+    target: "counts",
+    title: "Shift at a glance",
+    body: "New, In progress, and Done update live. A manager can read the floor's workload in one glance from anywhere in the property.",
+  },
+  {
+    target: "filters",
+    title: "Filter the board",
+    body: "Narrow the queue to just what needs attention — usually New during a busy check-in window, Done for an end-of-shift review.",
+  },
+  {
+    target: "queue",
+    title: "The request itself",
+    body: "Room, guest, timestamp, and the guest's own words. Everything the person walking up the stairs needs, without calling the desk back.",
+  },
+  {
+    target: "triage",
+    title: "Triage and status updates",
+    body: "One tap moves a request to In progress — that's the assignment signal to the rest of the team — and another closes it out as Done. The guest view and every other screen update instantly.",
+  },
+  {
+    target: "team",
+    title: "Who can do what",
+    body: "Managers assign roles here: staff can triage requests, viewers watch the board read-only, and only managers can remove records.",
+  },
+];
+
 
 
 type RequestRow = {
@@ -238,6 +272,12 @@ function Dashboard({
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  useEffect(() => {
+    if (demo) setTourOpen(true);
+  }, [demo]);
+
 
 
   useEffect(() => {
@@ -344,6 +384,13 @@ function Dashboard({
           <h1 className="mt-3 text-4xl">Request queue</h1>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setTourOpen(true)}
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            Walkthrough
+          </button>
           <Link
             to="/front-desk"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
@@ -399,7 +446,7 @@ function Dashboard({
 
 
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-3" data-tour="counts">
         {STATUSES.map((status) => (
           <div
             key={status}
@@ -419,7 +466,7 @@ function Dashboard({
         ))}
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-8 flex flex-wrap gap-2" data-tour="filters">
         {["all", ...STATUSES].map((option) => (
           <Button
             key={option}
@@ -442,7 +489,7 @@ function Dashboard({
           Nothing here yet. New guest requests land automatically.
         </p>
       ) : (
-        <ul className="mt-8 space-y-3">
+        <ul className="mt-8 space-y-3" data-tour="queue">
           {visible.map((row) => (
             <li
               key={row.id}
@@ -474,7 +521,10 @@ function Dashboard({
                   ) : null}
                 </div>
                 {canTriage ? (
-                  <div className="flex gap-2">
+                  <div
+                    className="flex gap-2"
+                    data-tour={row.id === visible[0]?.id ? "triage" : undefined}
+                  >
                     {STATUSES.filter((status) => status !== row.status).map(
                       (status) => (
                         <Button
@@ -499,7 +549,21 @@ function Dashboard({
         </ul>
       )}
 
-      {isManager ? <TeamPanel /> : null}
+      {isManager ? (
+        <div data-tour="team">
+          <TeamPanel />
+        </div>
+      ) : null}
+
+      <GuidedTour
+        steps={TOUR_STEPS.filter(
+          (step) =>
+            (step.target !== "team" || isManager) &&
+            (step.target !== "triage" || canTriage),
+        )}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+      />
     </div>
 
   );
