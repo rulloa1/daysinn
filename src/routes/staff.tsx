@@ -205,15 +205,26 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
   );
 }
 
-function Dashboard() {
-  const [rows, setRows] = useState<RequestRow[]>([]);
+function Dashboard({
+  demo = false,
+  onExitDemo,
+}: {
+  demo?: boolean;
+  onExitDemo?: () => void;
+}) {
+  const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
   const [filter, setFilter] = useState<string>("all");
-  const { loading: roleLoading, isManager, canTriage, refresh } = useStaffRole();
+  const role = useStaffRole();
+  const roleLoading = demo ? false : role.loading;
+  const isManager = demo ? false : role.isManager;
+  const canTriage = demo ? true : role.canTriage;
+  const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
 
 
   useEffect(() => {
+    if (demo) return;
     let active = true;
     async function load() {
       const { data, error } = await supabase
@@ -242,7 +253,7 @@ function Dashboard() {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [demo]);
 
   const visible = useMemo(
     () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
