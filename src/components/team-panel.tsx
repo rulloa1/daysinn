@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   listTeam,
   setTeamRole,
+  revokeTeamRole,
   type AppRole,
   type TeamMember,
 } from "@/lib/roles.functions";
