@@ -52,9 +52,49 @@ export const Route = createFileRoute("/staff")({
   component: StaffPage,
 });
 
+const DEMO_ROWS: RequestRow[] = [
+  {
+    id: "demo-1",
+    room: "214",
+    guest_name: "M. Alvarez",
+    type: "Extra towels",
+    details: "Two bath towels, please — no rush.",
+    status: "new",
+    created_at: new Date(Date.now() - 4 * 60000).toISOString(),
+  },
+  {
+    id: "demo-2",
+    room: "118",
+    guest_name: "J. Whitfield",
+    type: "Maintenance",
+    details: "The AC unit is rattling when it kicks on.",
+    status: "new",
+    created_at: new Date(Date.now() - 21 * 60000).toISOString(),
+  },
+  {
+    id: "demo-3",
+    room: "307",
+    guest_name: null,
+    type: "Housekeeping",
+    details: "Room refresh after 2pm if possible.",
+    status: "in_progress",
+    created_at: new Date(Date.now() - 58 * 60000).toISOString(),
+  },
+  {
+    id: "demo-4",
+    room: "102",
+    guest_name: "R. Ulloa",
+    type: "Front desk question",
+    details: "What time does the shuttle run to the airport?",
+    status: "done",
+    created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
+  },
+];
+
 function StaffPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [demo, setDemo] = useState(false);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -75,10 +115,12 @@ function StaffPage() {
     );
   }
 
-  return session ? <Dashboard /> : <SignIn />;
+  if (session) return <Dashboard />;
+  if (demo) return <Dashboard demo onExitDemo={() => setDemo(false)} />;
+  return <SignIn onDemo={() => setDemo(true)} />;
 }
 
-function SignIn() {
+function SignIn({ onDemo }: { onDemo: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -158,20 +200,48 @@ function SignIn() {
             ? "Need a staff account? Create one"
             : "Already have an account? Sign in"}
         </button>
+        <div className="mt-8 border-t border-cream/15 pt-6">
+          <p className="signage flex items-center gap-2 text-cream/50">
+            <span aria-hidden className="h-3 w-[3px] bg-amber" />
+            Presenting?
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+            onClick={onDemo}
+          >
+            Open demo view
+          </Button>
+          <p className="mt-2 text-xs text-cream/40">
+            Sample requests only — no real guest data, nothing is saved.
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
-function Dashboard() {
-  const [rows, setRows] = useState<RequestRow[]>([]);
+function Dashboard({
+  demo = false,
+  onExitDemo,
+}: {
+  demo?: boolean;
+  onExitDemo?: () => void;
+}) {
+  const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
   const [filter, setFilter] = useState<string>("all");
-  const { loading: roleLoading, isManager, canTriage, refresh } = useStaffRole();
+  const role = useStaffRole();
+  const roleLoading = demo ? false : role.loading;
+  const isManager = demo ? false : role.isManager;
+  const canTriage = demo ? true : role.canTriage;
+  const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
 
 
   useEffect(() => {
+    if (demo) return;
     let active = true;
     async function load() {
       const { data, error } = await supabase
@@ -200,7 +270,7 @@ function Dashboard() {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [demo]);
 
   const visible = useMemo(
     () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
@@ -219,6 +289,12 @@ function Dashboard() {
   async function setStatus(id: string, status: string) {
     if (!canTriage) {
       toast.error("You don't have permission to triage requests.");
+      return;
+    }
+    if (demo) {
+      setRows((prev) =>
+        prev.map((row) => (row.id === id ? { ...row, status } : row)),
+      );
       return;
     }
     const previous = rows;
@@ -263,7 +339,7 @@ function Dashboard() {
           <BrandLockup tone="cream" />
           <p className="signage mt-6 flex items-center gap-2 text-cream/60">
             <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            Dispatch desk · Live shift
+            {demo ? "Dispatch desk · Demo shift" : "Dispatch desk · Live shift"}
           </p>
           <h1 className="mt-3 text-4xl">Request queue</h1>
         </div>
@@ -278,14 +354,24 @@ function Dashboard() {
             variant="outline"
             size="sm"
             className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-            onClick={signOut}
+            onClick={demo ? onExitDemo : signOut}
           >
-            Sign out
+            {demo ? "Exit demo" : "Sign out"}
           </Button>
         </div>
       </header>
 
-      {!roleLoading && !canTriage ? (
+      {demo ? (
+        <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
+          <p className="signage text-amber">Demo view</p>
+          <p className="mt-2 max-w-2xl text-sm text-cream/70">
+            Sample requests for presentation only — nothing here is real guest
+            data, and status changes are not saved.
+          </p>
+        </div>
+      ) : null}
+
+      {!demo && !roleLoading && !canTriage ? (
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
           <div>
             <p className="signage text-amber">View-only access</p>
