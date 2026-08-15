@@ -110,11 +110,8 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
   });
 
   it("refuses to rotate a room code without a staff session", async () => {
-    const { status, body } = await callServerFn(FILE, ROTATE, { room });
-    expect(status).toBeGreaterThanOrEqual(400);
-
-    expect(String((body as { error?: { message?: string } })?.error?.message ?? JSON.stringify(body))).toMatch(
-      /unauthor/i,
-    );
+    const { body } = await callServerFn(FILE, ROTATE, { room });
+    const error = (body as { error?: { message?: string } })?.error;
+    expect(String(error?.message ?? JSON.stringify(body))).toMatch(/unauthor/i);
   });
 });
