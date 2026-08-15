@@ -6,6 +6,7 @@ import {
   db,
   e2eReady,
   issueToken,
+  warmApp,
   randomToken,
   tokenRow,
 } from "./e2e-harness";
@@ -27,18 +28,16 @@ async function signIn(data: {
   lastName: string;
   token?: string;
 }) {
-  const { body } = await callServerFn<{ result?: SignInResult } & SignInResult>(
+  const { body } = await callServerFn<{ result?: SignInResult }>(
     FILE,
     SIGN_IN,
     data,
   );
-  return ("result" in body && body.result ? body.result : body) as SignInResult;
+  return (body?.result ?? body) as SignInResult;
 }
 
 beforeAll(async () => {
-  serverUp = await fetch(APP_URL)
-    .then((r) => r.ok)
-    .catch(() => false);
+  serverUp = await warmApp();
   if (!serverUp || !e2eReady) return;
 
   const { body } = await db(
@@ -113,6 +112,9 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
   it("refuses to rotate a room code without a staff session", async () => {
     const { status, body } = await callServerFn(FILE, ROTATE, { room });
     expect(status).toBeGreaterThanOrEqual(400);
-    expect(JSON.stringify(body)).toMatch(/unauthor/i);
+
+    expect(String((body as { error?: { message?: string } })?.error?.message ?? JSON.stringify(body))).toMatch(
+      /unauthor/i,
+    );
   });
 });
