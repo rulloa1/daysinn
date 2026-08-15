@@ -52,6 +52,20 @@ export function TeamPanel() {
     setBusy(null);
   }
 
+  async function revoke(userId: string) {
+    setBusy(userId);
+    try {
+      await revokeRole({ data: { userId } });
+      toast.success("Access revoked.");
+      await load();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Couldn't revoke that role.",
+      );
+    }
+    setBusy(null);
+  }
+
   return (
     <section className="mt-12 border border-cream/15 bg-cream/[0.04] p-6">
       <p className="signage flex items-center gap-2 text-cream/60">
