@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -300,6 +300,8 @@ function HousekeeperLogin({
   );
 }
 
+const ALERTS_KEY = "daysinn.housekeeping.alerts";
+
 function HousekeepingBoard({
   staff,
   onSignOut,
@@ -311,7 +313,17 @@ function HousekeepingBoard({
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [onlyDirty, setOnlyDirty] = useState(false);
+  const [alertsOn, setAlertsOn] = useState(false);
+  const alertsRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
+
+  useEffect(() => {
+    setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
+  }, []);
+
+  useEffect(() => {
+    alertsRef.current = alertsOn;
+  }, [alertsOn]);
 
   useEffect(() => {
     let active = true;
@@ -332,8 +344,36 @@ function HousekeepingBoard({
     void load();
     const channel = supabase
       .channel("housekeeping-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () =>
-        void load(),
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rooms" },
+        (payload) => {
+          if (alertsRef.current && payload.eventType === "UPDATE") {
+            const next = payload.new as Partial<RoomRow>;
+            const prev = (payload.old ?? {}) as Partial<RoomRow>;
+            if (next.dnd && !prev.dnd) {
+              toast.warning(`Room ${next.number} is now Do Not Disturb`, {
+                description: "Skip this room until the flag clears.",
+              });
+            }
+            if (next.extended_stay && !prev.extended_stay) {
+              toast.info(`Room ${next.number} is staying over`, {
+                description: next.check_out
+                  ? `New checkout ${next.check_out}`
+                  : "Service as a stayover, not a checkout.",
+              });
+            } else if (
+              next.extended_stay &&
+              prev.extended_stay &&
+              next.check_out !== prev.check_out
+            ) {
+              toast.info(`Room ${next.number} stayover updated`, {
+                description: next.check_out ? `New checkout ${next.check_out}` : undefined,
+              });
+            }
+          }
+          void load();
+        },
       )
       .subscribe();
 
@@ -342,6 +382,17 @@ function HousekeepingBoard({
       supabase.removeChannel(channel);
     };
   }, []);
+
+  function toggleAlerts() {
+    setAlertsOn((v) => {
+      const next = !v;
+      localStorage.setItem(ALERTS_KEY, next ? "on" : "off");
+      toast[next ? "success" : "message"](
+        next ? "Live alerts on" : "Live alerts off",
+      );
+      return next;
+    });
+  }
 
   const floors = useMemo(() => {
     const pool = onlyDirty ? rooms.filter((r) => r.status === "vacant_dirty") : rooms;
@@ -439,17 +490,29 @@ function HousekeepingBoard({
         <Stat label="Staying over" value={stayovers} />
       </section>
 
-      <button
-        type="button"
-        onClick={() => setOnlyDirty((v) => !v)}
-        className={`signage mt-4 border px-4 py-3 transition-colors duration-200 ${
-          onlyDirty
-            ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
-            : "border-cream/20 text-cream/60"
-        }`}
-      >
-        {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
-      </button>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => setOnlyDirty((v) => !v)}
+          className={`signage border px-4 py-3 transition-colors duration-200 ${
+            onlyDirty
+              ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
+              : "border-cream/20 text-cream/60"
+          }`}
+        >
+          {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
+        </button>
+        <button
+          type="button"
+          onClick={toggleAlerts}
+          aria-pressed={alertsOn}
+          className={`signage border px-4 py-3 transition-colors duration-200 ${
+            alertsOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+          }`}
+        >
+          {alertsOn ? "Live alerts on · DND & stayovers" : "Turn on live alerts"}
+        </button>
+      </div>
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
