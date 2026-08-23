@@ -368,25 +368,41 @@ function HousekeepingBoard({
           if (alertsRef.current && payload.eventType === "UPDATE") {
             const next = payload.new as Partial<RoomRow>;
             const prev = (payload.old ?? {}) as Partial<RoomRow>;
+            const emit = (
+              level: "warning" | "info",
+              title: string,
+              description?: string,
+            ) => {
+              toast[level](title, description ? { description } : undefined);
+              if (pushRef.current) {
+                sendDevicePush(title, description ?? "", `room-${next.number}`);
+              }
+            };
             if (next.dnd && !prev.dnd) {
-              toast.warning(`Room ${next.number} is now Do Not Disturb`, {
-                description: "Skip this room until the flag clears.",
-              });
+              emit(
+                "warning",
+                `Room ${next.number} is now Do Not Disturb`,
+                "Skip this room until the flag clears.",
+              );
             }
             if (next.extended_stay && !prev.extended_stay) {
-              toast.info(`Room ${next.number} is staying over`, {
-                description: next.check_out
+              emit(
+                "info",
+                `Room ${next.number} is staying over`,
+                next.check_out
                   ? `New checkout ${next.check_out}`
                   : "Service as a stayover, not a checkout.",
-              });
+              );
             } else if (
               next.extended_stay &&
               prev.extended_stay &&
               next.check_out !== prev.check_out
             ) {
-              toast.info(`Room ${next.number} stayover updated`, {
-                description: next.check_out ? `New checkout ${next.check_out}` : undefined,
-              });
+              emit(
+                "info",
+                `Room ${next.number} stayover updated`,
+                next.check_out ? `New checkout ${next.check_out}` : undefined,
+              );
             }
           }
           void load();
@@ -410,6 +426,37 @@ function HousekeepingBoard({
       return next;
     });
   }
+
+  async function togglePush() {
+    if (pushOn) {
+      setPushOn(false);
+      localStorage.setItem(PUSH_KEY, "off");
+      toast.message("Device notifications off");
+      return;
+    }
+    const result = await enableDevicePush();
+    if (!result.ok) {
+      toast.error("Can't turn on device notifications", {
+        description: result.reason,
+      });
+      return;
+    }
+    setPushOn(true);
+    localStorage.setItem(PUSH_KEY, "on");
+    if (!alertsRef.current) {
+      setAlertsOn(true);
+      localStorage.setItem(ALERTS_KEY, "on");
+    }
+    toast.success("Device notifications on", {
+      description: "You'll get a phone alert even when this tab is in the background.",
+    });
+    sendDevicePush(
+      "Days Inn housekeeping alerts on",
+      "You'll be notified about DND flags and stayovers.",
+      "hk-test",
+    );
+  }
+
 
   const floors = useMemo(() => {
     const pool = onlyDirty ? rooms.filter((r) => r.status === "vacant_dirty") : rooms;
