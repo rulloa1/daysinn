@@ -15,6 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
 import exteriorAsset from "@/assets/unnamed-2.webp.asset.json";
 import roomAsset from "@/assets/room.webp.asset.json";
