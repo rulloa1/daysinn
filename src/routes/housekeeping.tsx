@@ -679,7 +679,15 @@ function HousekeepingBoard({
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
+      ) : floors.length === 0 ? (
+        <div className="mt-8 border border-cream/15 bg-cream/[0.03] p-6 text-center">
+          <p className="signage text-cream/50">No rooms match</p>
+          <p className="mt-2 text-sm text-cream/60">
+            Clear the search or switch filters to see the rest of the board.
+          </p>
+        </div>
       ) : (
+
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
             <p className="signage flex items-center gap-2 text-cream/50">
