@@ -265,6 +265,13 @@ export type Database = {
             referencedRelation: "requests"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "request_notes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests_board"
+            referencedColumns: ["id"]
+          },
         ]
       }
       requests: {
@@ -421,6 +428,13 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_status_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms_board"
             referencedColumns: ["id"]
           },
           {
@@ -619,10 +633,125 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      requests_board: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          guest_name: string | null
+          id: string | null
+          resolved_at: string | null
+          resolved_by_name: string | null
+          response_seconds: number | null
+          room: string | null
+          started_at: string | null
+          started_by_name: string | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          guest_name?: never
+          id?: string | null
+          resolved_at?: string | null
+          resolved_by_name?: string | null
+          response_seconds?: number | null
+          room?: string | null
+          started_at?: string | null
+          started_by_name?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          guest_name?: never
+          id?: string | null
+          resolved_at?: string | null
+          resolved_by_name?: string | null
+          response_seconds?: number | null
+          room?: string | null
+          started_at?: string | null
+          started_by_name?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rooms_board: {
+        Row: {
+          assigned_at: string | null
+          assigned_name: string | null
+          assigned_staff_id: string | null
+          bed_type: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string | null
+          dnd: boolean | null
+          extended_stay: boolean | null
+          floor: number | null
+          guest_name: string | null
+          id: string | null
+          notes: string | null
+          number: string | null
+          original_check_out: string | null
+          status: Database["public"]["Enums"]["room_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_name?: string | null
+          assigned_staff_id?: string | null
+          bed_type?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string | null
+          dnd?: boolean | null
+          extended_stay?: boolean | null
+          floor?: number | null
+          guest_name?: never
+          id?: string | null
+          notes?: string | null
+          number?: string | null
+          original_check_out?: string | null
+          status?: Database["public"]["Enums"]["room_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_name?: string | null
+          assigned_staff_id?: string | null
+          bed_type?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string | null
+          dnd?: boolean | null
+          extended_stay?: boolean | null
+          floor?: number | null
+          guest_name?: never
+          id?: string | null
+          notes?: string | null
+          number?: string | null
+          original_check_out?: string | null
+          status?: Database["public"]["Enums"]["room_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_assigned_staff_id_fkey"
+            columns: ["assigned_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      mask_guest_name: { Args: { name: string }; Returns: string }
     }
     Enums: {
       app_role: "manager" | "staff" | "viewer"
