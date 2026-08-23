@@ -596,6 +596,50 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_shifts: {
+        Row: {
+          clock_in_at: string
+          clock_out_at: string | null
+          created_at: string
+          department: string
+          duration_seconds: number | null
+          id: string
+          staff_member_id: string
+          staff_name: string
+          updated_at: string
+        }
+        Insert: {
+          clock_in_at?: string
+          clock_out_at?: string | null
+          created_at?: string
+          department?: string
+          duration_seconds?: number | null
+          id?: string
+          staff_member_id: string
+          staff_name: string
+          updated_at?: string
+        }
+        Update: {
+          clock_in_at?: string
+          clock_out_at?: string | null
+          created_at?: string
+          department?: string
+          duration_seconds?: number | null
+          id?: string
+          staff_member_id?: string
+          staff_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shifts_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -665,7 +709,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "manager" | "staff" | "viewer"
+      app_role: "manager" | "staff" | "viewer" | "housekeeper"
       room_status:
         | "occupied"
         | "vacant_clean"
@@ -800,7 +844,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["manager", "staff", "viewer"],
+      app_role: ["manager", "staff", "viewer", "housekeeper"],
       room_status: [
         "occupied",
         "vacant_clean",

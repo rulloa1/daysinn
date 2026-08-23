@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "manager" | "staff" | "viewer";
+export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
 export function useStaffRole() {
   const [roles, setRoles] = useState<AppRole[]>([]);
@@ -25,7 +25,8 @@ export function useStaffRole() {
   }, [refresh]);
 
   const isManager = roles.includes("manager");
-  const canTriage = isManager || roles.includes("staff");
+  const isHousekeeper = roles.includes("housekeeper");
+  const canTriage = isManager || roles.includes("staff") || isHousekeeper;
 
-  return { roles, loading, isManager, canTriage, refresh };
+  return { roles, loading, isManager, isHousekeeper, canTriage, refresh };
 }

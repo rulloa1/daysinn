@@ -12,10 +12,11 @@ import {
 } from "@/lib/roles.functions";
 import { forceStaffPasswordReset } from "@/lib/password-policy.functions";
 
-const ROLES: AppRole[] = ["manager", "staff", "viewer"];
+const ROLES: AppRole[] = ["manager", "staff", "housekeeper", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
   manager: "Manager",
   staff: "Staff",
+  housekeeper: "Housekeeper",
   viewer: "Viewer",
 };
 
