@@ -160,6 +160,7 @@ const STOPS = [
 
 const ROOM_TYPES = [
   {
+    key: "king",
     name: "One King Bed",
     sleeps: "Sleeps 2",
     beds: "1 king bed · 300 sq ft",
@@ -168,6 +169,7 @@ const ROOM_TYPES = [
     alt: "King room with work desk, fridge and microwave",
   },
   {
+    key: "double_queen",
     name: "Two Queen Beds",
     sleeps: "Sleeps 4",
     beds: "2 queen beds · 330 sq ft",
@@ -176,6 +178,7 @@ const ROOM_TYPES = [
     alt: "Guest room with two queen beds",
   },
   {
+    key: "double_queen",
     name: "Hospitality Suite",
     sleeps: "Sleeps 4",
     beds: "1 king bed + sofa · sitting area",
@@ -302,7 +305,17 @@ export const Route = createFileRoute("/")({
   component: GuestView,
 });
 
+type AvailabilityRow = {
+  room_type: string;
+  label: string;
+  beds: string;
+  max_occupancy: number;
+  nightly_rate: number;
+  available_count: number;
+};
+
 function GuestView() {
+
   const [open, setOpen] = useState<
     (typeof REQUESTS)[number] | { id: string; label: string; prompt: string } | null
   >(null);
@@ -315,6 +328,8 @@ function GuestView() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
+  const [availability, setAvailability] = useState<AvailabilityRow[] | null>(null);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -323,14 +338,49 @@ function GuestView() {
     setCheckOut(tomorrow.toISOString().slice(0, 10));
   }, []);
 
-  function checkAvailability(event: React.FormEvent) {
-    event.preventDefault();
+  const nights =
+    checkIn && checkOut
+      ? Math.max(
+          0,
+          Math.round(
+            (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000,
+          ),
+        )
+      : 0;
+
+  function bookingLink(roomType?: string) {
     const url = new URL(BOOKING_URL);
     if (checkIn) url.searchParams.set("checkInDate", checkIn);
     if (checkOut) url.searchParams.set("checkOutDate", checkOut);
     if (guests) url.searchParams.set("adults", guests);
-    window.open(url.toString(), "_blank", "noopener");
+    if (roomType) url.searchParams.set("roomType", roomType);
+    return url.toString();
   }
+
+  async function checkAvailability(event: React.FormEvent) {
+    event.preventDefault();
+    if (!checkIn || !checkOut || nights < 1) {
+      toast.error("Choose a check-out date after your check-in date.");
+      return;
+    }
+    setSearching(true);
+    const { data, error } = await supabase.rpc("check_availability", {
+      _check_in: checkIn,
+      _check_out: checkOut,
+      _guests: Number(guests) || 1,
+    });
+    setSearching(false);
+    if (error) {
+      toast.error("We couldn't check availability. Please call the front desk.");
+      return;
+    }
+    const rows = (data ?? []) as AvailabilityRow[];
+    setAvailability(rows);
+    if (!rows.some((row) => row.available_count > 0)) {
+      toast.info("No rooms open for those dates — try nearby dates or call us.");
+    }
+  }
+
 
 
   async function submit(event: React.FormEvent) {
@@ -559,15 +609,77 @@ function GuestView() {
               </div>
               <Button
                 type="submit"
+                disabled={searching}
                 className="spring-hover mt-auto h-10 rounded-xl bg-accent px-6 font-bold text-accent-foreground shadow-md hover:brightness-105"
               >
-                Check availability
+                {searching ? "Checking…" : "Check availability"}
               </Button>
             </form>
 
+            {availability ? (
+              <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                {availability.length === 0 ? (
+                  <p className="rounded-2xl border border-white/20 bg-white/10 p-4 text-xs text-white/90 backdrop-blur-xl sm:col-span-2">
+                    No room type sleeps {guests} guests. Call the front desk at (352) 748-7766 and
+                    we'll arrange adjoining rooms.
+                  </p>
+                ) : (
+                  availability.map((row) => {
+                    const open = row.available_count > 0;
+                    return (
+                      <div
+                        key={row.room_type}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-xl"
+                      >
+                        <div>
+                          <p className="font-serif text-sm font-bold text-white">{row.label}</p>
+                          <p className="text-[11px] text-slate-200/80">
+                            {open
+                              ? `${row.available_count} room${row.available_count === 1 ? "" : "s"} open · sleeps up to ${row.max_occupancy}`
+                              : "Sold out for these dates"}
+                          </p>
+                          {open ? (
+                            <p className="mt-1 text-xs font-bold text-amber">
+                              From ${Number(row.nightly_rate).toFixed(0)}/night
+                              {nights > 1 ? (
+                                <span className="font-medium text-slate-200/80">
+                                  {" "}
+                                  · ${(Number(row.nightly_rate) * nights).toFixed(0)} for {nights}{" "}
+                                  nights
+                                </span>
+                              ) : null}
+                            </p>
+                          ) : null}
+                        </div>
+                        {open ? (
+                          <a
+                            href={bookingLink(row.room_type)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="spring-hover shrink-0 rounded-xl bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-md"
+                          >
+                            Book ↗
+                          </a>
+                        ) : (
+                          <a
+                            href="tel:+13527487766"
+                            className="shrink-0 rounded-xl border border-white/30 px-4 py-2 text-xs font-bold text-white"
+                          >
+                            Call us
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : null}
+
             <p className="mt-2 text-[11px] text-slate-300/80">
-              Booking opens on the official Wyndham site — best rate guaranteed for members.
+              Live availability from our front desk. Booking completes on the official Wyndham site
+              with your selected dates.
             </p>
+
           </div>
         </section>
 
@@ -579,7 +691,7 @@ function GuestView() {
               <h2 className="font-serif text-xl font-bold text-foreground">Rooms & Sleeping Options</h2>
             </div>
             <a
-              href={BOOKING_URL}
+              href={bookingLink()}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
@@ -614,7 +726,7 @@ function GuestView() {
                     {roomType.body}
                   </p>
                   <a
-                    href={BOOKING_URL}
+                    href={bookingLink(roomType.key)}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
