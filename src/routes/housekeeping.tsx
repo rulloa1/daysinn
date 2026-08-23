@@ -44,6 +44,8 @@ type RoomRow = {
   dnd: boolean;
   extended_stay: boolean;
   updated_at: string;
+  assigned_staff_id: string | null;
+  assigned_name: string | null;
 };
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
