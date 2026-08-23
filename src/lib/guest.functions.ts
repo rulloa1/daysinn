@@ -172,6 +172,15 @@ export const rotateRoomQr = createServerFn({ method: "POST" })
 
     if (error) throw new Error("Could not issue a sign-in code.");
 
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "room_qr_token",
+      action: "issued",
+      actorUserId: context.userId,
+      room: data.room,
+      detail: { expiresAt },
+    });
+
     return { token, expiresAt, ttlMinutes: QR_TTL_MINUTES };
   });
 
@@ -191,6 +200,14 @@ export const revokeRoomQr = createServerFn({ method: "POST" })
       .eq("room", data.room)
       .is("used_at", null)
       .is("revoked_at", null);
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "room_qr_token",
+      action: "revoked",
+      actorUserId: context.userId,
+      room: data.room,
+    });
 
     return { ok: true as const };
   });
