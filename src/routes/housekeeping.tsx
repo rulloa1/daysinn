@@ -101,6 +101,20 @@ const STATUS_TEXT: Record<RoomStatus, string> = {
   out_of_order: "text-status-ooo",
 };
 
+/** One-tap cleaning states a housekeeper can set on their own rooms. */
+const QUICK_STATUS: { status: RoomStatus; label: string; className: string }[] = [
+  { status: "vacant_clean", label: "Clean", className: "bg-status-clean text-ink" },
+  { status: "vacant_dirty", label: "Dirty", className: "bg-status-dirty text-ink" },
+  { status: "occupied_dnd", label: "DND", className: "bg-status-dnd text-ink" },
+  {
+    status: "out_of_order",
+    label: "Out of order",
+    className: "border border-status-ooo/70 text-status-ooo",
+  },
+];
+
+
+
 /** Housekeeping priority: what needs a cart first. */
 const PRIORITY: RoomStatus[] = [
   "vacant_dirty",
