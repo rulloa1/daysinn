@@ -326,6 +326,9 @@ function GuestView() {
           </div>
         </section>
 
+        {/* Map & directions */}
+        <PropertyMap />
+
         {/* Contact */}
         <section className="mt-9 grid gap-3 rounded-3xl bg-card p-6 shadow-sm md:grid-cols-3 md:items-center">
           <a href={MAP_URL} target="_blank" rel="noreferrer" className="block">
