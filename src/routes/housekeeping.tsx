@@ -490,17 +490,29 @@ function HousekeepingBoard({
         <Stat label="Staying over" value={stayovers} />
       </section>
 
-      <button
-        type="button"
-        onClick={() => setOnlyDirty((v) => !v)}
-        className={`signage mt-4 border px-4 py-3 transition-colors duration-200 ${
-          onlyDirty
-            ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
-            : "border-cream/20 text-cream/60"
-        }`}
-      >
-        {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
-      </button>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => setOnlyDirty((v) => !v)}
+          className={`signage border px-4 py-3 transition-colors duration-200 ${
+            onlyDirty
+              ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
+              : "border-cream/20 text-cream/60"
+          }`}
+        >
+          {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
+        </button>
+        <button
+          type="button"
+          onClick={toggleAlerts}
+          aria-pressed={alertsOn}
+          className={`signage border px-4 py-3 transition-colors duration-200 ${
+            alertsOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+          }`}
+        >
+          {alertsOn ? "Live alerts on · DND & stayovers" : "Turn on live alerts"}
+        </button>
+      </div>
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
