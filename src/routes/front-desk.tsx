@@ -230,7 +230,8 @@ function Board() {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
-      ) => ReturnType<typeof supabase.rpc>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) => any;
       const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         rpc("rooms_board")
           .select(
