@@ -383,7 +383,8 @@ function Dashboard({
           resolved_by_name: null,
           response_seconds: null,
         };
-    const patch = { status, ...resolvedPatch };
+    const patch =
+      status === "done" && !resolving ? { status } : { status, ...resolvedPatch };
     const { error } = await supabase
       .from("requests")
       .update(patch)
