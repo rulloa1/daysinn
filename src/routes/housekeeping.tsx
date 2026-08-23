@@ -595,24 +595,49 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <section className="mt-5 grid grid-cols-3 gap-3">
+      <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="To clean" value={toClean} />
+        <Stat label="My rooms left" value={mineLeft} />
         <Stat label="Do not disturb" value={dnd} />
         <Stat label="Staying over" value={stayovers} />
       </section>
 
+      {mine.length ? (
+        <div className="mt-3 border border-cream/15 bg-cream/[0.03] px-4 py-3">
+          <p className="signage text-cream/50">
+            My shift · {mineDone}/{mine.length} done
+          </p>
+          <div className="mt-2 h-1.5 w-full bg-cream/10">
+            <div
+              className="h-full bg-amber transition-all duration-300"
+              style={{ width: `${Math.round((mineDone / mine.length) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => setOnlyDirty((v) => !v)}
-          className={`signage border px-4 py-3 transition-colors duration-200 ${
-            onlyDirty
-              ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
-              : "border-cream/20 text-cream/60"
-          }`}
-        >
-          {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
-        </button>
+        {(
+          [
+            ["all", "All rooms"],
+            ["dirty", "Dirty only"],
+            ["mine", `My rooms (${mine.length})`],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            aria-pressed={filter === key}
+            className={`signage border px-4 py-3 transition-colors duration-200 ${
+              filter === key
+                ? "border-amber bg-amber/15 text-amber"
+                : "border-cream/20 text-cream/60"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
         <button
           type="button"
           onClick={toggleAlerts}
