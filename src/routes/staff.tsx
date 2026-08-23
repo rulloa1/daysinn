@@ -156,11 +156,11 @@ function StaffPage() {
   const navigate = useNavigate({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [demo, setDemo] = useState(demoParam || presentParam);
-  const present = demo && presentParam;
+  const [demo, setDemo] = useState(Boolean(demoParam || presentParam));
+  const present = Boolean(demo && presentParam);
 
   useEffect(() => {
-    setDemo(demoParam || presentParam);
+    setDemo(Boolean(demoParam || presentParam));
   }, [demoParam, presentParam]);
 
   useEffect(() => {
