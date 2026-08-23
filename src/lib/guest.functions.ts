@@ -64,28 +64,51 @@ async function consumeToken(room: string, token: string): Promise<boolean> {
   return Boolean(data);
 }
 
+/** Deliberately identical for wrong room, wrong name, or expired code. */
+const GENERIC_DENIAL =
+  "We couldn't verify that room. Check the room number and the last name on the reservation, or ask the front desk.";
+
 export const guestSignIn = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => signInSchema.parse(input))
   .handler(async ({ data }) => {
-    if (data.token && !(await consumeToken(data.room, data.token))) {
+    const { allowGuestAttempt, recordAudit } = await import("@/lib/audit.server");
+
+    if (!(await allowGuestAttempt("guest_sign_in", data.room))) {
       return {
         ok: false as const,
-        error:
-          "That sign-in code has expired or was already used. Ask the front desk for a fresh one.",
+        error: "Too many sign-in attempts. Please wait a few minutes or see the front desk.",
       };
+    }
+
+    if (data.token && !(await consumeToken(data.room, data.token))) {
+      return { ok: false as const, error: GENERIC_DENIAL };
     }
 
     const guest = await verify(data);
     if (!guest) {
-      return {
-        ok: false as const,
-        error: "We couldn't match that room and last name.",
-      };
+      return { ok: false as const, error: GENERIC_DENIAL };
     }
 
+    // Access dies at checkout, even if the session cookie says otherwise.
+    const checkoutMs = guest.checkOut
+      ? new Date(`${guest.checkOut}T23:59:59Z`).getTime()
+      : null;
+    if (checkoutMs !== null && checkoutMs < Date.now()) {
+      return { ok: false as const, error: GENERIC_DENIAL };
+    }
+
+    const sessionMs = Date.now() + GUEST_SESSION_HOURS * 60 * 60 * 1000;
     const expiresAt = new Date(
-      Date.now() + GUEST_SESSION_HOURS * 60 * 60 * 1000,
+      checkoutMs === null ? sessionMs : Math.min(sessionMs, checkoutMs),
     ).toISOString();
+
+    await allowGuestAttempt("guest_sign_in", data.room, true);
+    await recordAudit({
+      entity: "guest_session",
+      action: "sign_in",
+      room: guest.room,
+      detail: { via: data.token ? "qr" : "manual" },
+    });
 
     return { ok: true as const, guest, expiresAt };
   });
@@ -93,6 +116,11 @@ export const guestSignIn = createServerFn({ method: "POST" })
 export const guestRequests = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => credentialsSchema.parse(input))
   .handler(async ({ data }) => {
+    const { allowGuestAttempt } = await import("@/lib/audit.server");
+    if (!(await allowGuestAttempt("guest_request", data.room))) {
+      return { ok: false as const, requests: [] };
+    }
+
     const guest = await verify(data);
     if (!guest) return { ok: false as const, requests: [] };
 
@@ -106,6 +134,7 @@ export const guestRequests = createServerFn({ method: "POST" })
 
     return { ok: true as const, requests: rows ?? [] };
   });
+
 
 /**
  * Staff-only: revokes every outstanding code for the room and mints a new
