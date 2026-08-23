@@ -195,13 +195,13 @@ function GuestView() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-12">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:px-10">
         <BrandLockup />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link
             to="/checkin"
             search={{}}
-            className="signage rounded-full border border-amber bg-amber/10 px-3 py-1.5 text-ink transition-colors duration-200 hover:bg-amber/20"
+            className="rounded-full bg-ocean px-4 py-2 text-xs font-bold text-cream shadow-sm transition-colors duration-200 hover:bg-ink"
           >
             Sign in to your room
           </Link>
@@ -214,78 +214,61 @@ function GuestView() {
         </div>
       </header>
 
-      <main>
-        <section className="grid gap-6 px-6 pb-8 pt-6 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-10 md:px-12">
-          <div>
-            <Eyebrow>Your digital front desk</Eyebrow>
-            <h1 className="mt-2 max-w-xl text-4xl leading-[1.05] md:text-5xl">
-              Good evening,{" "}
-              <em className="text-amber">make yourself at home.</em>
+      <main className="mx-auto w-full max-w-5xl px-5 pb-14 md:px-8">
+        {/* Hero */}
+        <section className="relative mt-5 h-64 overflow-hidden rounded-3xl shadow-lg md:h-80">
+          <img
+            src={propertyAsset.url}
+            alt="Days Inn Wildwood exterior at dusk with lit walkways"
+            width={1600}
+            height={1067}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 via-ink/25 to-transparent p-6 md:p-8">
+            <p className="signage text-amber">Days Inn Wildwood</p>
+            <h1 className="mt-2 text-3xl text-cream md:text-4xl">
+              Good evening — make yourself at home.
             </h1>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Tell us what you need. We route each request to the right person{" "}
-              <strong className="font-medium text-ink">under 10 min</strong>
-              {today ? ` · Tonight, ${today}` : ""}
+            <p className="mt-2 max-w-lg text-sm text-cream/80">
+              Tell us what you need. We route each request to the right person in
+              under 10 minutes{today ? ` · Tonight, ${today}` : ""}.
             </p>
-
-            <ul className="mt-4 border-y border-border">
-              {REQUESTS.map((request, index) => (
-                <li key={request.id} className="border-b border-border last:border-b-0">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(request)}
-                    className="group flex w-full items-center gap-4 py-2.5 pl-1 text-left transition-colors duration-200 hover:bg-ink/[0.04]"
-                  >
-                    <span className="signage w-8 shrink-0 text-amber tabular-nums">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="flex-1">
-                      <span className="block font-display text-lg leading-tight">
-                        {request.label}
-                      </span>
-                      <span className="block text-xs text-muted-foreground">
-                        {request.blurb}
-                      </span>
-                    </span>
-                    <span className="signage pr-1 text-muted-foreground transition-colors duration-200 group-hover:text-ink">
-                      Route request →
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative hidden overflow-hidden border border-ink/15 md:block">
-            <img
-              src={propertyAsset.url}
-              alt="Days Inn exterior at dusk with lit walkways and open parking lot"
-              width={1600}
-              height={1067}
-              className="h-full w-full object-cover"
-            />
-            <div className="signage absolute bottom-4 left-4 bg-ink px-4 py-2.5 text-cream">
-              Scan. Ask. <span className="text-amber">Stay easy.</span>
-            </div>
           </div>
         </section>
 
+        {/* Quick request actions */}
+        <section className="mt-9">
+          <h2 className="signage mb-4 text-ink-soft">Quick guest services</h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {REQUESTS.map((request) => (
+              <button
+                key={request.id}
+                type="button"
+                onClick={() => setOpen(request)}
+                className="group flex flex-col items-start gap-2 rounded-2xl border-l-4 border-amber bg-card p-4 text-left shadow-sm transition-colors duration-200 hover:bg-ocean"
+              >
+                <span className="font-display text-sm font-semibold leading-snug text-ink group-hover:text-cream">
+                  {request.label}
+                </span>
+                <span className="text-xs text-muted-foreground group-hover:text-cream/75">
+                  {request.blurb}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
 
-        <section className="mx-6 flex flex-wrap items-center gap-8 bg-ink px-6 py-9 text-cream md:mx-12 md:px-12">
-          <span className="font-display text-6xl leading-none text-amber">05</span>
-          <div className="min-w-64 flex-1">
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              Revenue signal
-            </p>
-            <h2 className="mt-3 text-3xl md:text-4xl">
-              Extend your stay by an hour.
-            </h2>
-            <p className="mt-2 max-w-lg text-sm text-cream/70">
+        {/* Late checkout */}
+        <section className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-ink p-6 text-cream shadow-lg">
+          <div>
+            <p className="signage text-amber">Stay longer</p>
+            <h2 className="mt-2 text-2xl text-cream">Extend your stay by an hour.</h2>
+            <p className="mt-1 text-sm text-cream/70">
               Enjoy a slower morning with 1:00 PM checkout, subject to availability.
             </p>
           </div>
           <Button
-            className="bg-amber text-ink hover:bg-amber/90"
+            className="rounded-xl bg-ocean font-bold text-cream hover:bg-amber hover:text-ink"
             onClick={() =>
               setOpen({
                 id: "late-checkout",
@@ -299,44 +282,41 @@ function GuestView() {
           </Button>
         </section>
 
-        <section className="px-6 py-10 md:px-12">
-          <Eyebrow>Nearby, on purpose</Eyebrow>
-          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
-            <h2 className="text-4xl md:text-5xl">Good stops around here.</h2>
+        {/* Nearby stops */}
+        <section className="mt-9">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="signage text-ink-soft">Nearby stops</h2>
             <a
               href={MAP_URL}
               target="_blank"
               rel="noreferrer"
-              className="signage text-ink underline decoration-amber decoration-2 underline-offset-4"
+              className="text-xs font-bold text-ocean underline underline-offset-4"
             >
               Open property map ↗
             </a>
           </div>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            {STOPS.map((stop, index) => (
+          <div className="grid gap-3 md:grid-cols-3">
+            {STOPS.map((stop) => (
               <article
                 key={stop.title}
-                className="border border-border bg-card p-6 transition-colors duration-200 hover:border-amber"
+                className="rounded-2xl bg-card p-5 shadow-sm transition-shadow duration-200 hover:shadow-md"
               >
-                <span className="signage text-amber tabular-nums">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-3 text-xl">{stop.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{stop.body}</p>
+                <h3 className="text-base text-ink">{stop.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{stop.body}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="border-t border-border px-6 py-10 md:px-12">
-          <Eyebrow>The property</Eyebrow>
-          <h2 className="mt-3 text-4xl md:text-5xl">A look around</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Gallery */}
+        <section className="mt-9">
+          <h2 className="signage mb-4 text-ink-soft">Property gallery</h2>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             {GALLERY.map((photo, index) => (
               <figure
                 key={photo.src}
-                className={`group relative overflow-hidden border border-border ${
-                  index === 0 ? "lg:col-span-2 lg:row-span-2" : ""
+                className={`group relative overflow-hidden rounded-2xl ${
+                  index === 0 ? "col-span-2 row-span-2" : ""
                 }`}
               >
                 <img
@@ -344,10 +324,10 @@ function GuestView() {
                   alt={photo.alt}
                   loading="lazy"
                   className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                    index === 0 ? "h-64 lg:h-full lg:min-h-[22rem]" : "h-44"
+                    index === 0 ? "h-52 md:h-full md:min-h-[16.5rem]" : "h-32"
                   }`}
                 />
-                <figcaption className="signage absolute inset-x-0 bottom-0 bg-ink/70 px-3 py-2 text-xs text-background">
+                <figcaption className="absolute inset-x-0 bottom-0 bg-ink/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream">
                   {photo.caption}
                 </figcaption>
               </figure>
@@ -355,62 +335,36 @@ function GuestView() {
           </div>
         </section>
 
-
-        <section className="border-t border-border px-6 py-10 md:px-12">
-          <Eyebrow>Stay connected</Eyebrow>
-          <h2 className="mt-3 text-4xl md:text-5xl">Need a hand?</h2>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <a
-              href={MAP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="border border-border transition-colors duration-200 hover:border-amber"
-            >
-              <img
-                src={propertyAsset.url}
-                alt="Days Inn property exterior and parking lot"
-                width={1600}
-                height={1067}
-                loading="lazy"
-                className="h-36 w-full object-cover"
-              />
-              <span className="signage mt-4 block px-6 text-amber tabular-nums">01</span>
-              <h3 className="mt-3 px-6 text-xl">Find us</h3>
-              <p className="mt-2 px-6 pb-6 text-sm text-muted-foreground">
-                551 East SR 44
-                <br />
-                Wildwood, FL 34785, US
-              </p>
-            </a>
-            <a
-              href="tel:+13527487766"
-              className="border border-border p-6 transition-colors duration-200 hover:border-amber"
-            >
-              <span className="signage text-amber tabular-nums">02</span>
-              <h3 className="mt-3 text-xl">Call the front desk</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                (352) 748-7766
-                <br />
-                We're happy to help.
-              </p>
-            </a>
-            <div className="border border-border p-6">
-              <span className="signage text-amber tabular-nums">03</span>
-              <h3 className="mt-3 text-xl">Wi-Fi access</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Ask the front desk for the current network name and password.
-              </p>
-            </div>
+        {/* Contact */}
+        <section className="mt-9 grid gap-3 rounded-3xl bg-card p-6 shadow-sm md:grid-cols-3 md:items-center">
+          <a href={MAP_URL} target="_blank" rel="noreferrer" className="block">
+            <p className="signage text-ocean">Find us</p>
+            <p className="mt-1.5 text-sm font-bold text-ink">551 East SR 44</p>
+            <p className="text-xs text-muted-foreground">Wildwood, FL 34785, US</p>
+          </a>
+          <div>
+            <p className="signage text-ocean">Wi-Fi access</p>
+            <p className="mt-1.5 text-sm font-bold text-ink">Ask the front desk</p>
+            <p className="text-xs text-muted-foreground">
+              We'll share the current network and password.
+            </p>
           </div>
+          <a
+            href="tel:+13527487766"
+            className="flex items-center justify-center rounded-2xl bg-ocean px-5 py-3 text-sm font-bold text-cream shadow-md transition-colors duration-200 hover:bg-ink"
+          >
+            Call front desk · (352) 748-7766
+          </a>
         </section>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-6 py-6 md:px-12">
+      <footer className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-6 md:px-10">
         <BrandLockup />
         <p className="signage text-muted-foreground">
           Simple stays. Thoughtful service.
         </p>
       </footer>
+
 
       <Dialog open={open !== null} onOpenChange={(next) => !next && setOpen(null)}>
         <DialogContent>
