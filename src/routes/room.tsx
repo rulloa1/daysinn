@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { guestRequests } from "@/lib/guest.functions";
+import { guestSendMessage, guestThread } from "@/lib/guest-hub.functions";
+
+type GuestMessage = {
+  id: string;
+  body: string;
+  sender: string;
+  author_name: string | null;
+  created_at: string;
+};
+
 import {
   clearGuestSession,
   readGuestSession,
