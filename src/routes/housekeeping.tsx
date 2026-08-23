@@ -877,12 +877,17 @@ function HousekeepingBoard({
       ) : (
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
-            <p className="signage flex items-center gap-2 text-cream/50">
-              <span aria-hidden className="h-3 w-[3px] bg-cream/30" />
-              Floor {floor} · {list.length} rooms
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {list.map((room) => (
+            <div className="sticky top-0 z-10 -mx-1 flex items-center gap-3 bg-ink/90 px-1 py-2 backdrop-blur">
+              <span aria-hidden className="h-3 w-[3px] bg-amber" />
+              <p className="signage text-cream/70">Floor {floor}</p>
+              <span className="h-px flex-1 bg-cream/10" />
+              <span className="signage text-[0.65rem] text-cream/40">{list.length} rooms</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+              {list.map((room) => {
+                const mine = room.assigned_staff_id === staff.id;
+                const actionable = !room.assigned_staff_id || mine;
+                return (
                 <div
                   key={room.id}
                   role="button"
@@ -894,19 +899,20 @@ function HousekeepingBoard({
                       setActiveId(room.id);
                     }
                   }}
-                  className={`cursor-pointer border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                  className={`group relative flex h-full cursor-pointer flex-col overflow-hidden border p-3 pl-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                 >
-                  <span className="flex items-center justify-between">
-                    <span className="text-xl">{room.number}</span>
-                    <span
-                      aria-hidden
-                      className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
-                    />
+                  <span
+                    aria-hidden
+                    className={`absolute inset-y-0 left-0 w-[3px] ${STATUS_DOT[room.status]} rounded-none`}
+                  />
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="text-2xl leading-none tracking-tight">{room.number}</span>
+                    <span className={`signage text-right text-[0.6rem] leading-tight ${STATUS_TEXT[room.status]}`}>
+                      {STATUS_LABEL[room.status]}
+                    </span>
                   </span>
-                  <span className={`signage mt-2 block ${STATUS_TEXT[room.status]}`}>
-                    {STATUS_LABEL[room.status]}
-                  </span>
-                  <span className="mt-2 flex flex-wrap gap-1">
+
+                  <span className="mt-2.5 flex min-h-[1.25rem] flex-wrap gap-1">
                     {room.dnd ? (
                       <span className="signage flex items-center gap-1 bg-status-dnd px-1.5 py-0.5 text-[0.6rem] text-ink">
                         <span aria-hidden>⛔</span> DND
@@ -920,28 +926,17 @@ function HousekeepingBoard({
                     {room.assigned_name ? (
                       <span
                         className={`signage px-1.5 py-0.5 text-[0.6rem] ${
-                          room.assigned_staff_id === staff.id
-                            ? "bg-cream text-ink"
-                            : "border border-cream/30 text-cream/60"
+                          mine ? "bg-cream text-ink" : "border border-cream/25 text-cream/55"
                         }`}
                       >
-                        {room.assigned_staff_id === staff.id ? "Mine" : room.assigned_name}
+                        {mine ? "Mine" : room.assigned_name}
                       </span>
                     ) : null}
                   </span>
-                  {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
-                    <span className="mt-3 block space-y-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void setAssignment(room, room.assigned_staff_id !== staff.id);
-                        }}
-                        className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
-                      >
-                        {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
-                      </button>
-                      <span className="grid grid-cols-2 gap-1.5">
+
+                  {actionable ? (
+                    <span className="mt-auto block pt-3">
+                      <span className="grid grid-cols-2 gap-1">
                         {QUICK_STATUS.map((option) => (
                           <button
                             key={option.status}
@@ -951,20 +946,35 @@ function HousekeepingBoard({
                               e.stopPropagation();
                               void setStatus(room, option.status);
                             }}
-                            className={`signage px-2 py-2.5 text-center text-[0.65rem] disabled:opacity-35 ${option.className}`}
+                            className={`signage px-1.5 py-2 text-center text-[0.6rem] transition-opacity disabled:opacity-25 ${option.className}`}
                           >
                             {option.label}
                           </button>
                         ))}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void setAssignment(room, !mine);
+                        }}
+                        className={`signage mt-1 block w-full px-2 py-2 text-center text-[0.6rem] transition-colors ${
+                          mine
+                            ? "border border-cream/25 text-cream/60 hover:text-cream"
+                            : "border border-amber/60 text-amber hover:bg-amber hover:text-ink"
+                        }`}
+                      >
+                        {mine ? "Release" : "Claim room"}
+                      </button>
                     </span>
                   ) : null}
-
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))
+
       )}
 
       <Dialog open={!!active} onOpenChange={(open) => !open && setActiveId(null)}>
