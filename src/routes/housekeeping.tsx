@@ -463,12 +463,15 @@ function HousekeepingBoard({
 
 
   const floors = useMemo(() => {
-    const pool =
+    const base =
       filter === "dirty"
         ? rooms.filter((r) => r.status === "vacant_dirty")
         : filter === "mine"
           ? rooms.filter((r) => r.assigned_staff_id === staff.id)
           : rooms;
+    const q = query.trim().toLowerCase();
+    const pool = q ? base.filter((r) => String(r.number).toLowerCase().includes(q)) : base;
+
     const byFloor = new Map<number, RoomRow[]>();
     for (const room of pool) {
       const list = byFloor.get(room.floor) ?? [];
