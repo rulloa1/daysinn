@@ -415,11 +415,14 @@ function GuestView() {
         </section>
       </main>
 
-      <footer className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-6 md:px-10">
-        <BrandLockup />
-        <p className="signage text-muted-foreground">
-          Simple stays. Thoughtful service.
-        </p>
+      <footer className="mt-4 space-y-4 border-t border-border px-5 py-6 md:px-10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <BrandLockup />
+          <p className="signage text-muted-foreground">
+            Simple stays. Thoughtful service.
+          </p>
+        </div>
+        <FranchiseLegal />
       </footer>
 
 
