@@ -314,6 +314,60 @@ export type Database = {
           },
         ]
       }
+      staff_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_user_id: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          last_send_channel: string | null
+          last_sent_at: string | null
+          name: string
+          role: Database["public"]["Enums"]["app_role"]
+          sent_count: number
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          last_send_channel?: string | null
+          last_sent_at?: string | null
+          name: string
+          role?: Database["public"]["Enums"]["app_role"]
+          sent_count?: number
+          status?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          last_send_channel?: string | null
+          last_sent_at?: string | null
+          name?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          sent_count?: number
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff_members: {
         Row: {
           active: boolean
