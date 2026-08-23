@@ -227,7 +227,7 @@ function Board() {
     let active = true;
 
     async function load() {
-      const rpc = supabase.rpc as unknown as (
+      const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
       ) => ReturnType<typeof supabase.rpc>;
