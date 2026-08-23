@@ -435,57 +435,122 @@ function Dashboard({
 
   return (
     <div className="min-h-screen bg-ink px-6 pb-16 text-cream md:px-12">
-      <header className="sticky top-0 z-20 -mx-6 flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 bg-ink/95 px-6 py-4 backdrop-blur md:-mx-12 md:px-12">
-        <div className="flex items-center gap-5">
+      <header className="sticky top-0 z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/95 px-6 py-4 backdrop-blur md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
+        <div className="flex min-w-0 items-center gap-5">
           <BrandLockup tone="cream" />
           <div className="hidden h-8 w-px bg-cream/15 md:block" />
-          <div className="hidden md:block">
+          <div className="hidden min-w-0 md:block">
             <p className="signage flex items-center gap-2 text-cream/60">
               <span aria-hidden className="h-3 w-[3px] bg-amber" />
               {demo ? "Demo shift" : "Live shift"}
             </p>
-            <h1 className="mt-1 font-display text-2xl leading-none">
+            <h1 className="mt-1 truncate font-display text-2xl leading-none">
               Request queue
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => setTourOpen(true)}
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Walkthrough
-          </button>
-          <Link
-                to="/front-desk"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Front desk
-              </Link>
-              <Link
-                to="/housekeeping"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Housekeeping
-              </Link>
-          <Link
-                to="/"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Guest view
-              </Link>
-          {!present ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-              onClick={demo ? onExitDemo : signOut}
+        <div className="flex shrink-0 items-center gap-4">
+          <nav className="hidden items-center gap-4 md:flex">
+            <button
+              type="button"
+              onClick={() => setTourOpen(true)}
+              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
             >
-              {demo ? "Exit demo" : "Sign out"}
-            </Button>
-          ) : null}
+              Walkthrough
+            </button>
+            <Link
+              to="/front-desk"
+              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+            >
+              Front desk
+            </Link>
+            <Link
+              to="/housekeeping"
+              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+            >
+              Housekeeping
+            </Link>
+            <Link
+              to="/"
+              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+            >
+              Guest view
+            </Link>
+            {!present ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                onClick={demo ? onExitDemo : signOut}
+              >
+                {demo ? "Exit demo" : "Sign out"}
+              </Button>
+            ) : null}
+          </nav>
+
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream">
+              <SheetHeader>
+                <SheetTitle className="text-left text-cream">Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setTourOpen(true);
+                  }}
+                  className="signage w-full rounded-lg border border-cream/15 px-4 py-3 text-left text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                >
+                  Walkthrough
+                </button>
+                <Link
+                  to="/front-desk"
+                  onClick={() => setMenuOpen(false)}
+                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                >
+                  Front desk
+                </Link>
+                <Link
+                  to="/housekeeping"
+                  onClick={() => setMenuOpen(false)}
+                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                >
+                  Housekeeping
+                </Link>
+                <Link
+                  to="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                >
+                  Guest view
+                </Link>
+                {!present ? (
+                  <Button
+                    variant="outline"
+                    className="w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (demo && onExitDemo) onExitDemo();
+                      else signOut();
+                    }}
+                  >
+                    {demo ? "Exit demo" : "Sign out"}
+                  </Button>
+                ) : null}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
