@@ -10,6 +10,7 @@ import {
   type AppRole,
   type TeamMember,
 } from "@/lib/roles.functions";
+import { forceStaffPasswordReset } from "@/lib/password-policy.functions";
 
 const ROLES: AppRole[] = ["manager", "staff", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
@@ -24,6 +25,31 @@ export function TeamPanel() {
   const revokeRole = useServerFn(revokeTeamRole);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const forceReset = useServerFn(forceStaffPasswordReset);
+  const [resetting, setResetting] = useState(false);
+
+  async function forceResetAll() {
+    if (
+      !window.confirm(
+        "Require every team member to set a new password on next sign in? Reset emails go out immediately.",
+      )
+    )
+      return;
+    setResetting(true);
+    try {
+      const result = await forceReset({ data: undefined });
+      toast.success(
+        `${result.flagged} account(s) flagged, ${result.emailed} reset email(s) sent.`,
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Couldn't start the password reset.",
+      );
+    }
+    setResetting(false);
+  }
 
   async function load() {
     try {
@@ -78,6 +104,25 @@ export function TeamPanel() {
         queue; viewers can only watch it. Revoked members keep no access until a
         role is granted again.
       </p>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3 border border-cream/15 bg-ink/40 p-4">
+        <div className="min-w-[14rem] flex-1">
+          <p className="text-sm">Force a password reset</p>
+          <p className="mt-1 text-xs text-cream/55">
+            Flags every account with a role and emails a reset link. Breached
+            and weak passwords are now blocked at sign-up and reset.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={resetting}
+          className="border-amber/60 bg-transparent text-cream hover:bg-amber/15 hover:text-cream"
+          onClick={forceResetAll}
+        >
+          {resetting ? "Working…" : "Reset all staff passwords"}
+        </Button>
+      </div>
 
       <ul className="mt-6 divide-y divide-cream/10">
         {members.map((member) => {
