@@ -456,7 +456,7 @@ function HousekeepingBoard({
       localStorage.setItem(ALERTS_KEY, "on");
     }
 
-    const background = await subscribeWebPush({ id: staff.id, name: staff.name });
+    const background = await subscribeWebPush({ id: staff.id ?? undefined, name: staff.name ?? undefined });
     if (background.ok) {
       toast.success("Device notifications on", {
         description: "Alerts arrive even when this tab is closed.",
