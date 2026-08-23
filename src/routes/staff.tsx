@@ -482,6 +482,15 @@ function Dashboard({
                 >
                   Housekeeping
                 </Link>
+                {isManager ? (
+                  <Link
+                    to="/roles"
+                    onClick={() => setMenuOpen(false)}
+                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                  >
+                    Roles
+                  </Link>
+                ) : null}
                 <Link
                   to="/"
                   onClick={() => setMenuOpen(false)}
