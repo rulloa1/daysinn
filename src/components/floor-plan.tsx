@@ -244,7 +244,8 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
           </div>
         </div>
 
-        <ZoneLabel label="Overflow parking" />
+          <ZoneLabel label="Overflow parking" />
+        </div>
       </div>
     </div>
   );
