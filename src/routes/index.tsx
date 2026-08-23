@@ -229,10 +229,10 @@ function GuestView() {
           </div>
           <div className="relative hidden overflow-hidden border border-ink/15 md:block">
             <img
-              src={roomDusk}
-              alt="Motel room at dusk with warm lamp light and crisp white bedding"
+              src={propertyAsset.url}
+              alt="Days Inn exterior at dusk with lit walkways and open parking lot"
               width={1600}
-              height={1100}
+              height={1067}
               className="h-full w-full object-cover"
             />
             <div className="signage absolute bottom-4 left-4 bg-ink px-4 py-2.5 text-cream">
