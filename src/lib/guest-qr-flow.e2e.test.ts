@@ -80,7 +80,8 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
 
     const replay = await signIn({ room, lastName, token });
     expect(replay.ok).toBe(false);
-    if (!replay.ok) expect(replay.error).toMatch(/expired or was already used/i);
+    // Denials are deliberately generic so a replayed code leaks nothing.
+    if (!replay.ok) expect(replay.error).toMatch(/couldn't verify that room/i);
   });
 
   it("rejects an expired code", async () => {
