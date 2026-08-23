@@ -88,13 +88,21 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
   }
 
   /** In "both" mode each map position stacks the first-floor room over the one above it. */
-  function Tile({ number, size = "md" }: { number: string; size?: "md" | "sm" }) {
-    if (both) {
+  function Tile({
+    number,
+    size = "md",
+    stack = true,
+  }: {
+    number: string;
+    size?: "md" | "sm";
+    stack?: boolean;
+  }) {
+    if (both && number !== "108") {
       const base = Number(number);
       const upstairs = base < 200 ? String(base + 100) : null;
       if (upstairs && byNumber.has(upstairs)) {
         return (
-          <div className="grid gap-[2px]">
+          <div className={`grid gap-[2px] ${stack ? "" : "grid-cols-2"}`}>
             <Slot number={number} size="sm" />
             <Slot number={upstairs} size="sm" />
           </div>
@@ -192,8 +200,8 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                   </div>
                 ) : (
                   <div key={row.left} className="grid grid-cols-2 gap-1">
-                    <Tile number={row.left} size="sm" />
-                    <Tile number={row.right} size="sm" />
+                    <Tile number={row.left} size="sm" stack={false} />
+                    <Tile number={row.right} size="sm" stack={false} />
                   </div>
                 ),
               )}
