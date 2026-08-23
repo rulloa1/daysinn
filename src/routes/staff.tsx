@@ -532,7 +532,7 @@ function Dashboard({
 
 
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3" data-tour="counts">
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
         {STATUSES.map((status) => {
           const active = filter === status;
           return (
@@ -564,7 +564,6 @@ function Dashboard({
 
       <div
         className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4"
-        data-tour="filters"
       >
         <span className="signage mr-1 text-cream/40">Filter</span>
         {["all", ...STATUSES].map((option) => (
@@ -596,7 +595,7 @@ function Dashboard({
           </p>
         </div>
       ) : (
-        <ul className="mt-6 space-y-2" data-tour="queue">
+        <ul className="mt-6 space-y-2">
           {visible.map((row) => {
             const next = NEXT_ACTION[row.status];
             const others = STATUSES.filter(
@@ -645,7 +644,6 @@ function Dashboard({
                   {canTriage ? (
                     <div
                       className="flex flex-wrap items-center gap-2"
-                      data-tour={row.id === visible[0]?.id ? "triage" : undefined}
                     >
                       {next ? (
                         <Button
@@ -687,7 +685,7 @@ function Dashboard({
 
 
       {isManager ? (
-        <div data-tour="team">
+        <div>
           <TeamPanel />
           <InvitePanel />
         </div>
