@@ -18,7 +18,7 @@ import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
 
 const MAP_URL =
-  "https://www.google.com/maps/search/?api=1&query=28.80252200339344,-82.13464007721517";
+  "https://www.google.com/maps/search/?api=1&query=551+FL-44,+Wildwood,+FL+34785";
 
 const REQUESTS = [
   {
