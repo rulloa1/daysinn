@@ -19,40 +19,7 @@ import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
-import { GuidedTour, type TourStep } from "@/components/guided-tour";
 import { Menu } from "lucide-react";
-
-const TOUR_STEPS: TourStep[] = [
-  {
-    title: "The dispatch desk",
-    body: "Every guest request lands here the moment it's submitted — no phone tag, no paper slips. This walkthrough shows how a shift works it.",
-  },
-  {
-    target: "counts",
-    title: "Shift at a glance",
-    body: "New, In progress, and Done update live. A manager can read the floor's workload in one glance from anywhere in the property.",
-  },
-  {
-    target: "filters",
-    title: "Filter the board",
-    body: "Narrow the queue to just what needs attention — usually New during a busy check-in window, Done for an end-of-shift review.",
-  },
-  {
-    target: "queue",
-    title: "The request itself",
-    body: "Room, guest, timestamp, and the guest's own words. Everything the person walking up the stairs needs, without calling the desk back.",
-  },
-  {
-    target: "triage",
-    title: "Triage and status updates",
-    body: "One tap moves a request to In progress — that's the assignment signal to the rest of the team — and another closes it out as Done. The guest view and every other screen update instantly.",
-  },
-  {
-    target: "team",
-    title: "Who can do what",
-    body: "Managers assign roles here: staff can triage requests, viewers watch the board read-only, and only managers can remove records.",
-  },
-];
 
 
 
@@ -332,13 +299,9 @@ function Dashboard({
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
-  const [tourOpen, setTourOpen] = useState(present);
   const [menuOpen, setMenuOpen] = useState(false);
   const { staff } = useStaffIdentity();
 
-  useEffect(() => {
-    if (demo) setTourOpen(true);
-  }, [demo]);
 
 
 
@@ -452,13 +415,6 @@ function Dashboard({
 
         <div className="flex shrink-0 items-center gap-4">
           <nav className="hidden items-center gap-4 md:flex">
-            <button
-              type="button"
-              onClick={() => setTourOpen(true)}
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Walkthrough
-            </button>
             <Link
               to="/front-desk"
               className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
@@ -504,16 +460,6 @@ function Dashboard({
                 <SheetTitle className="text-left text-cream">Menu</SheetTitle>
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setTourOpen(true);
-                  }}
-                  className="signage w-full rounded-lg border border-cream/15 px-4 py-3 text-left text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Walkthrough
-                </button>
                 <Link
                   to="/front-desk"
                   onClick={() => setMenuOpen(false)}
@@ -746,16 +692,6 @@ function Dashboard({
           <InvitePanel />
         </div>
       ) : null}
-
-      <GuidedTour
-        steps={TOUR_STEPS.filter(
-          (step) =>
-            (step.target !== "team" || isManager) &&
-            (step.target !== "triage" || canTriage),
-        )}
-        open={tourOpen}
-        onClose={() => setTourOpen(false)}
-      />
     </div>
 
   );
