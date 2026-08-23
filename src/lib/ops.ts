@@ -12,6 +12,7 @@ export type StaffMember = {
   id: string;
   name: string;
   active: boolean;
+  department?: string;
 };
 
 export type StaffIdentity = { id: string | null; name: string } | null;

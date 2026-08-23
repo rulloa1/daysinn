@@ -22,6 +22,7 @@ export type Database = {
           guest_name: string
           id: string
           notes: string | null
+          original_check_out: string | null
           phone: string | null
           room: string
           updated_at: string
@@ -33,6 +34,7 @@ export type Database = {
           guest_name: string
           id?: string
           notes?: string | null
+          original_check_out?: string | null
           phone?: string | null
           room: string
           updated_at?: string
@@ -44,6 +46,7 @@ export type Database = {
           guest_name?: string
           id?: string
           notes?: string | null
+          original_check_out?: string | null
           phone?: string | null
           room?: string
           updated_at?: string
@@ -205,11 +208,14 @@ export type Database = {
           check_in: string | null
           check_out: string | null
           created_at: string
+          dnd: boolean
+          extended_stay: boolean
           floor: number
           guest_name: string | null
           id: string
           notes: string | null
           number: string
+          original_check_out: string | null
           status: Database["public"]["Enums"]["room_status"]
           updated_at: string
         }
@@ -218,11 +224,14 @@ export type Database = {
           check_in?: string | null
           check_out?: string | null
           created_at?: string
+          dnd?: boolean
+          extended_stay?: boolean
           floor?: number
           guest_name?: string | null
           id?: string
           notes?: string | null
           number: string
+          original_check_out?: string | null
           status?: Database["public"]["Enums"]["room_status"]
           updated_at?: string
         }
@@ -231,11 +240,14 @@ export type Database = {
           check_in?: string | null
           check_out?: string | null
           created_at?: string
+          dnd?: boolean
+          extended_stay?: boolean
           floor?: number
           guest_name?: string | null
           id?: string
           notes?: string | null
           number?: string
+          original_check_out?: string | null
           status?: Database["public"]["Enums"]["room_status"]
           updated_at?: string
         }
@@ -245,6 +257,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          department: string
           id: string
           name: string
           pin: string | null
@@ -253,6 +266,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          department?: string
           id?: string
           name: string
           pin?: string | null
@@ -261,6 +275,7 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          department?: string
           id?: string
           name?: string
           pin?: string | null

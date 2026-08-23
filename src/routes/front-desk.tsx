@@ -428,6 +428,9 @@ function Board() {
           <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Request queue
           </Link>
+          <Link to="/housekeeping" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+            Housekeeping
+          </Link>
           <Link to="/checkin" search={{}} className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Guest sign-in
           </Link>

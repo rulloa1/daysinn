@@ -448,6 +448,12 @@ function Dashboard({
             Front desk
           </Link>
           <Link
+            to="/housekeeping"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            Housekeeping
+          </Link>
+          <Link
             to="/"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
           >
