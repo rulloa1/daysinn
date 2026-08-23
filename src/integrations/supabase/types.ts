@@ -566,35 +566,94 @@ export type Database = {
           created_at: string
           department: string
           id: string
+          is_supervisor: boolean
           name: string
           pin: string | null
           sms_alerts: boolean
           sms_phone: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
           created_at?: string
           department?: string
           id?: string
+          is_supervisor?: boolean
           name: string
           pin?: string | null
           sms_alerts?: boolean
           sms_phone?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
           created_at?: string
           department?: string
           id?: string
+          is_supervisor?: boolean
           name?: string
           pin?: string | null
           sms_alerts?: boolean
           sms_phone?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
+      }
+      staff_schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department: string
+          end_time: string
+          id: string
+          notes: string | null
+          published: boolean
+          staff_member_id: string
+          staff_name: string
+          start_time: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          published?: boolean
+          staff_member_id: string
+          staff_name: string
+          start_time?: string
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          published?: boolean
+          staff_member_id?: string
+          staff_name?: string
+          start_time?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_schedules_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_shifts: {
         Row: {
@@ -666,6 +725,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_staff_member_id: { Args: never; Returns: string }
+      is_supervisor: { Args: never; Returns: boolean }
       mask_guest_name: { Args: { name: string }; Returns: string }
       requests_board: {
         Args: never
