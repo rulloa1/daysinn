@@ -90,8 +90,8 @@ function timeAgo(iso: string) {
 export const Route = createFileRoute("/staff")({
   ssr: false,
   validateSearch: z.object({
-    demo: z.coerce.boolean().default(false),
-    present: z.coerce.boolean().default(false),
+    demo: z.coerce.boolean().optional(),
+    present: z.coerce.boolean().optional(),
   }),
   head: () => ({
     meta: [
