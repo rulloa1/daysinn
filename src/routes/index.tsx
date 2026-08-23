@@ -27,6 +27,26 @@ import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
 import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
 import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
+import {
+  BOOKING_URL,
+  FranchiseDisclaimer,
+  FranchiseLegal,
+} from "@/components/franchise-footer";
+
+const REWARDS = [
+  {
+    title: "Wyndham Rewards® Member Rates",
+    body: "Exclusive member-only pricing when you book direct through Wyndham.",
+  },
+  {
+    title: "10 points per dollar",
+    body: "Earn 10 points per dollar spent or 1,000 points on direct qualifying stays — whichever is more.",
+  },
+  {
+    title: "Free Wi-Fi & Daybreak® breakfast",
+    body: "Complimentary Wi-Fi property-wide plus Daybreak® breakfast, where available.",
+  },
+];
 
 const GALLERY = [
   { src: exteriorAsset.url, alt: "Days Inn Wildwood exterior at dusk", caption: "Front entrance" },
