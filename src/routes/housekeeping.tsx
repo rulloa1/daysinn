@@ -877,24 +877,25 @@ function HousekeepingBoard({
       ) : (
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
-            <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-cream/10 bg-ink/85 px-1 py-2.5 backdrop-blur-xl">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
+            <div className="sticky top-0 z-10 -mx-1 grid grid-cols-[auto_auto_auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-cream/10 bg-ink/85 px-1 py-2.5 backdrop-blur-xl sm:flex sm:flex-wrap">
+              <span aria-hidden className="h-3 w-[3px] shrink-0 bg-amber" />
               <p className="signage text-cream/70">Floor {floor}</p>
               <span className="signage text-[0.65rem] text-cream/40">{list.length} rooms</span>
               <span className="hidden h-px flex-1 bg-cream/10 sm:block" />
-              <span className="flex flex-wrap items-center gap-2">
+              <span className="col-span-4 -mx-1 flex snap-x items-center gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:col-auto sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
                 {(Object.keys(STATUS_LABEL) as RoomStatus[])
                   .map((s) => [s, list.filter((r) => r.status === s).length] as const)
                   .filter(([, n]) => n > 0)
                   .map(([s, n]) => (
-                    <span key={s} className="signage flex items-center gap-1.5 text-[0.6rem] text-cream/55">
+                    <span key={s} className="signage flex shrink-0 items-center gap-1.5 text-[0.6rem] text-cream/55">
                       <span aria-hidden className={`h-2 w-2 rounded-full ${STATUS_DOT[s]}`} />
                       {STATUS_LABEL[s]} {n}
                     </span>
                   ))}
               </span>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+            <div className="mt-3 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+
 
               {list.map((room) => {
                 const mine = room.assigned_staff_id === staff.id;
@@ -911,18 +912,19 @@ function HousekeepingBoard({
                       setActiveId(room.id);
                     }
                   }}
-                  className={`group relative flex h-full cursor-pointer flex-col overflow-hidden border p-3 pl-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
+                  className={`group relative flex h-full min-h-[7.5rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden border p-3.5 pl-4 text-left transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                 >
                   <span
                     aria-hidden
                     className={`absolute inset-y-0 left-0 w-[3px] ${STATUS_DOT[room.status]} rounded-none`}
                   />
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-2xl leading-none tracking-tight">{room.number}</span>
+                    <span className="text-3xl leading-none tracking-tight sm:text-2xl">{room.number}</span>
                     <span className={`signage text-right text-[0.6rem] leading-tight ${STATUS_TEXT[room.status]}`}>
                       {STATUS_LABEL[room.status]}
                     </span>
                   </span>
+
 
                   <span className="mt-2.5 flex min-h-[1.25rem] flex-wrap gap-1">
                     {room.dnd ? (
@@ -948,7 +950,7 @@ function HousekeepingBoard({
 
                   {actionable ? (
                     <span className="mt-auto block pt-3">
-                      <span className="grid grid-cols-2 gap-1">
+                      <span className="grid grid-cols-2 gap-1.5">
                         {QUICK_STATUS.map((option) => (
                           <button
                             key={option.status}
@@ -958,7 +960,7 @@ function HousekeepingBoard({
                               e.stopPropagation();
                               void setStatus(room, option.status);
                             }}
-                            className={`signage px-1.5 py-2 text-center text-[0.6rem] transition-opacity disabled:opacity-25 ${option.className}`}
+                            className={`signage flex min-h-11 touch-manipulation items-center justify-center px-1.5 py-2 text-center text-[0.65rem] transition-opacity disabled:opacity-25 sm:min-h-9 sm:text-[0.6rem] ${option.className}`}
                           >
                             {option.label}
                           </button>
@@ -970,7 +972,7 @@ function HousekeepingBoard({
                           e.stopPropagation();
                           void setAssignment(room, !mine);
                         }}
-                        className={`signage mt-1 block w-full px-2 py-2 text-center text-[0.6rem] transition-colors ${
+                        className={`signage mt-1.5 flex min-h-11 w-full touch-manipulation items-center justify-center px-2 py-2 text-center text-[0.65rem] transition-colors sm:min-h-9 sm:text-[0.6rem] ${
                           mine
                             ? "border border-cream/25 text-cream/60 hover:text-cream"
                             : "border border-amber/60 text-amber hover:bg-amber hover:text-ink"
@@ -978,6 +980,7 @@ function HousekeepingBoard({
                       >
                         {mine ? "Release" : "Claim room"}
                       </button>
+
                     </span>
                   ) : null}
                 </div>
