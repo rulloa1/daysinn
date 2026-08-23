@@ -20,6 +20,7 @@ import {
   type StaffIdentity,
 } from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
+import { MetricsExportButton } from "@/components/metrics-export-button";
 import {
   Dialog,
   DialogContent,
@@ -425,6 +426,7 @@ function Board() {
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <StaffPicker members={members} staff={staff} onSelect={select} onAdd={addMember} />
+          <MetricsExportButton />
           <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Request queue
           </Link>
