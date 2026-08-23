@@ -365,24 +365,25 @@ function Dashboard({
     );
     const row = previous.find((r) => r.id === id);
     const resolving = status === "done" && row?.status !== "done";
-    const patch: Record<string, unknown> = { status };
-    if (resolving) {
-      const now = new Date();
-      patch.resolved_at = now.toISOString();
-      patch.resolved_by_staff_id = staff?.id ?? null;
-      patch.resolved_by_name = staff?.name ?? null;
-      patch.response_seconds = row
-        ? Math.max(
-            0,
-            Math.round((now.getTime() - new Date(row.created_at).getTime()) / 1000),
-          )
-        : null;
-    } else if (status !== "done") {
-      patch.resolved_at = null;
-      patch.resolved_by_staff_id = null;
-      patch.resolved_by_name = null;
-      patch.response_seconds = null;
-    }
+    const resolvedPatch = resolving
+      ? {
+          resolved_at: new Date().toISOString(),
+          resolved_by_staff_id: staff?.id ?? null,
+          resolved_by_name: staff?.name ?? null,
+          response_seconds: row
+            ? Math.max(
+                0,
+                Math.round((Date.now() - new Date(row.created_at).getTime()) / 1000),
+              )
+            : null,
+        }
+      : {
+          resolved_at: null,
+          resolved_by_staff_id: null,
+          resolved_by_name: null,
+          response_seconds: null,
+        };
+    const patch = { status, ...resolvedPatch };
     const { error } = await supabase
       .from("requests")
       .update(patch)
