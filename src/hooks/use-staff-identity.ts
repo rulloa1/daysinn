@@ -35,6 +35,49 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
   }, [STORAGE_KEY]);
 
   const refresh = useCallback(async () => {
+    if (department === "housekeeping") {
+      // Housekeeping roster: always show housekeeping staff, and also include
+      // front-desk staff who are currently assigned to rooms.
+      const [{ data: hk }, { data: assignedRooms }] = await Promise.all([
+        supabase
+          .from("staff_members")
+          .select("id, name, active, department")
+          .eq("active", true)
+          .eq("department", "housekeeping")
+          .order("name"),
+        supabase
+          .from("rooms")
+          .select("assigned_staff_id")
+          .not("assigned_staff_id", "is", null),
+      ]);
+
+      const assignedIds = [
+        ...new Set(
+          (assignedRooms ?? [])
+            .map((r) => r.assigned_staff_id)
+            .filter((id): id is string => !!id),
+        ),
+      ];
+
+      let frontDesk: StaffMember[] = [];
+      if (assignedIds.length > 0) {
+        const { data } = await supabase
+          .from("staff_members")
+          .select("id, name, active, department")
+          .eq("active", true)
+          .eq("department", "front_desk")
+          .in("id", assignedIds)
+          .order("name");
+        frontDesk = (data ?? []) as StaffMember[];
+      }
+
+      const byId = new Map<string, StaffMember>();
+      for (const m of (hk ?? []) as StaffMember[]) byId.set(m.id, m);
+      for (const m of frontDesk) byId.set(m.id, m);
+      setMembers([...byId.values()]);
+      return;
+    }
+
     let query = supabase
       .from("staff_members")
       .select("id, name, active, department")
