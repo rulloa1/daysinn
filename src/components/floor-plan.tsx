@@ -34,8 +34,8 @@ const TILE: Record<RoomStatus, string> = {
 type Props = {
   floor: FloorKey;
   rooms: MapRoom[];
-  openRequests?: Map<string, number>;
-  dimmed?: Set<string>;
+  openRequests?: Map<string, number> | undefined;
+  dimmed?: Set<string> | undefined;
   onSelect: (roomId: string) => void;
 };
 
