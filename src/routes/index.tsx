@@ -207,9 +207,11 @@ function GuestView() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:px-10">
-        <BrandLockup />
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:flex sm:justify-between md:px-10">
+        <div className="min-w-0">
+          <BrandLockup />
+        </div>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <a
             href={BOOKING_URL}
             target="_blank"
@@ -221,18 +223,62 @@ function GuestView() {
           <Link
             to="/checkin"
             search={{}}
-            className="rounded-full bg-ocean px-4 py-2 text-xs font-bold text-cream shadow-sm transition-colors duration-200 hover:bg-ink"
+            className="hidden rounded-full bg-ocean px-4 py-2 text-xs font-bold text-cream shadow-sm transition-colors duration-200 hover:bg-ink sm:inline-flex"
           >
             Sign in to your room
           </Link>
           <Link
             to="/staff"
-            className="signage text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+            className="signage hidden text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline sm:inline-flex"
           >
             Staff
           </Link>
+
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-ink sm:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80vw] max-w-xs">
+              <SheetHeader>
+                <SheetTitle className="text-left">Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-3">
+                <Link
+                  to="/checkin"
+                  search={{}}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full bg-ocean px-4 py-3 text-center text-sm font-bold text-cream"
+                >
+                  Sign in to your room
+                </Link>
+                <a
+                  href={BOOKING_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full bg-amber px-4 py-3 text-center text-sm font-bold text-ink"
+                >
+                  Book now
+                </a>
+                <Link
+                  to="/staff"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
+                >
+                  Staff portal
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
+
 
       <main className="mx-auto w-full max-w-5xl px-5 pb-14 md:px-8">
         {/* Hero */}
