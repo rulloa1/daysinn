@@ -53,14 +53,16 @@ function Consent() {
     let active = true;
     oauth()
       .getAuthorizationDetails(authorization_id)
-      .then(({ data, error }) => {
+      .then((res) => {
         if (!active) return;
+        const error = res.error as { message?: string } | null;
+        const data = res.data as Record<string, unknown> | null;
         if (error) {
-          setError(error.message);
+          setError(error.message ?? "Authorization failed.");
           return;
         }
-        const immediate = data?.redirect_url ?? data?.redirect_to;
-        if (immediate && !data?.client) {
+        const immediate = (data?.["redirect_url"] ?? data?.["redirect_to"]) as string | undefined;
+        if (immediate && !data?.["client"]) {
           window.location.href = immediate;
           return;
         }
@@ -83,15 +85,17 @@ function Consent() {
   async function decide(approve: boolean) {
     setBusy(true);
     setError(null);
-    const { data, error } = approve
+    const res = approve
       ? await oauth().approveAuthorization(authorization_id)
       : await oauth().denyAuthorization(authorization_id);
+    const error = res.error as { message?: string } | null;
+    const data = res.data as Record<string, unknown> | null;
     if (error) {
       setBusy(false);
-      setError(error.message);
+      setError(error.message ?? "Authorization failed.");
       return;
     }
-    const target = data?.redirect_url ?? data?.redirect_to;
+    const target = (data?.["redirect_url"] ?? data?.["redirect_to"]) as string | undefined;
     if (!target) {
       setBusy(false);
       setError("No redirect returned by the authorization server.");
@@ -152,7 +156,8 @@ function Consent() {
 
   if (!details) return shell(<p className="text-sm text-cream/60">Loading request…</p>);
 
-  const clientName = details?.client?.name ?? "an app";
+  const clientName =
+    (details?.["client"] as { name?: string } | undefined)?.name ?? "an app";
   return shell(
     <>
       <h1 className="text-3xl leading-tight">Connect {clientName}</h1>
