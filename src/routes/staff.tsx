@@ -315,8 +315,11 @@ function Dashboard({
     if (demo) return;
     let active = true;
     async function load() {
-      const { data, error } = await supabase
-        .from("requests_board")
+      const rpc = supabase.rpc as unknown as (
+        fn: string,
+        args?: Record<string, unknown>,
+      ) => any;
+      const { data, error } = await rpc("requests_board")
         .select("id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
         .order("created_at", { ascending: false });
       if (!active) return;
