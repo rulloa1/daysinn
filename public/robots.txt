@@ -13,5 +13,5 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://rodewayinn.lovable.app/sitemap.xml
+Sitemap: https://daysinn.lovable.app/sitemap.xml
 
