@@ -699,6 +699,8 @@ function HousekeepingBoard({
         </>
       ) : null}
 
+      <MaintenanceTicketsPanel reporter={staff.name} reporterStaffId={staff.id ?? null} />
+
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />
         <Stat label="My rooms left" value={mineLeft} />
