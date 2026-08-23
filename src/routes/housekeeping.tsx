@@ -101,6 +101,20 @@ const STATUS_TEXT: Record<RoomStatus, string> = {
   out_of_order: "text-status-ooo",
 };
 
+/** One-tap cleaning states a housekeeper can set on their own rooms. */
+const QUICK_STATUS: { status: RoomStatus; label: string; className: string }[] = [
+  { status: "vacant_clean", label: "Clean", className: "bg-status-clean text-ink" },
+  { status: "vacant_dirty", label: "Dirty", className: "bg-status-dirty text-ink" },
+  { status: "occupied_dnd", label: "DND", className: "bg-status-dnd text-ink" },
+  {
+    status: "out_of_order",
+    label: "Out of order",
+    className: "border border-status-ooo/70 text-status-ooo",
+  },
+];
+
+
+
 /** Housekeeping priority: what needs a cart first. */
 const PRIORITY: RoomStatus[] = [
   "vacant_dirty",
@@ -591,23 +605,20 @@ function HousekeepingBoard({
     toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
   }
 
-  async function markClean(room: RoomRow) {
+  /** Quick status change from the housekeeping board. */
+  async function setStatus(room: RoomRow, next: RoomStatus) {
     if (!canTriage) {
       toast.error("A manager needs to grant you staff access first.");
       return;
     }
+    if (room.status === next) return;
     const previous = allRooms;
     setAllRooms((prev) =>
       prev.map((r) =>
-        r.id === room.id
-          ? { ...r, status: "vacant_clean", updated_at: new Date().toISOString() }
-          : r,
+        r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
       ),
     );
-    const { error } = await supabase
-      .from("rooms")
-      .update({ status: "vacant_clean" })
-      .eq("id", room.id);
+    const { error } = await supabase.from("rooms").update({ status: next }).eq("id", room.id);
     if (error) {
       setAllRooms(previous);
       toast.error("Couldn't update that room.");
@@ -617,13 +628,18 @@ function HousekeepingBoard({
       roomId: room.id,
       roomNumber: room.number,
       oldStatus: room.status,
-      newStatus: "vacant_clean",
+      newStatus: next,
       previousChangedAt: room.updated_at,
       staff,
     });
     if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
-    else toast.success(`Room ${room.number} clean · ${staff.name}`);
+    else toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
   }
+
+  async function markClean(room: RoomRow) {
+    await setStatus(room, "vacant_clean");
+  }
+
 
   return (
     <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
@@ -872,32 +888,37 @@ function HousekeepingBoard({
                       </span>
                     ) : null}
                   </span>
-                  {room.status === "vacant_dirty" ? (
+                  {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
                     <span className="mt-3 block space-y-1.5">
-                      {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void setAssignment(room, room.assigned_staff_id !== staff.id);
-                          }}
-                          className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
-                        >
-                          {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
-                        </button>
-                      ) : null}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void markClean(room);
+                          void setAssignment(room, room.assigned_staff_id !== staff.id);
                         }}
-                        className="signage block w-full bg-status-clean px-2 py-3 text-center text-[0.7rem] text-ink"
+                        className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
                       >
-                        Mark clean
+                        {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
                       </button>
+                      <span className="grid grid-cols-2 gap-1.5">
+                        {QUICK_STATUS.map((option) => (
+                          <button
+                            key={option.status}
+                            type="button"
+                            disabled={!canTriage || room.status === option.status}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void setStatus(room, option.status);
+                            }}
+                            className={`signage px-2 py-2.5 text-center text-[0.65rem] disabled:opacity-35 ${option.className}`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </span>
                     </span>
                   ) : null}
+
                 </div>
               ))}
             </div>
@@ -997,22 +1018,31 @@ function HousekeepingBoard({
                 </div>
               ) : null}
 
-              {active.status === "vacant_dirty" ? (
-                <Button
-                  disabled={!canTriage}
-                  onClick={() => {
-                    void markClean(active);
-                    setActiveId(null);
-                  }}
-                  className="h-12 w-full bg-status-clean text-base text-ink hover:bg-status-clean/90"
-                >
-                  Mark clean
-                </Button>
+              {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
+                <div>
+                  <p className="signage text-cream/45">Update cleaning state</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {QUICK_STATUS.map((option) => (
+                      <Button
+                        key={option.status}
+                        disabled={!canTriage || active.status === option.status}
+                        onClick={() => {
+                          void setStatus(active, option.status);
+                          if (option.status === "vacant_clean") setActiveId(null);
+                        }}
+                        className={`h-12 text-base hover:opacity-90 ${option.className}`}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 <p className="text-xs text-cream/45">
-                  Read-only — front desk owns status changes for this room.
+                  Read-only — this room belongs to {active.assigned_name}.
                 </p>
               )}
+
 
               <Button
                 variant="outline"
