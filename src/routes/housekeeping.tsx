@@ -681,7 +681,7 @@ function HousekeepingBoard({
 
 
   return (
-    <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
+    <div className="ops-surface min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
       <header className="border-b border-cream/15 pb-4 sm:pb-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between sm:gap-4">
           <div className="min-w-0">
@@ -877,13 +877,25 @@ function HousekeepingBoard({
       ) : (
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
-            <div className="sticky top-0 z-10 -mx-1 flex items-center gap-3 bg-ink/90 px-1 py-2 backdrop-blur">
+            <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-cream/10 bg-ink/85 px-1 py-2.5 backdrop-blur-xl">
               <span aria-hidden className="h-3 w-[3px] bg-amber" />
               <p className="signage text-cream/70">Floor {floor}</p>
-              <span className="h-px flex-1 bg-cream/10" />
               <span className="signage text-[0.65rem] text-cream/40">{list.length} rooms</span>
+              <span className="hidden h-px flex-1 bg-cream/10 sm:block" />
+              <span className="flex flex-wrap items-center gap-2">
+                {(Object.keys(STATUS_LABEL) as RoomStatus[])
+                  .map((s) => [s, list.filter((r) => r.status === s).length] as const)
+                  .filter(([, n]) => n > 0)
+                  .map(([s, n]) => (
+                    <span key={s} className="signage flex items-center gap-1.5 text-[0.6rem] text-cream/55">
+                      <span aria-hidden className={`h-2 w-2 rounded-full ${STATUS_DOT[s]}`} />
+                      {STATUS_LABEL[s]} {n}
+                    </span>
+                  ))}
+              </span>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+
               {list.map((room) => {
                 const mine = room.assigned_staff_id === staff.id;
                 const actionable = !room.assigned_staff_id || mine;
