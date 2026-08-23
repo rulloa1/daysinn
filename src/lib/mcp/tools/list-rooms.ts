@@ -20,8 +20,8 @@ export default defineTool({
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
 
     const rows = ((data ?? []) as Array<Record<string, unknown>>)
-      .filter((r) => (status ? r.status === status : true))
-      .filter((r) => (floor ? r.floor === floor : true))
+      .filter((r) => (status ? r['status'] === status : true))
+      .filter((r) => (floor ? r['floor'] === floor : true))
       .slice(0, limit);
 
     return {

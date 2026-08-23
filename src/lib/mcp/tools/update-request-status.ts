@@ -18,8 +18,8 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     const now = new Date().toISOString();
     const patch: Record<string, unknown> = { status, updated_at: now };
-    if (status === "in_progress") patch.started_at = now;
-    if (status === "resolved") patch.resolved_at = now;
+    if (status === "in_progress") patch['started_at'] = now;
+    if (status === "resolved") patch['resolved_at'] = now;
 
     const { data, error } = await supabase
       .from("requests")

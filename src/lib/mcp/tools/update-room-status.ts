@@ -19,7 +19,7 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return notAuthenticated();
     const supabase = supabaseForUser(ctx);
     const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
-    if (typeof dnd === "boolean") patch.dnd = dnd;
+    if (typeof dnd === "boolean") patch['dnd'] = dnd;
 
     const { data, error } = await supabase
       .from("rooms")

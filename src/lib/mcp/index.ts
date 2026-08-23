@@ -23,5 +23,5 @@ export default defineMcp({
     listRoomsTool,
     updateRequestStatusTool,
     updateRoomStatusTool,
-  ],
+  ] as Parameters<typeof defineMcp>[0]["tools"],
 });
