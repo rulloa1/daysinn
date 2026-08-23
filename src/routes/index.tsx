@@ -427,8 +427,8 @@ function GuestView() {
           </div>
         </section>
 
-        {/* Late Checkout Glass Card */}
-        <section className="glass-panel relative mt-8 overflow-hidden rounded-3xl border border-primary/20 bg-primary/95 p-7 text-white shadow-xl md:p-9">
+        {/* Late Checkout Luxury Card */}
+        <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-900/30 bg-[#1E3A8A] p-7 text-white shadow-xl md:p-9">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-6">
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/25 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-200 border border-accent/40">
@@ -521,7 +521,7 @@ function GuestView() {
         </section>
 
         {/* Wyndham Rewards Perks */}
-        <section className="glass-panel relative mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-7 text-white shadow-xl md:p-9">
+        <section className="relative mt-10 rounded-3xl border border-slate-800 bg-[#0f172a] p-7 text-white shadow-xl md:p-9">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber">
