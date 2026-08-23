@@ -155,7 +155,7 @@ function StaffPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink text-sm text-cream/60">
+      <div className="ops-surface flex min-h-screen items-center justify-center bg-ink text-sm text-cream/60">
         Loading…
       </div>
     );
@@ -205,7 +205,7 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-ink px-6 py-12 text-cream">
+    <div className="ops-surface flex min-h-screen flex-col items-center justify-center gap-6 bg-ink px-6 py-12 text-cream">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between gap-4">
           <BrandLockup tone="cream" />
@@ -406,8 +406,8 @@ function Dashboard({
   }
 
   return (
-    <div className="min-h-screen bg-ink px-6 pb-16 text-cream md:px-12">
-      <header className="sticky top-0 z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/95 px-6 py-4 backdrop-blur md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
+    <div className="ops-surface min-h-screen bg-ink px-6 pb-16 text-cream md:px-12">
+      <header className="sticky top-0 z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
         <div className="flex min-w-0 items-center gap-5">
           <BrandLockup tone="cream" />
           <div className="hidden h-8 w-px bg-cream/15 md:block" />
