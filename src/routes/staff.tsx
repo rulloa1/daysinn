@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { InvitePanel } from "@/components/invite-panel";
+import { PasswordResetGate } from "@/components/password-reset-gate";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
@@ -167,7 +168,12 @@ function StaffPage() {
     void navigate({ to: "/staff", search: {} });
   };
 
-  if (session) return <Dashboard />;
+  if (session)
+    return (
+      <PasswordResetGate>
+        <Dashboard />
+      </PasswordResetGate>
+    );
   if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} />;
   return <SignIn onDemo={() => setDemo(true)} />;
 }
@@ -310,7 +316,7 @@ function Dashboard({
     let active = true;
     async function load() {
       const { data, error } = await supabase
-        .from("requests")
+        .from("requests_board")
         .select("id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
         .order("created_at", { ascending: false });
       if (!active) return;

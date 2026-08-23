@@ -238,14 +238,14 @@ function Board() {
     async function load() {
       const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         supabase
-          .from("rooms")
+          .from("rooms_board")
           .select(
             "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
           )
 
           .order("number"),
         supabase
-          .from("requests")
+          .from("requests_board")
           .select("id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
           .neq("status", "done")
           .order("created_at", { ascending: false }),
@@ -261,7 +261,7 @@ function Board() {
           .order("changed_at", { ascending: false })
           .limit(500),
         supabase
-          .from("requests")
+          .from("requests_board")
           .select("id, response_seconds")
           .gte("resolved_at", startOfToday()),
       ]);

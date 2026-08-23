@@ -69,3 +69,25 @@ only by `service_role` and `SECURITY DEFINER` functions.
   with no policies — deny-all by design; only `service_role` touches them.
 - Leaked-password protection is disabled at the owner's request so simple staff
   passwords can be set. Re-enable before public launch.
+
+## Password policy (pilot readiness)
+
+- Breached-password protection (HIBP) is enabled on the auth service; weak or
+  known-leaked passwords are rejected at sign-up, reset, and change.
+- Managers can force a fleet-wide reset from Role management → Team access.
+  It flags every account holding a role with `password_reset_required` and
+  emails a reset link. Flagged accounts hit `PasswordResetGate` on `/staff`
+  and cannot reach the board until they set a new password (min 12 chars).
+- Both the force-reset and each completion are written to `audit_events`.
+
+## Guest name masking
+
+- `rooms` and `requests` are readable directly only by staff and managers.
+- Viewers read through `public.rooms_board` / `public.requests_board`, which
+  gate rows on holding any team role and replace `guest_name` with a first
+  initial (e.g. `M. •••`) for anyone who is not staff or manager.
+- These two views are intentionally `security_invoker = off` so the role check
+  and masking cannot be bypassed by the caller; each carries its own explicit
+  role predicate. The Supabase "Security Definer View" lint on them is accepted.
+- Guest access to their own room is unaffected: it runs server-side through
+  verified guest sessions, not through these views.
