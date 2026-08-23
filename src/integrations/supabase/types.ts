@@ -204,6 +204,9 @@ export type Database = {
       }
       rooms: {
         Row: {
+          assigned_at: string | null
+          assigned_name: string | null
+          assigned_staff_id: string | null
           bed_type: string
           check_in: string | null
           check_out: string | null
@@ -220,6 +223,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_name?: string | null
+          assigned_staff_id?: string | null
           bed_type?: string
           check_in?: string | null
           check_out?: string | null
@@ -236,6 +242,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
+          assigned_name?: string | null
+          assigned_staff_id?: string | null
           bed_type?: string
           check_in?: string | null
           check_out?: string | null
@@ -251,7 +260,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["room_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rooms_assigned_staff_id_fkey"
+            columns: ["assigned_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_members: {
         Row: {
