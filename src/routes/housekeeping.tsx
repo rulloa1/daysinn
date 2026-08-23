@@ -14,6 +14,7 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { logRoomStatusChange, type StaffIdentity } from "@/lib/ops";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
+import { PRESENTER_IDENTITY, usePresentationMode } from "@/lib/presentation";
 import {
   enableDevicePush,
   pushPermission,
@@ -143,6 +144,7 @@ function stamp(iso: string) {
 }
 
 function HousekeepingPage() {
+  const presenting = usePresentationMode();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -165,7 +167,7 @@ function HousekeepingPage() {
     );
   }
 
-  if (!session) {
+  if (!session && !presenting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
         <div className="w-full max-w-sm">
@@ -188,14 +190,23 @@ function HousekeepingPage() {
     );
   }
 
-  return <Housekeeping />;
+  return <Housekeeping presenting={presenting} />;
 }
 
-function Housekeeping() {
+function Housekeeping({ presenting }: { presenting: boolean }) {
   const { members, staff, select, addMember } = useStaffIdentity({
     department: "housekeeping",
     storageKey: "daysinn.housekeeping.identity",
   });
+
+  if (!staff && presenting) {
+    return (
+      <HousekeepingBoard
+        staff={PRESENTER_IDENTITY}
+        onSignOut={() => select(null)}
+      />
+    );
+  }
 
   if (!staff) {
     return <HousekeeperLogin members={members} onSelect={select} onAdd={addMember} />;
@@ -625,6 +636,17 @@ function HousekeepingBoard({
               <span className="truncate">Housekeeping · {staff.name}</span>
             </p>
             <h1 className="mt-2 truncate text-2xl sm:text-4xl">Rooms to turn</h1>
+            <nav className="mt-3 flex flex-wrap gap-4">
+              <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Staff queue
+              </Link>
+              <Link to="/front-desk" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Front desk
+              </Link>
+              <Link to="/" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Guest view
+              </Link>
+            </nav>
           </div>
           <button
             type="button"

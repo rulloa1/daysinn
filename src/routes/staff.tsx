@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { readPresentationMode, setPresentationMode } from "@/lib/presentation";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
@@ -167,7 +168,9 @@ function StaffPage() {
   const present = Boolean(demo && presentParam);
 
   useEffect(() => {
-    setDemo(Boolean(demoParam || presentParam));
+    const remembered = readPresentationMode();
+    if (demoParam || presentParam) setPresentationMode(true);
+    setDemo(Boolean(demoParam || presentParam) || remembered);
   }, [demoParam, presentParam]);
 
   useEffect(() => {
@@ -190,6 +193,7 @@ function StaffPage() {
   }
 
   const exitDemo = () => {
+    setPresentationMode(false);
     setDemo(false);
     void navigate({ to: "/staff", search: {} });
   };
@@ -451,9 +455,7 @@ function Dashboard({
           >
             Walkthrough
           </button>
-          {!present ? (
-            <>
-              <Link
+          <Link
                 to="/front-desk"
                 className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
@@ -465,21 +467,21 @@ function Dashboard({
               >
                 Housekeeping
               </Link>
-              <Link
+          <Link
                 to="/"
                 className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
                 Guest view
               </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                onClick={demo ? onExitDemo : signOut}
-              >
-                {demo ? "Exit demo" : "Sign out"}
-              </Button>
-            </>
+          {!present ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+              onClick={demo ? onExitDemo : signOut}
+            >
+              {demo ? "Exit demo" : "Sign out"}
+            </Button>
           ) : null}
         </div>
       </header>
