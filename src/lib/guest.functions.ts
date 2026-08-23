@@ -26,13 +26,12 @@ function lastNameOf(fullName: string): string {
 
 async function verify({ room, lastName }: Credentials) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  const { data } = await supabaseAdmin
     .from("rooms")
     .select("number, guest_name, check_out")
     .eq("number", room)
     .maybeSingle();
 
-  console.error("[verify] result", JSON.stringify({ data, error, lastName }));
   if (!data?.guest_name) return null;
   if (lastNameOf(data.guest_name) !== lastName.trim().toLowerCase()) return null;
 
@@ -85,13 +84,13 @@ export const guestSignIn = createServerFn({ method: "POST" })
 
     if (data.token && !(await consumeToken(data.room, data.token))) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL, dbg: "token" };
+      return { ok: false as const, error: GENERIC_DENIAL };
     }
 
     const guest = await verify(data);
     if (!guest) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL, dbg: "verify" };
+      return { ok: false as const, error: GENERIC_DENIAL };
     }
 
     // Access dies at checkout, even if the session cookie says otherwise.
@@ -100,7 +99,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
       : null;
     if (checkoutMs !== null && checkoutMs < Date.now()) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL, dbg: "checkout" };
+      return { ok: false as const, error: GENERIC_DENIAL };
     }
 
     const sessionMs = Date.now() + GUEST_SESSION_HOURS * 60 * 60 * 1000;

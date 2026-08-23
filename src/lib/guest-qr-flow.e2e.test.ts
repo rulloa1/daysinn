@@ -42,7 +42,7 @@ beforeAll(async () => {
   if (!serverUp || !e2eReady) return;
 
   const { body } = await db(
-    "rooms?guest_name=not.is.null&select=number,guest_name&limit=1",
+    `rooms?guest_name=not.is.null&check_out=gte.${new Date().toISOString().slice(0, 10)}&select=number,guest_name&limit=1`,
   );
   const occupied = (body as Array<{ number: string; guest_name: string }>)[0];
   if (occupied) {
