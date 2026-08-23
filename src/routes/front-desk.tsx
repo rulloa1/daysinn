@@ -715,6 +715,12 @@ function Board() {
         departures={departures}
       />
 
+      <MaintenanceTicketsPanel
+        reporter={staff?.name ?? null}
+        reporterStaffId={staff?.id ?? null}
+        canEdit={canTriage}
+      />
+
       <RoomPanel
         room={activeRoom}
         canEdit={canTriage}
