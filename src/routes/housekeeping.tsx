@@ -311,7 +311,17 @@ function HousekeepingBoard({
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [onlyDirty, setOnlyDirty] = useState(false);
+  const [alertsOn, setAlertsOn] = useState(false);
+  const alertsRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
+
+  useEffect(() => {
+    setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
+  }, []);
+
+  useEffect(() => {
+    alertsRef.current = alertsOn;
+  }, [alertsOn]);
 
   useEffect(() => {
     let active = true;
@@ -332,8 +342,36 @@ function HousekeepingBoard({
     void load();
     const channel = supabase
       .channel("housekeeping-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () =>
-        void load(),
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rooms" },
+        (payload) => {
+          if (alertsRef.current && payload.eventType === "UPDATE") {
+            const next = payload.new as Partial<RoomRow>;
+            const prev = (payload.old ?? {}) as Partial<RoomRow>;
+            if (next.dnd && !prev.dnd) {
+              toast.warning(`Room ${next.number} is now Do Not Disturb`, {
+                description: "Skip this room until the flag clears.",
+              });
+            }
+            if (next.extended_stay && !prev.extended_stay) {
+              toast.info(`Room ${next.number} is staying over`, {
+                description: next.check_out
+                  ? `New checkout ${next.check_out}`
+                  : "Service as a stayover, not a checkout.",
+              });
+            } else if (
+              next.extended_stay &&
+              prev.extended_stay &&
+              next.check_out !== prev.check_out
+            ) {
+              toast.info(`Room ${next.number} stayover updated`, {
+                description: next.check_out ? `New checkout ${next.check_out}` : undefined,
+              });
+            }
+          }
+          void load();
+        },
       )
       .subscribe();
 
@@ -342,6 +380,17 @@ function HousekeepingBoard({
       supabase.removeChannel(channel);
     };
   }, []);
+
+  function toggleAlerts() {
+    setAlertsOn((v) => {
+      const next = !v;
+      localStorage.setItem(ALERTS_KEY, next ? "on" : "off");
+      toast[next ? "success" : "message"](
+        next ? "Live alerts on" : "Live alerts off",
+      );
+      return next;
+    });
+  }
 
   const floors = useMemo(() => {
     const pool = onlyDirty ? rooms.filter((r) => r.status === "vacant_dirty") : rooms;
