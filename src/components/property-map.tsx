@@ -68,7 +68,10 @@ export function PropertyMap() {
               {ADDRESS}
             </address>
             <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-              Conveniently located directly off <strong className="text-foreground">I-75 Exit 329</strong> and Florida&apos;s Turnpike. Easy access to The Villages, local dining, fuel stations, and central Florida attractions.
+              Conveniently located directly off{" "}
+              <strong className="text-foreground">I-75 Exit 329</strong> and Florida&apos;s
+              Turnpike. Easy access to The Villages, local dining, fuel stations, and central
+              Florida attractions.
             </p>
           </div>
 

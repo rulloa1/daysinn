@@ -23,6 +23,7 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 import {
   Dialog,
@@ -637,6 +638,8 @@ function HousekeepingBoard({
         </div>
       </header>
 
+      <PwaInstallPrompt className="mt-4" />
+
       {!roleLoading && !canTriage ? (
         <div className="mt-4 border border-amber/50 bg-amber/10 p-4">
           <p className="signage text-amber">View-only access</p>
@@ -726,7 +729,9 @@ function HousekeepingBoard({
               type="button"
               onClick={() => setViewMode("grid")}
               className={`signage px-3 py-2 transition-colors duration-200 ${
-                viewMode === "grid" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
+                viewMode === "grid"
+                  ? "bg-amber font-bold text-ink"
+                  : "text-cream/60 hover:text-cream"
               }`}
             >
               Grid list
@@ -735,7 +740,9 @@ function HousekeepingBoard({
               type="button"
               onClick={() => setViewMode("map")}
               className={`signage px-3 py-2 transition-colors duration-200 ${
-                viewMode === "map" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
+                viewMode === "map"
+                  ? "bg-amber font-bold text-ink"
+                  : "text-cream/60 hover:text-cream"
               }`}
             >
               Property map
@@ -749,7 +756,9 @@ function HousekeepingBoard({
       ) : viewMode === "map" ? (
         <div className="mt-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="signage text-cream/60">Interactive Property Blueprint ({rooms.length} rooms)</p>
+            <p className="signage text-cream/60">
+              Interactive Property Blueprint ({rooms.length} rooms)
+            </p>
             <div className="flex gap-1.5">
               {(["both", 1, 2] as const).map((f) => (
                 <button
@@ -767,11 +776,7 @@ function HousekeepingBoard({
               ))}
             </div>
           </div>
-          <FloorPlan
-            floor={mapFloor}
-            rooms={rooms}
-            onSelect={(roomId) => setActiveId(roomId)}
-          />
+          <FloorPlan floor={mapFloor} rooms={rooms} onSelect={(roomId) => setActiveId(roomId)} />
         </div>
       ) : floors.length === 0 ? (
         <div className="mt-8 border border-cream/15 bg-cream/[0.03] p-6 text-center">

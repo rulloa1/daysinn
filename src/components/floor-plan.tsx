@@ -9,12 +9,7 @@ import {
 import { Waves, Sparkles, MapPin } from "lucide-react";
 
 type RoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 export type MapRoom = {
   id: string;
@@ -126,7 +121,10 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
     <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white shadow-2xl">
       <div className="min-w-[840px] space-y-3">
         {/* TOP PERIMETER: TRUCK PARKING */}
-        <ZoneLabel label="TRUCK PARKING (FL-44 HIGHWAY FRONTAGE)" className="bg-slate-900/90 text-amber-300 border-amber-500/20" />
+        <ZoneLabel
+          label="TRUCK PARKING (FL-44 HIGHWAY FRONTAGE)"
+          className="bg-slate-900/90 text-amber-300 border-amber-500/20"
+        />
 
         {/* TOP MAIN BUILDING: UPSTAIRS ROOMS + LOBBY/OFFICES + ROOMS 200-208 */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
@@ -314,7 +312,10 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
         {/* BOTTOM PERIMETER: PARKING & TRUCK PARKING */}
         <div className="grid grid-cols-2 gap-2">
           <ZoneLabel label="PARKING (SOUTH GUEST PARKING)" />
-          <ZoneLabel label="TRUCK PARKING (REAR PERIMETER)" className="text-amber-300 border-amber-500/20" />
+          <ZoneLabel
+            label="TRUCK PARKING (REAR PERIMETER)"
+            className="text-amber-300 border-amber-500/20"
+          />
         </div>
       </div>
     </div>

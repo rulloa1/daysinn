@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLockup } from "@/components/brand-lockup";
 import { PropertyMap } from "@/components/property-map";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -380,6 +381,8 @@ function GuestView() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-5 pb-16 md:px-8">
+        <PwaInstallPrompt className="mb-6" />
+
         {/* Hero Section with Liquid Glass Treatment */}
         <section className="glass-hero relative mt-6 h-72 overflow-hidden rounded-3xl border border-white/20 shadow-xl md:h-96">
           <img

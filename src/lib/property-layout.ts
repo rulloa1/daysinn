@@ -11,8 +11,7 @@ export type FloorKey = 1 | 2;
 const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
-  | { kind: "rooms"; left: string; right: string }
-  | { kind: "divider"; label: string };
+  { kind: "rooms"; left: string; right: string } | { kind: "divider"; label: string };
 
 /** West wing: two rooms per row (odd numbers inside/courtyard, even numbers outside/parking). */
 export function westWing(floor: FloorKey): WingRow[] {
@@ -44,8 +43,7 @@ export function southBuilding(floor: FloorKey): { top: string[]; bottom: string[
 }
 
 export type StripCell =
-  | { kind: "room"; number: string }
-  | { kind: "space"; label: string; wide?: boolean };
+  { kind: "room"; number: string } | { kind: "space"; label: string; wide?: boolean };
 
 /** The top block: Lobby, admin offices, breakfast downstairs, and 200-series upstairs. */
 export function frontBlock(floor: FloorKey): {

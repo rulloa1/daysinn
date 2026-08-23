@@ -20,6 +20,7 @@ import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { Menu } from "lucide-react";
 
 type RequestRow = {
@@ -523,6 +524,8 @@ function Dashboard({
           </Sheet>
         </div>
       </header>
+
+      <PwaInstallPrompt className="mt-4" />
 
       {demo ? (
         <div className="mt-8 border border-amber/50 bg-amber/10 p-5">

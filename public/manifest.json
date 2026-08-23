@@ -1,0 +1,68 @@
+{
+  "name": "Days Inn® Wildwood — Operations & Guest Hub",
+  "short_name": "Days Inn Hub",
+  "description": "Digital Front Desk, In-Room Concierge & Housekeeping Operations for Days Inn® by Wyndham Wildwood I-75",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0B1120",
+  "theme_color": "#1E3A8A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Housekeeping Board",
+      "short_name": "Housekeeping",
+      "description": "View assigned room turnovers and mark rooms clean",
+      "url": "/housekeeping",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Front Desk Operations",
+      "short_name": "Front Desk",
+      "description": "Live guest queue, room board, and dispatch operations",
+      "url": "/front-desk",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "In-Room Concierge",
+      "short_name": "Room Concierge",
+      "description": "Request amenities, towels, and chat with front desk",
+      "url": "/room",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Request",
+      "short_name": "Track Status",
+      "description": "Follow room service and maintenance requests in real-time",
+      "url": "/track",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["business", "travel", "productivity"]
+}

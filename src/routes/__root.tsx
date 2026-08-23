@@ -78,7 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#1E3A8A" },
+      { name: "application-name", content: "Days Inn Hub" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Days Inn Hub" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:site_name", content: "Days Inn Hub" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -102,6 +108,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
 
     links: [
+      {
+        rel: "manifest",
+        href: "/manifest.webmanifest",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/icons/apple-touch-icon.png",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -142,6 +156,19 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("[PWA] Service Worker registered with scope:", reg.scope);
+        })
+        .catch((err) => {
+          console.warn("[PWA] Service Worker registration failed:", err);
+        });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -564,45 +564,45 @@ function Board() {
             byFloor.length === 0 ? (
               <p className="text-sm text-cream/50">No rooms match this filter.</p>
             ) : (
-            byFloor.map(([floor, list]) => (
-              <div key={floor} className="mb-8">
-                <p className="signage text-cream/50">
-                  Floor {floor} · {list.length} rooms
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                  {list.map((room) => {
-                    const open = requestsByRoom.get(room.number)?.length ?? 0;
-                    return (
-                      <button
-                        key={room.id}
-                        type="button"
-                        onClick={() => setActiveRoomId(room.id)}
-                        className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-2xl leading-none">{room.number}</span>
-                          <span
-                            aria-hidden
-                            className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
-                          />
-                        </div>
-                        <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
-                          {STATUS_LABEL[room.status]}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-cream/70">
-                          {room.guest_name ?? room.bed_type}
-                        </p>
-                        {open ? (
-                          <p className="signage mt-1 text-amber">
-                            {open} request{open === 1 ? "" : "s"}
+              byFloor.map(([floor, list]) => (
+                <div key={floor} className="mb-8">
+                  <p className="signage text-cream/50">
+                    Floor {floor} · {list.length} rooms
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                    {list.map((room) => {
+                      const open = requestsByRoom.get(room.number)?.length ?? 0;
+                      return (
+                        <button
+                          key={room.id}
+                          type="button"
+                          onClick={() => setActiveRoomId(room.id)}
+                          className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-2xl leading-none">{room.number}</span>
+                            <span
+                              aria-hidden
+                              className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
+                            />
+                          </div>
+                          <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
+                            {STATUS_LABEL[room.status]}
                           </p>
-                        ) : null}
-                      </button>
-                    );
-                  })}
+                          <p className="mt-1 truncate text-xs text-cream/70">
+                            {room.guest_name ?? room.bed_type}
+                          </p>
+                          {open ? (
+                            <p className="signage mt-1 text-amber">
+                              {open} request{open === 1 ? "" : "s"}
+                            </p>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
             )
           ) : null}
         </section>
