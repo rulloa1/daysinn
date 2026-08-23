@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
