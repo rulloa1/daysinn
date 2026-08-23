@@ -748,7 +748,7 @@ function HousekeepingBoard({
                             e.stopPropagation();
                             void setAssignment(room, room.assigned_staff_id !== staff.id);
                           }}
-                          className="signage block w-full border border-cream/25 px-2 py-1.5 text-center text-[0.6rem] text-cream/70"
+                          className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
                         >
                           {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
                         </button>
@@ -759,7 +759,7 @@ function HousekeepingBoard({
                           e.stopPropagation();
                           void markClean(room);
                         }}
-                        className="signage block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
+                        className="signage block w-full bg-status-clean px-2 py-3 text-center text-[0.7rem] text-ink"
                       >
                         Mark clean
                       </button>
