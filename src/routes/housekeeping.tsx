@@ -18,6 +18,8 @@ import {
   pushSupported,
   sendDevicePush,
 } from "@/lib/device-alerts";
+import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push.client";
+
 import {
   Dialog,
   DialogContent,
