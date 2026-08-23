@@ -157,6 +157,24 @@ export type Database = {
           },
         ]
       }
+      internal_secrets: {
+        Row: {
+          name: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          name: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          name?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
