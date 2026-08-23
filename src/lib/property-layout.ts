@@ -15,11 +15,11 @@
 
 export type FloorKey = 1 | 2;
 
-export const lift = (base: number | string, floor: FloorKey) =>
-  String(floor === 2 ? Number(base) + 100 : Number(base));
+const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
-/** Corner room next to the lobby. */
-export const CORNER_ROOM = 101;
+export type WingRow =
+  | { kind: "rooms"; left: string; right: string }
+  | { kind: "divider"; label: string };
 
 /** North wing: [back row (rear parking side), front row (courtyard side)]. */
 export const NORTH_WING_PAIRS: [number, number][] = Array.from(
@@ -49,23 +49,28 @@ export function cornerRoom(floor: FloorKey) {
   return lift(CORNER_ROOM, floor);
 }
 
-/** Every room number on a floor, in walking order from the lobby corner. */
-export function floorRooms(floor: FloorKey): string[] {
-  return [
-    cornerRoom(floor),
-    ...northWing(floor).flatMap(([back, front]) => [back, front]),
-    ...westWing(floor).flatMap(([outer, inner]) => [outer, inner]),
-  ];
-}
+export type StripCell =
+  | { kind: "room"; number: string }
+  | { kind: "space"; label: string; wide?: boolean };
 
-export const ALL_ROOM_NUMBERS = [...floorRooms(1), ...floorRooms(2)];
-
-/** Which wing a room number belongs to. */
-export function wingOf(number: string): "North Wing" | "West Wing" | "Lobby" {
-  const base = Number(number) % 100 === 1 ? 101 : Number(number) > 200 ? Number(number) - 100 : Number(number);
-  if (base === 101) return "Lobby";
-  if (NORTH_WING_PAIRS.some(([a, b]) => a === base || b === base)) return "North Wing";
-  return "West Wing";
+/** The top block: Lobby, admin offices, breakfast downstairs, and 200-series upstairs. */
+export function frontBlock(floor: FloorKey): {
+  upstairsLeft: string[];
+  services: StripCell[];
+  upstairsRight: string[];
+} {
+  return {
+    upstairsLeft: ["201", "203", "205", "207", "209"],
+    services: [
+      { kind: "space", label: "GM Office" },
+      { kind: "space", label: "Kitchen" },
+      { kind: "space", label: "Lobby / Registration", wide: true },
+      { kind: "space", label: "Breakfast", wide: true },
+      { kind: "space", label: "Security" },
+      { kind: "room", number: "108" },
+    ],
+    upstairsRight: ["200", "202", "204", "206", "208"],
+  };
 }
 
 /** Back-of-house spaces at the lobby corner and the end of the west wing. */
