@@ -325,7 +325,7 @@ function Dashboard({
       const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) => any;
       const { data, error } = await rpc("requests_board")
         .select(

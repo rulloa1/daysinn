@@ -18,7 +18,12 @@ export const verifyStaffPin = createServerFn({ method: "POST" })
     if (error || !row || !row.active) {
       return { ok: false as const, reason: "not_found" as const };
     }
-    const success = { ok: true as const, id: row.id, name: row.name, supervisor: row.is_supervisor };
+    const success = {
+      ok: true as const,
+      id: row.id,
+      name: row.name,
+      supervisor: row.is_supervisor,
+    };
 
     // Link this roster record to the signed-in account so row-level rules can
     // tell which rooms belong to this housekeeper.

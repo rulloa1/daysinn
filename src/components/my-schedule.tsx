@@ -61,7 +61,10 @@ export function MySchedule({
         const { data: assigned } = await supabase
           .from("shift_room_assignments")
           .select("schedule_id, room_number")
-          .in("schedule_id", list.map((s) => s.id))
+          .in(
+            "schedule_id",
+            list.map((s) => s.id),
+          )
           .order("room_number");
         if (!active) return;
         const map: Record<string, string[]> = {};
@@ -104,9 +107,7 @@ export function MySchedule({
                     Rooms: {roomsByShift[shift.id]!.join(", ")}
                   </p>
                 ) : null}
-                {shift.notes ? (
-                  <p className="text-[11px] text-cream/50">{shift.notes}</p>
-                ) : null}
+                {shift.notes ? <p className="text-[11px] text-cream/50">{shift.notes}</p> : null}
               </div>
               <p className="text-sm text-cream/70">
                 {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}

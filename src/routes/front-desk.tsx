@@ -72,7 +72,6 @@ type RoomPatch = {
   linen_change?: boolean;
 };
 
-
 type RequestRow = {
   id: string;
   room: string;
@@ -250,7 +249,7 @@ function Board() {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) => any;
       const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         rpc("rooms_board")
@@ -582,68 +581,68 @@ function Board() {
             byFloor.length === 0 ? (
               <p className="text-sm text-cream/50">No rooms match this filter.</p>
             ) : (
-            byFloor.map(([floor, list]) => (
-              <div key={floor} className="mb-8">
-                <p className="signage text-cream/50">
-                  Floor {floor} · {list.length} rooms
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                  {list.map((room) => {
-                    const open = requestsByRoom.get(room.number)?.length ?? 0;
-                    return (
-                      <button
-                        key={room.id}
-                        type="button"
-                        onClick={() => setActiveRoomId(room.id)}
-                        className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-2xl leading-none">{room.number}</span>
-                          <span
-                            aria-hidden
-                            className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
-                          />
-                        </div>
-                        <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
-                          {STATUS_LABEL[room.status]}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-cream/70">
-                          {room.guest_name ?? room.bed_type}
-                        </p>
-                        <p className="mt-1 truncate text-[11px] text-cream/45">
-                          {room.wing ?? wingForRoom(room.number)} ·{" "}
-                          {toGuestStatus({ ...room, status: room.status })}
-                        </p>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {room.priority && room.priority !== "Normal" ? (
+              byFloor.map(([floor, list]) => (
+                <div key={floor} className="mb-8">
+                  <p className="signage text-cream/50">
+                    Floor {floor} · {list.length} rooms
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                    {list.map((room) => {
+                      const open = requestsByRoom.get(room.number)?.length ?? 0;
+                      return (
+                        <button
+                          key={room.id}
+                          type="button"
+                          onClick={() => setActiveRoomId(room.id)}
+                          className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-2xl leading-none">{room.number}</span>
                             <span
-                              className={`signage px-1.5 py-0.5 text-[10px] ${PRIORITY_BADGE[room.priority as PriorityLevel]}`}
-                            >
-                              {room.priority}
-                            </span>
-                          ) : null}
-                          {room.linen_change ? (
-                            <span className="signage bg-cream/12 px-1.5 py-0.5 text-[10px] text-cream/75">
-                              Linen
-                            </span>
-                          ) : null}
-                          {room.hk_stage ? (
-                            <span className="signage bg-amber/20 px-1.5 py-0.5 text-[10px] text-amber">
-                              {room.hk_stage === "in_progress" ? "In progress" : "Inspected"}
-                            </span>
-                          ) : null}
-                        </div>
-                        {open ? (
-                          <p className="signage mt-1 text-amber">
-                            {open} request{open === 1 ? "" : "s"}
+                              aria-hidden
+                              className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
+                            />
+                          </div>
+                          <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
+                            {STATUS_LABEL[room.status]}
                           </p>
-                        ) : null}
-                      </button>
-                    );
-                  })}
+                          <p className="mt-1 truncate text-xs text-cream/70">
+                            {room.guest_name ?? room.bed_type}
+                          </p>
+                          <p className="mt-1 truncate text-[11px] text-cream/45">
+                            {room.wing ?? wingForRoom(room.number)} ·{" "}
+                            {toGuestStatus({ ...room, status: room.status })}
+                          </p>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {room.priority && room.priority !== "Normal" ? (
+                              <span
+                                className={`signage px-1.5 py-0.5 text-[10px] ${PRIORITY_BADGE[room.priority as PriorityLevel]}`}
+                              >
+                                {room.priority}
+                              </span>
+                            ) : null}
+                            {room.linen_change ? (
+                              <span className="signage bg-cream/12 px-1.5 py-0.5 text-[10px] text-cream/75">
+                                Linen
+                              </span>
+                            ) : null}
+                            {room.hk_stage ? (
+                              <span className="signage bg-amber/20 px-1.5 py-0.5 text-[10px] text-amber">
+                                {room.hk_stage === "in_progress" ? "In progress" : "Inspected"}
+                              </span>
+                            ) : null}
+                          </div>
+                          {open ? (
+                            <p className="signage mt-1 text-amber">
+                              {open} request{open === 1 ? "" : "s"}
+                            </p>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
             )
           ) : null}
         </section>
@@ -1002,7 +1001,6 @@ function RoomPanel({
                 Linen change needed
               </label>
             </div>
-
 
             <div className="space-y-3">
               <div>

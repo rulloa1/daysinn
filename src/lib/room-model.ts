@@ -1,19 +1,8 @@
-import type {
-  GuestStatus,
-  PriorityLevel,
-  Room,
-  RoomStatus,
-  WingName,
-} from "@/types/operations";
+import type { GuestStatus, PriorityLevel, Room, RoomStatus, WingName } from "@/types/operations";
 
 /** The room_status enum stored in the database. */
 export type DbRoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 /** Shape returned by `rooms_board()` / `select` on `rooms`. */
 export type DbRoomRow = {

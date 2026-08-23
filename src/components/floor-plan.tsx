@@ -3,12 +3,7 @@ import { cornerRoom, northWing, westWing, type FloorKey } from "@/lib/property-l
 import { Waves, MapPin } from "lucide-react";
 
 type RoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 export type MapRoom = {
   id: string;
@@ -169,80 +164,80 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
             transformOrigin: "top left",
           }}
         >
-        <ZoneLabel
-          label="Rear parking · FL-44 highway frontage"
-          className="border-amber-500/20 bg-slate-900/90 text-amber-300"
-        />
+          <ZoneLabel
+            label="Rear parking · FL-44 highway frontage"
+            className="border-amber-500/20 bg-slate-900/90 text-amber-300"
+          />
 
-        {/* NORTH WING — back row faces the rear parking, front row faces the courtyard */}
-        <div className="flex items-stretch gap-3">
-          <div className="w-[150px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-2">
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              <span>Lobby</span>
-              <span className="flex items-center gap-1 text-rose-400">
-                <MapPin className="h-3 w-3" /> You are here
-              </span>
-            </div>
-            <Space label="Lobby / Registration" className="py-3" />
-            <div className="grid grid-cols-2 gap-1">
-              <Space label="GM Office" />
-              <Space label="Kitchen" />
-            </div>
-            <Tile number={corner} />
-          </div>
-
-          <div className="flex-1 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-            <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              <span>North wing</span>
-              <span className="text-slate-500">Stairs at both ends</span>
-            </div>
-            <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
-              {north.map(([back]) => (
-                <Tile key={back} number={back} />
-              ))}
-            </div>
-            <Strip label="Interior corridor / breezeway" />
-            <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
-              {north.map(([, front]) => (
-                <Tile key={front} number={front} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* WEST WING + COURTYARD */}
-        <div className="flex items-stretch gap-3">
-          <ZoneLabel label="Guest parking" className="w-9 [writing-mode:vertical-rl]" />
-
-          <div className="w-[220px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              West wing
-            </div>
-            {west.map(([outer, inner]) => (
-              <div key={outer} className="grid grid-cols-2 gap-1">
-                <Tile number={outer} />
-                <Tile number={inner} />
+          {/* NORTH WING — back row faces the rear parking, front row faces the courtyard */}
+          <div className="flex items-stretch gap-3">
+            <div className="w-[150px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-2">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Lobby</span>
+                <span className="flex items-center gap-1 text-rose-400">
+                  <MapPin className="h-3 w-3" /> You are here
+                </span>
               </div>
-            ))}
-            <Strip label="Stairs" />
-            <div className="grid grid-cols-2 gap-1">
-              <Space label="Facility" />
-              <Space label="Guest Laundry" />
+              <Space label="Lobby / Registration" className="py-3" />
+              <div className="grid grid-cols-2 gap-1">
+                <Space label="GM Office" />
+                <Space label="Kitchen" />
+              </div>
+              <Tile number={corner} />
             </div>
-            <Space label="Laundry & Storage" />
-          </div>
 
-          <div className="flex flex-1 flex-col gap-2 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
-            <div className="grid h-36 place-items-center rounded-xl border border-cyan-500/30 bg-cyan-500/10">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-cyan-300">
-                <Waves className="h-4 w-4" /> Swim pool
+            <div className="flex-1 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+              <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>North wing</span>
+                <span className="text-slate-500">Stairs at both ends</span>
+              </div>
+              <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
+                {north.map(([back]) => (
+                  <Tile key={back} number={back} />
+                ))}
+              </div>
+              <Strip label="Interior corridor / breezeway" />
+              <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
+                {north.map(([, front]) => (
+                  <Tile key={front} number={front} />
+                ))}
               </div>
             </div>
-            <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-emerald-700/40 py-6 text-[10px] font-black uppercase tracking-widest text-emerald-600/80">
-              Lawn / Courtyard
+          </div>
+
+          {/* WEST WING + COURTYARD */}
+          <div className="flex items-stretch gap-3">
+            <ZoneLabel label="Guest parking" className="w-9 [writing-mode:vertical-rl]" />
+
+            <div className="w-[220px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                West wing
+              </div>
+              {west.map(([outer, inner]) => (
+                <div key={outer} className="grid grid-cols-2 gap-1">
+                  <Tile number={outer} />
+                  <Tile number={inner} />
+                </div>
+              ))}
+              <Strip label="Stairs" />
+              <div className="grid grid-cols-2 gap-1">
+                <Space label="Facility" />
+                <Space label="Guest Laundry" />
+              </div>
+              <Space label="Laundry & Storage" />
+            </div>
+
+            <div className="flex flex-1 flex-col gap-2 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
+              <div className="grid h-36 place-items-center rounded-xl border border-cyan-500/30 bg-cyan-500/10">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-cyan-300">
+                  <Waves className="h-4 w-4" /> Swim pool
+                </div>
+              </div>
+              <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-emerald-700/40 py-6 text-[10px] font-black uppercase tracking-widest text-emerald-600/80">
+                Lawn / Courtyard
+              </div>
             </div>
           </div>
-        </div>
 
           <ZoneLabel label="Overflow parking" />
         </div>

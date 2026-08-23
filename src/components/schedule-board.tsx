@@ -40,7 +40,6 @@ type ShiftRoom = {
   room_number: string;
 };
 
-
 function isoDate(offsetDays = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -98,7 +97,9 @@ export function ScheduleBoard() {
         .order("name"),
       supabase
         .from("staff_schedules")
-        .select("id, staff_member_id, staff_name, department, work_date, start_time, end_time, notes")
+        .select(
+          "id, staff_member_id, staff_name, department, work_date, start_time, end_time, notes",
+        )
         .gte("work_date", days[0]!)
         .lte("work_date", days[6]!)
         .order("work_date")
@@ -132,7 +133,10 @@ export function ScheduleBoard() {
     if (!activeShift) return;
     const existing = activeRooms.find((r) => r.room_number === room.number);
     if (existing) {
-      const { error } = await supabase.from("shift_room_assignments").delete().eq("id", existing.id);
+      const { error } = await supabase
+        .from("shift_room_assignments")
+        .delete()
+        .eq("id", existing.id);
       if (error) {
         toast.error("Couldn't remove that room.");
         return;
@@ -183,7 +187,6 @@ export function ScheduleBoard() {
     toast.success(`${ids.length} room(s) sent to ${activeShift.staff_name}'s board.`);
   }
 
-
   async function addShift() {
     const person = members.find((m) => m.id === memberId);
     if (!person) {
@@ -203,7 +206,9 @@ export function ScheduleBoard() {
     setBusy(false);
     if (error) {
       toast.error(
-        error.code === "23505" ? "That shift is already on the schedule." : "Couldn't save the shift.",
+        error.code === "23505"
+          ? "That shift is already on the schedule."
+          : "Couldn't save the shift.",
       );
       return;
     }
@@ -341,9 +346,7 @@ export function ScheduleBoard() {
                       <li
                         key={shift.id}
                         className={`border p-2 transition ${
-                          active
-                            ? "border-amber bg-amber/15"
-                            : "border-cream/15 bg-cream/[0.04]"
+                          active ? "border-amber bg-amber/15" : "border-cream/15 bg-cream/[0.04]"
                         }`}
                       >
                         <button
@@ -440,7 +443,6 @@ export function ScheduleBoard() {
           </>
         )}
       </div>
-
 
       <div className="mt-8">
         <h3 className="font-display text-lg">Supervisor access</h3>

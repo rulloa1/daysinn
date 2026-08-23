@@ -231,7 +231,6 @@ const FAQS = [
   },
 ];
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -301,7 +300,6 @@ export const Route = createFileRoute("/")({
     ],
   }),
 
-
   component: GuestView,
 });
 
@@ -315,7 +313,6 @@ type AvailabilityRow = {
 };
 
 function GuestView() {
-
   const [open, setOpen] = useState<
     (typeof REQUESTS)[number] | { id: string; label: string; prompt: string } | null
   >(null);
@@ -342,9 +339,7 @@ function GuestView() {
     checkIn && checkOut
       ? Math.max(
           0,
-          Math.round(
-            (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000,
-          ),
+          Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000),
         )
       : 0;
 
@@ -380,8 +375,6 @@ function GuestView() {
       toast.info("No rooms open for those dates — try nearby dates or call us.");
     }
   }
-
-
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -679,7 +672,6 @@ function GuestView() {
               Live availability from our front desk. Booking completes on the official Wyndham site
               with your selected dates.
             </p>
-
           </div>
         </section>
 
@@ -688,7 +680,9 @@ function GuestView() {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="signage text-accent font-bold">Choose Your Room</p>
-              <h2 className="font-serif text-xl font-bold text-foreground">Rooms & Sleeping Options</h2>
+              <h2 className="font-serif text-xl font-bold text-foreground">
+                Rooms & Sleeping Options
+              </h2>
             </div>
             <a
               href={bookingLink()}
@@ -788,7 +782,6 @@ function GuestView() {
             </span>
           </div>
 
-
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
             {REQUESTS.map((request) => {
               const Icon = request.icon;
@@ -846,7 +839,6 @@ function GuestView() {
             </span>
           </div>
         </section>
-
 
         {/* Late Checkout Luxury Card */}
         <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-900/30 bg-[#1E3A8A] p-7 text-white shadow-xl md:p-9">
@@ -947,7 +939,9 @@ function GuestView() {
         <section className="mt-10">
           <div className="mb-4">
             <p className="signage text-accent font-bold">Before You Book</p>
-            <h2 className="font-serif text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+            <h2 className="font-serif text-xl font-bold text-foreground">
+              Frequently Asked Questions
+            </h2>
           </div>
           <div className="grid gap-3.5 md:grid-cols-2">
             {FAQS.map((item) => (
@@ -958,7 +952,6 @@ function GuestView() {
             ))}
           </div>
         </section>
-
 
         {/* Wyndham Rewards Perks */}
         <section className="relative mt-10 rounded-3xl border border-slate-800 bg-[#0f172a] p-7 text-white shadow-xl md:p-9">

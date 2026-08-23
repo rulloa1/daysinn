@@ -8,21 +8,10 @@
  */
 
 export type RoomStatus =
-  | "Clean"
-  | "Dirty"
-  | "In Progress"
-  | "Inspected"
-  | "DND"
-  | "Maintenance"
-  | "Stayover";
+  "Clean" | "Dirty" | "In Progress" | "Inspected" | "DND" | "Maintenance" | "Stayover";
 
 export type GuestStatus =
-  | "Vacant"
-  | "Occupied"
-  | "Checkout"
-  | "Stayover"
-  | "Expected Arrival"
-  | "Out of Order";
+  "Vacant" | "Occupied" | "Checkout" | "Stayover" | "Expected Arrival" | "Out of Order";
 
 export type PriorityLevel = "Normal" | "High" | "VIP";
 

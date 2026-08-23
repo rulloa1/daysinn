@@ -18,8 +18,7 @@ export type FloorKey = 1 | 2;
 const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
-  | { kind: "rooms"; left: string; right: string }
-  | { kind: "divider"; label: string };
+  { kind: "rooms"; left: string; right: string } | { kind: "divider"; label: string };
 
 /** North wing: [back row (rear parking side), front row (courtyard side)]. */
 export const NORTH_WING_PAIRS: [number, number][] = Array.from(
@@ -34,24 +33,21 @@ export const WEST_WING_PAIRS: [number, number][] = Array.from(
 );
 
 export function northWing(floor: FloorKey) {
-  return NORTH_WING_PAIRS.map(
-    ([back, front]) => [lift(back, floor), lift(front, floor)] as const,
-  );
+  return NORTH_WING_PAIRS.map(([back, front]) => [lift(back, floor), lift(front, floor)] as const);
 }
 
 export function westWing(floor: FloorKey) {
-  return WEST_WING_PAIRS.map(
-    ([outer, inner]) => [lift(outer, floor), lift(inner, floor)] as const,
-  );
+  return WEST_WING_PAIRS.map(([outer, inner]) => [lift(outer, floor), lift(inner, floor)] as const);
 }
+
+export const CORNER_ROOM = 101;
 
 export function cornerRoom(floor: FloorKey) {
   return lift(CORNER_ROOM, floor);
 }
 
 export type StripCell =
-  | { kind: "room"; number: string }
-  | { kind: "space"; label: string; wide?: boolean };
+  { kind: "room"; number: string } | { kind: "space"; label: string; wide?: boolean };
 
 /** The top block: Lobby, admin offices, breakfast downstairs, and 200-series upstairs. */
 export function frontBlock(floor: FloorKey): {
