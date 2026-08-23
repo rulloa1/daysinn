@@ -160,6 +160,7 @@ const STOPS = [
 
 const ROOM_TYPES = [
   {
+    key: "king",
     name: "One King Bed",
     sleeps: "Sleeps 2",
     beds: "1 king bed · 300 sq ft",
@@ -168,6 +169,7 @@ const ROOM_TYPES = [
     alt: "King room with work desk, fridge and microwave",
   },
   {
+    key: "double_queen",
     name: "Two Queen Beds",
     sleeps: "Sleeps 4",
     beds: "2 queen beds · 330 sq ft",
@@ -176,6 +178,7 @@ const ROOM_TYPES = [
     alt: "Guest room with two queen beds",
   },
   {
+    key: "double_queen",
     name: "Hospitality Suite",
     sleeps: "Sleeps 4",
     beds: "1 king bed + sofa · sitting area",
@@ -688,7 +691,7 @@ function GuestView() {
               <h2 className="font-serif text-xl font-bold text-foreground">Rooms & Sleeping Options</h2>
             </div>
             <a
-              href={BOOKING_URL}
+              href={bookingLink()}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
@@ -723,7 +726,7 @@ function GuestView() {
                     {roomType.body}
                   </p>
                   <a
-                    href={BOOKING_URL}
+                    href={bookingLink(roomType.key)}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
