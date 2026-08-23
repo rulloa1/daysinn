@@ -12,6 +12,12 @@ import { useStaffRole } from "@/hooks/use-staff-role";
 import { logRoomStatusChange, type StaffIdentity } from "@/lib/ops";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
 import {
+  enableDevicePush,
+  pushPermission,
+  pushSupported,
+  sendDevicePush,
+} from "@/lib/device-alerts";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
