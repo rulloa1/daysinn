@@ -372,6 +372,39 @@ export type Database = {
         }
         Relationships: []
       }
+      room_rates: {
+        Row: {
+          beds: string
+          created_at: string
+          label: string
+          max_occupancy: number
+          nightly_rate: number
+          room_type: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          beds: string
+          created_at?: string
+          label: string
+          max_occupancy: number
+          nightly_rate: number
+          room_type: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          beds?: string
+          created_at?: string
+          label?: string
+          max_occupancy?: number
+          nightly_rate?: number
+          room_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       room_status_events: {
         Row: {
           changed_at: string
@@ -783,6 +816,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_availability: {
+        Args: { _check_in: string; _check_out: string; _guests?: number }
+        Returns: {
+          available_count: number
+          beds: string
+          label: string
+          max_occupancy: number
+          nightly_rate: number
+          room_type: string
+        }[]
+      }
       current_staff_member_id: { Args: never; Returns: string }
       is_supervisor: { Args: never; Returns: boolean }
       mask_guest_name: { Args: { name: string }; Returns: string }
@@ -804,6 +848,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      room_type_key: { Args: { _bed_type: string }; Returns: string }
       rooms_board: {
         Args: never
         Returns: {
