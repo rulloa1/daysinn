@@ -912,18 +912,19 @@ function HousekeepingBoard({
                       setActiveId(room.id);
                     }
                   }}
-                  className={`group relative flex h-full cursor-pointer flex-col overflow-hidden border p-3 pl-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
+                  className={`group relative flex h-full min-h-[7.5rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden border p-3.5 pl-4 text-left transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                 >
                   <span
                     aria-hidden
                     className={`absolute inset-y-0 left-0 w-[3px] ${STATUS_DOT[room.status]} rounded-none`}
                   />
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-2xl leading-none tracking-tight">{room.number}</span>
+                    <span className="text-3xl leading-none tracking-tight sm:text-2xl">{room.number}</span>
                     <span className={`signage text-right text-[0.6rem] leading-tight ${STATUS_TEXT[room.status]}`}>
                       {STATUS_LABEL[room.status]}
                     </span>
                   </span>
+
 
                   <span className="mt-2.5 flex min-h-[1.25rem] flex-wrap gap-1">
                     {room.dnd ? (
