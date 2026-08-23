@@ -113,7 +113,7 @@ function RoomHub() {
       }),
   });
 
-  const messages = thread.data?.messages ?? [];
+  const messages = (thread.data?.messages ?? []) as GuestMessage[];
 
   async function sendChat(event: React.FormEvent) {
     event.preventDefault();
