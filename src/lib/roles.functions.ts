@@ -64,6 +64,16 @@ export const setTeamRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .insert({ user_id: data.userId, role: data.role });
     if (error) throw error;
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "user_role",
+      entityId: data.userId,
+      action: "granted",
+      actorUserId: context.userId,
+      detail: { role: data.role },
+    });
+
     return { ok: true };
   });
 
@@ -90,6 +100,15 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
       .delete()
       .eq("user_id", data.userId);
     if (error) throw error;
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "user_role",
+      entityId: data.userId,
+      action: "revoked",
+      actorUserId: context.userId,
+    });
+
     return { ok: true };
   });
 
