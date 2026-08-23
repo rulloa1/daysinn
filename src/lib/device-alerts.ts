@@ -33,7 +33,7 @@ export function sendDevicePush(title: string, body: string, tag?: string) {
   try {
     const n = new Notification(title, {
       body,
-      tag,
+      ...(tag ? { tag } : {}),
       icon: "/favicon.png",
       badge: "/favicon.png",
     });
