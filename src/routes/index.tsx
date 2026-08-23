@@ -315,6 +315,8 @@ function GuestView() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
+  const [availability, setAvailability] = useState<AvailabilityRow[] | null>(null);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -323,14 +325,49 @@ function GuestView() {
     setCheckOut(tomorrow.toISOString().slice(0, 10));
   }, []);
 
-  function checkAvailability(event: React.FormEvent) {
-    event.preventDefault();
+  const nights =
+    checkIn && checkOut
+      ? Math.max(
+          0,
+          Math.round(
+            (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000,
+          ),
+        )
+      : 0;
+
+  function bookingLink(roomType?: string) {
     const url = new URL(BOOKING_URL);
     if (checkIn) url.searchParams.set("checkInDate", checkIn);
     if (checkOut) url.searchParams.set("checkOutDate", checkOut);
     if (guests) url.searchParams.set("adults", guests);
-    window.open(url.toString(), "_blank", "noopener");
+    if (roomType) url.searchParams.set("roomType", roomType);
+    return url.toString();
   }
+
+  async function checkAvailability(event: React.FormEvent) {
+    event.preventDefault();
+    if (!checkIn || !checkOut || nights < 1) {
+      toast.error("Choose a check-out date after your check-in date.");
+      return;
+    }
+    setSearching(true);
+    const { data, error } = await supabase.rpc("check_availability", {
+      _check_in: checkIn,
+      _check_out: checkOut,
+      _guests: Number(guests) || 1,
+    });
+    setSearching(false);
+    if (error) {
+      toast.error("We couldn't check availability. Please call the front desk.");
+      return;
+    }
+    const rows = (data ?? []) as AvailabilityRow[];
+    setAvailability(rows);
+    if (!rows.some((row) => row.available_count > 0)) {
+      toast.info("No rooms open for those dates — try nearby dates or call us.");
+    }
+  }
+
 
 
   async function submit(event: React.FormEvent) {
