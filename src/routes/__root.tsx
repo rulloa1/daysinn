@@ -90,11 +90,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: "Days Inn Hub",
-          url: "https://rodewayinn.lovable.app",
+          url: "https://daysinn.lovable.app",
           publisher: {
             "@type": "Organization",
             name: "Days Inn Hub",
-            url: "https://rodewayinn.lovable.app",
+            url: "https://daysinn.lovable.app",
             telephone: "+1-352-793-5010",
           },
         }),
