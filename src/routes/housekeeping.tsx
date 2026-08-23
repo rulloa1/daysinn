@@ -143,6 +143,7 @@ function stamp(iso: string) {
 }
 
 function HousekeepingPage() {
+  const presenting = usePresentationMode();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -165,7 +166,7 @@ function HousekeepingPage() {
     );
   }
 
-  if (!session) {
+  if (!session && !presenting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
         <div className="w-full max-w-sm">
@@ -188,14 +189,23 @@ function HousekeepingPage() {
     );
   }
 
-  return <Housekeeping />;
+  return <Housekeeping presenting={presenting} />;
 }
 
-function Housekeeping() {
+function Housekeeping({ presenting }: { presenting: boolean }) {
   const { members, staff, select, addMember } = useStaffIdentity({
     department: "housekeeping",
     storageKey: "daysinn.housekeeping.identity",
   });
+
+  if (!staff && presenting) {
+    return (
+      <HousekeepingBoard
+        staff={PRESENTER_IDENTITY}
+        onSignOut={() => select(null)}
+      />
+    );
+  }
 
   if (!staff) {
     return <HousekeeperLogin members={members} onSelect={select} onAdd={addMember} />;

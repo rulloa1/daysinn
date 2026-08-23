@@ -159,6 +159,7 @@ function stamp(iso: string) {
 }
 
 function FrontDeskPage() {
+  const presenting = usePresentationMode();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -181,7 +182,7 @@ function FrontDeskPage() {
     );
   }
 
-  if (!session) {
+  if (!session && !presenting) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
         <div className="w-full max-w-sm">
