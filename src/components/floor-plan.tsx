@@ -22,6 +22,8 @@ export type MapRoom = {
   guest_name?: string | null;
 };
 
+export type FloorView = FloorKey | "both";
+
 const TILE: Record<RoomStatus, string> = {
   vacant_clean: "border-status-clean/55 bg-status-clean/14 hover:bg-status-clean/25",
   vacant_dirty: "border-status-dirty/55 bg-status-dirty/14 hover:bg-status-dirty/25",
@@ -32,7 +34,7 @@ const TILE: Record<RoomStatus, string> = {
 };
 
 type Props = {
-  floor: FloorKey;
+  floor: FloorView;
   rooms: MapRoom[];
   openRequests?: Map<string, number> | undefined;
   dimmed?: Set<string> | undefined;
@@ -46,15 +48,17 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
     return map;
   }, [rooms]);
 
-  const wing = westWing(floor);
-  const rear = rearBuilding(floor);
-  const front = frontBlock(floor);
+  const both = floor === "both";
+  const layoutFloor: FloorKey = both ? 1 : floor;
+  const wing = westWing(layoutFloor);
+  const rear = rearBuilding(layoutFloor);
+  const front = frontBlock(layoutFloor);
 
-  function Tile({ number, size = "md" }: { number: string; size?: "md" | "sm" }) {
+  function Slot({ number, size = "md" }: { number: string; size?: "md" | "sm" }) {
     const room = byNumber.get(number);
     if (!room) {
       return (
-        <div className="border border-cream/10 bg-cream/[0.02] px-2 py-2 text-center text-[11px] text-cream/25">
+        <div className="grid place-items-center border border-cream/10 bg-cream/[0.02] px-1 py-1.5 text-center text-[11px] text-cream/25">
           {number}
         </div>
       );
@@ -66,11 +70,11 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
         type="button"
         onClick={() => onSelect(room.id)}
         title={`${number} · ${room.guest_name ?? "vacant"}`}
-        className={`relative border text-center transition-colors duration-200 ${TILE[room.status]} ${
-          size === "sm" ? "px-1 py-2" : "px-2 py-2.5"
-        } ${faded ? "opacity-25" : ""}`}
+        className={`relative w-full border text-center leading-none transition-colors duration-200 ${
+          TILE[room.status]
+        } ${size === "sm" ? "px-1 py-1.5" : "px-2 py-2"} ${faded ? "opacity-25" : ""}`}
       >
-        <span className={size === "sm" ? "text-xs" : "text-sm"}>{number}</span>
+        <span className={size === "sm" ? "text-[11px]" : "text-sm"}>{number}</span>
         {open ? (
           <span
             aria-hidden
@@ -83,6 +87,31 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
     );
   }
 
+  /** In "both" mode each map position stacks the first-floor room over the one above it. */
+  function Tile({
+    number,
+    size = "md",
+    stack = true,
+  }: {
+    number: string;
+    size?: "md" | "sm";
+    stack?: boolean;
+  }) {
+    if (both && number !== "108") {
+      const base = Number(number);
+      const upstairs = base < 200 ? String(base + 100) : null;
+      if (upstairs && byNumber.has(upstairs)) {
+        return (
+          <div className={`grid gap-[2px] ${stack ? "" : "grid-cols-2"}`}>
+            <Slot number={number} size="sm" />
+            <Slot number={upstairs} size="sm" />
+          </div>
+        );
+      }
+    }
+    return <Slot number={number} size={size} />;
+  }
+
   const Space = ({ label, className = "" }: { label: string; className?: string }) => (
     <div
       className={`grid place-items-center border border-cream/15 bg-cream/[0.04] px-2 py-2 text-center text-[11px] uppercase tracking-[0.16em] text-cream/45 ${className}`}
@@ -92,23 +121,29 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
   );
 
   const Edge = ({ label, className = "" }: { label: string; className?: string }) => (
-    <p
-      className={`signage text-center text-[10px] text-cream/25 ${className}`}
-    >
-      {label}
-    </p>
+    <p className={`signage text-center text-[10px] text-cream/25 ${className}`}>{label}</p>
   );
+
+  const upstairsFront = ["201", "203", "205", "207", "209"];
+  const eastFront = ["200", "202", "204", "206", "208"];
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[720px] space-y-2">
+      <div className="min-w-[760px] space-y-2">
         <Edge label="Truck parking · FL-44" />
 
         {/* Front block: lobby / offices downstairs, 200-series upstairs */}
-        <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)] gap-2">
+        <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1.9fr)] gap-2">
           <div className="space-y-1">
-            <Edge label={floor === 1 ? "Lobby building" : "Upstairs · front"} />
-            <div className="grid grid-cols-2 gap-1">
+            <Edge label={both ? "Lobby building · upstairs rooms" : floor === 1 ? "Lobby building" : "Upstairs · front"} />
+            <div className={`grid gap-1 ${both ? "grid-cols-[minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)]" : "grid-cols-2"}`}>
+              {both ? (
+                <div className="row-span-4 grid content-start gap-1">
+                  {upstairsFront.map((n) => (
+                    <Slot key={n} number={n} size="sm" />
+                  ))}
+                </div>
+              ) : null}
               {front.west.map((cell, i) =>
                 cell.kind === "room" ? (
                   <Tile key={cell.number} number={cell.number} size="sm" />
@@ -123,20 +158,29 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
             </div>
           </div>
           <div className="space-y-1">
-            <Edge label={floor === 1 ? "Courtyard" : "Upstairs · east"} />
-            <div className="grid grid-cols-3 gap-1">
-              {front.east.map((cell, i) =>
-                cell.kind === "room" ? (
-                  <Tile key={cell.number} number={cell.number} size="sm" />
-                ) : (
-                  <Space
-                    key={`${cell.label}-${i}`}
-                    label={cell.label}
-                    className="col-span-3 py-10"
-                  />
-                ),
+            <Edge label={both ? "Courtyard · east rooms" : floor === 1 ? "Courtyard" : "Upstairs · east"} />
+            <div className={`grid gap-1 ${both ? "grid-cols-[minmax(0,0.5fr)_minmax(0,2fr)]" : "grid-cols-3"}`}>
+              {both ? (
+                <div className="grid content-start gap-1">
+                  {eastFront.map((n) => (
+                    <Slot key={n} number={n} size="sm" />
+                  ))}
+                </div>
+              ) : null}
+              {both ? (
+                <Space label="Swim pool" className="py-10" />
+              ) : (
+                <>
+                  {front.east.map((cell, i) =>
+                    cell.kind === "room" ? (
+                      <Tile key={cell.number} number={cell.number} size="sm" />
+                    ) : (
+                      <Space key={`${cell.label}-${i}`} label={cell.label} className="col-span-3 py-10" />
+                    ),
+                  )}
+                  {floor === 2 ? <Space label="Swim pool below" className="col-span-3 py-8" /> : null}
+                </>
               )}
-              {floor === 2 ? <Space label="Swim pool below" className="col-span-3 py-8" /> : null}
             </div>
           </div>
         </div>
@@ -156,8 +200,8 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                   </div>
                 ) : (
                   <div key={row.left} className="grid grid-cols-2 gap-1">
-                    <Tile number={row.left} size="sm" />
-                    <Tile number={row.right} size="sm" />
+                    <Tile number={row.left} size="sm" stack={false} />
+                    <Tile number={row.right} size="sm" stack={false} />
                   </div>
                 ),
               )}
@@ -202,6 +246,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                     {rear.back.map((n) => (
                       <Tile key={n} number={n} size="sm" />
                     ))}
+                    {both ? <Slot number="265" size="sm" /> : null}
                   </div>
                 </div>
               </div>

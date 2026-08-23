@@ -211,7 +211,7 @@ function Board() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
   const [view, setView] = useState<"map" | "list">("map");
-  const [mapFloor, setMapFloor] = useState<1 | 2>(1);
+  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">("both");
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
@@ -529,7 +529,7 @@ function Board() {
             ))}
             {view === "map" ? (
               <div className="ml-auto flex items-center gap-2">
-                {([1, 2] as const).map((f) => (
+                {(["both", 1, 2] as const).map((f) => (
                   <button
                     key={f}
                     type="button"
@@ -541,7 +541,7 @@ function Board() {
                         : "border-cream/20 text-cream/55 hover:text-cream"
                     }`}
                   >
-                    Floor {f}
+                    {f === "both" ? "All rooms" : `Floor ${f}`}
                   </button>
                 ))}
               </div>
@@ -551,7 +551,7 @@ function Board() {
           {!loading && view === "map" ? (
             <FloorPlan
               floor={mapFloor}
-              rooms={rooms.filter((r) => r.floor === mapFloor)}
+              rooms={mapFloor === "both" ? rooms : rooms.filter((r) => r.floor === mapFloor)}
               openRequests={openCountByRoom}
               dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
               onSelect={setActiveRoomId}
