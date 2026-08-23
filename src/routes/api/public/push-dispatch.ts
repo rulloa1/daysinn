@@ -66,8 +66,8 @@ export const Route = createFileRoute("/api/public/push-dispatch")({
           return new Response("Push not configured", { status: 503 });
         }
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: subs, error } = await supabaseAdmin
+
           .from("push_subscriptions")
           .select("endpoint, p256dh, auth");
         if (error) return new Response("Lookup failed", { status: 500 });
