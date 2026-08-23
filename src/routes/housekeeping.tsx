@@ -636,6 +636,17 @@ function HousekeepingBoard({
               <span className="truncate">Housekeeping · {staff.name}</span>
             </p>
             <h1 className="mt-2 truncate text-2xl sm:text-4xl">Rooms to turn</h1>
+            <nav className="mt-3 flex flex-wrap gap-4">
+              <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Staff queue
+              </Link>
+              <Link to="/front-desk" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Front desk
+              </Link>
+              <Link to="/" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+                Guest view
+              </Link>
+            </nav>
           </div>
           <button
             type="button"
