@@ -14,6 +14,7 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { logRoomStatusChange, type StaffIdentity } from "@/lib/ops";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
+import { PRESENTER_IDENTITY, usePresentationMode } from "@/lib/presentation";
 import {
   enableDevicePush,
   pushPermission,

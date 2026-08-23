@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
+import { usePresentationMode } from "@/lib/presentation";
 
 type RoomStatus =
   | "vacant_clean"
