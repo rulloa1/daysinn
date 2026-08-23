@@ -81,8 +81,8 @@ export const Route = createFileRoute("/api/public/push-dispatch")({
               );
               const res = await fetch(sub.endpoint, {
                 method: req.method,
-                headers: req.headers,
-                body: req.body,
+                headers: req.headers as unknown as HeadersInit,
+                body: new Uint8Array(req.body).slice().buffer as ArrayBuffer,
               });
               if (res.status === 404 || res.status === 410) stale.push(sub.endpoint);
             } catch {
