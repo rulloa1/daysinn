@@ -41,31 +41,59 @@ const LIMITS: Record<ThrottleScope, { max: number; windowMinutes: number }> = {
   guest_thread: { max: 120, windowMinutes: 10 },
 };
 
+/** Records the outcome of a guest attempt (used for brute-force throttling). */
+export async function recordGuestAttempt(
+  scope: ThrottleScope,
+  identifier: string,
+  succeeded: boolean,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("guest_auth_attempts")
+      .insert({ scope, identifier: keyOf(identifier), succeeded });
+  } catch (error) {
+    console.error("[throttle] record failed", scope, error);
+  }
+}
+
+function keyOf(identifier: string): string {
+  return identifier.trim().toLowerCase().slice(0, 120) || "unknown";
+}
+
 /**
- * Counts recent attempts for a scope+identifier and records this one.
- * Returns false when the caller has exceeded the window budget.
+ * Returns false when the caller has burned the window budget.
+ *
+ * Sign-in is throttled on *failed* attempts only, so a guest legitimately
+ * re-scanning their code is never locked out; volumetric scopes (requests,
+ * messages, thread polling) count every attempt.
  */
 export async function allowGuestAttempt(
   scope: ThrottleScope,
   identifier: string,
-  succeeded = false,
 ): Promise<boolean> {
   const { max, windowMinutes } = LIMITS[scope];
   const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
-  const key = identifier.trim().toLowerCase().slice(0, 120) || "unknown";
+  const failuresOnly = scope === "guest_sign_in";
 
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("guest_auth_attempts")
       .select("id", { count: "exact", head: true })
       .eq("scope", scope)
-      .eq("identifier", key)
+      .eq("identifier", keyOf(identifier))
       .gte("created_at", since);
 
-    await supabaseAdmin
-      .from("guest_auth_attempts")
-      .insert({ scope, identifier: key, succeeded });
+    if (failuresOnly) query = query.eq("succeeded", false);
+
+    const { count } = await query;
+
+    if (!failuresOnly) {
+      await supabaseAdmin
+        .from("guest_auth_attempts")
+        .insert({ scope, identifier: keyOf(identifier), succeeded: true });
+    }
 
     return (count ?? 0) < max;
   } catch (error) {
@@ -74,3 +102,4 @@ export async function allowGuestAttempt(
     return true;
   }
 }
+
