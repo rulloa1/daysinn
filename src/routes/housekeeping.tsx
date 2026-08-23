@@ -591,23 +591,20 @@ function HousekeepingBoard({
     toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
   }
 
-  async function markClean(room: RoomRow) {
+  /** Quick status change from the housekeeping board. */
+  async function setStatus(room: RoomRow, next: RoomStatus) {
     if (!canTriage) {
       toast.error("A manager needs to grant you staff access first.");
       return;
     }
+    if (room.status === next) return;
     const previous = allRooms;
     setAllRooms((prev) =>
       prev.map((r) =>
-        r.id === room.id
-          ? { ...r, status: "vacant_clean", updated_at: new Date().toISOString() }
-          : r,
+        r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
       ),
     );
-    const { error } = await supabase
-      .from("rooms")
-      .update({ status: "vacant_clean" })
-      .eq("id", room.id);
+    const { error } = await supabase.from("rooms").update({ status: next }).eq("id", room.id);
     if (error) {
       setAllRooms(previous);
       toast.error("Couldn't update that room.");
@@ -617,13 +614,18 @@ function HousekeepingBoard({
       roomId: room.id,
       roomNumber: room.number,
       oldStatus: room.status,
-      newStatus: "vacant_clean",
+      newStatus: next,
       previousChangedAt: room.updated_at,
       staff,
     });
     if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
-    else toast.success(`Room ${room.number} clean · ${staff.name}`);
+    else toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
   }
+
+  async function markClean(room: RoomRow) {
+    await setStatus(room, "vacant_clean");
+  }
+
 
   return (
     <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
