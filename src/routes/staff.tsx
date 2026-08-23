@@ -427,6 +427,14 @@ function Dashboard({
             >
               Housekeeping
             </Link>
+            {isManager ? (
+              <Link
+                to="/roles"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Roles
+              </Link>
+            ) : null}
             <Link
               to="/"
               className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
