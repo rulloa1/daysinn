@@ -232,20 +232,20 @@ const FAQS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services" },
+      { title: "Days Inn® by Wyndham Wildwood I-75 — Rooms, Rates & Direct Booking" },
       {
         name: "description",
         content:
-          "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
+          "Book a room at Days Inn Wildwood off I-75 Exit 329. Free hot breakfast, outdoor pool, free Wi-Fi and parking, pet-friendly rooms, and 3 PM check-in.",
       },
       {
         property: "og:title",
-        content: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services",
+        content: "Days Inn® by Wyndham Wildwood I-75 — Rooms, Rates & Direct Booking",
       },
       {
         property: "og:description",
         content:
-          "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
+          "Book a room at Days Inn Wildwood off I-75 Exit 329. Free hot breakfast, outdoor pool, free Wi-Fi and parking, pet-friendly rooms, and 3 PM check-in.",
       },
       { property: "og:url", content: "https://daysinn.lovable.app/" },
     ],
@@ -256,9 +256,18 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Hotel",
-          name: "Days Inn Hub",
+          name: "Days Inn by Wyndham Wildwood I-75",
           url: "https://daysinn.lovable.app/",
           telephone: "+1-352-748-7766",
+          priceRange: "$$",
+          checkinTime: "15:00",
+          checkoutTime: "11:00",
+          petsAllowed: true,
+          amenityFeature: AMENITIES.map((name) => ({
+            "@type": "LocationFeatureSpecification",
+            name,
+            value: true,
+          })),
           address: {
             "@type": "PostalAddress",
             streetAddress: "551 East SR 44",
@@ -274,8 +283,21 @@ export const Route = createFileRoute("/")({
           },
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: item.a },
+          })),
+        }),
+      },
     ],
   }),
+
 
   component: GuestView,
 });
