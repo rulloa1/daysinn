@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -514,7 +514,7 @@ function Board() {
         }}
       />
 
-      <RoomQrDialog room={qrRoom} onOpenChange={(open) => !open && setQrRoom(null)} />
+      <RoomQrDialog room={qrRoom} onClose={() => setQrRoom(null)} />
     </div>
   );
 }

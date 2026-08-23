@@ -53,6 +53,12 @@
   --color-cream: var(--cream);
   --color-amber: var(--amber);
   --color-sage: var(--sage);
+  --color-status-clean: var(--status-clean);
+  --color-status-dirty: var(--status-dirty);
+  --color-status-occupied: var(--status-occupied);
+  --color-status-dnd: var(--status-dnd);
+  --color-status-reserved: var(--status-reserved);
+  --color-status-ooo: var(--status-ooo);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -94,6 +100,12 @@
   --cream: oklch(0.958 0.013 85);
   --amber: oklch(0.78 0.155 70);
   --sage: oklch(0.7 0.055 145);
+  --status-clean: oklch(0.74 0.15 150);
+  --status-dirty: oklch(0.76 0.16 62);
+  --status-occupied: oklch(0.7 0.14 245);
+  --status-dnd: oklch(0.66 0.17 305);
+  --status-reserved: oklch(0.75 0.11 190);
+  --status-ooo: oklch(0.63 0.19 25);
   --chart-1: oklch(0.78 0.155 70);
   --chart-2: oklch(0.7 0.055 145);
   --chart-3: oklch(0.24 0.038 245);
