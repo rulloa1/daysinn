@@ -89,13 +89,13 @@ export const Route = createFileRoute("/staff")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Staff Dashboard — Rodeway Hub" },
+      { title: "Staff Dashboard — Days Inn Hub" },
       {
         name: "description",
         content:
           "Front-desk dashboard for routing guest requests: triage new asks, mark them in progress, and close them out.",
       },
-      { property: "og:title", content: "Staff Dashboard — Rodeway Hub" },
+      { property: "og:title", content: "Staff Dashboard — Days Inn Hub" },
       {
         property: "og:description",
         content: "Triage and close out guest requests from one live queue.",

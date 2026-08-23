@@ -65,13 +65,13 @@ export const Route = createFileRoute("/front-desk")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Front Desk — Rodeway Hub" },
+      { title: "Front Desk — Days Inn Hub" },
       {
         name: "description",
         content:
           "Front desk operations board: room status, arrivals and departures today, and open guest requests at a glance.",
       },
-      { property: "og:title", content: "Front Desk — Rodeway Hub" },
+      { property: "og:title", content: "Front Desk — Days Inn Hub" },
       {
         property: "og:description",
         content:

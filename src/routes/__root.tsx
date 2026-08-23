@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { property: "og:site_name", content: "Rodeway Hub" },
+      { property: "og:site_name", content: "Days Inn Hub" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -89,11 +89,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "Rodeway Hub",
+          name: "Days Inn Hub",
           url: "https://rodewayinn.lovable.app",
           publisher: {
             "@type": "Organization",
-            name: "Rodeway Hub",
+            name: "Days Inn Hub",
             url: "https://rodewayinn.lovable.app",
             telephone: "+1-352-793-5010",
           },

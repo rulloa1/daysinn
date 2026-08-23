@@ -65,13 +65,13 @@ const STOPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Rodeway Hub — Your Digital Front Desk" },
+      { title: "Days Inn Hub — Your Digital Front Desk" },
       {
         name: "description",
         content:
           "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
-      { property: "og:title", content: "Rodeway Hub — Your Digital Front Desk" },
+      { property: "og:title", content: "Days Inn Hub — Your Digital Front Desk" },
       {
         property: "og:description",
         content:
@@ -86,7 +86,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Hotel",
-          name: "Rodeway Hub",
+          name: "Days Inn Hub",
           url: "https://rodewayinn.lovable.app/",
           telephone: "+1-352-793-5010",
           address: {

@@ -42,13 +42,13 @@ export const Route = createFileRoute("/room")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Your Room — Rodeway Hub" },
+      { title: "Your Room — Days Inn Hub" },
       {
         name: "description",
         content:
           "Your signed-in room hub: send requests to the front desk and follow their status in real time.",
       },
-      { property: "og:title", content: "Your Room — Rodeway Hub" },
+      { property: "og:title", content: "Your Room — Days Inn Hub" },
       {
         property: "og:description",
         content:
