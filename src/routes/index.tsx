@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import roomDusk from "@/assets/room-dusk.jpg";
+import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
 
 const MAP_URL =
