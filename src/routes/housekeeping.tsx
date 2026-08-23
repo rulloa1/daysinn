@@ -1018,22 +1018,31 @@ function HousekeepingBoard({
                 </div>
               ) : null}
 
-              {active.status === "vacant_dirty" ? (
-                <Button
-                  disabled={!canTriage}
-                  onClick={() => {
-                    void markClean(active);
-                    setActiveId(null);
-                  }}
-                  className="h-12 w-full bg-status-clean text-base text-ink hover:bg-status-clean/90"
-                >
-                  Mark clean
-                </Button>
+              {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
+                <div>
+                  <p className="signage text-cream/45">Update cleaning state</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {QUICK_STATUS.map((option) => (
+                      <Button
+                        key={option.status}
+                        disabled={!canTriage || active.status === option.status}
+                        onClick={() => {
+                          void setStatus(active, option.status);
+                          if (option.status === "vacant_clean") setActiveId(null);
+                        }}
+                        className={`h-12 text-base hover:opacity-90 ${option.className}`}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 <p className="text-xs text-cream/45">
-                  Read-only — front desk owns status changes for this room.
+                  Read-only — this room belongs to {active.assigned_name}.
                 </p>
               )}
+
 
               <Button
                 variant="outline"
