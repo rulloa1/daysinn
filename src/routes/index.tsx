@@ -140,13 +140,13 @@ const STOPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Days Inn Hub — Your Digital Front Desk & Guest Services" },
+      { title: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services" },
       {
         name: "description",
         content:
           "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
       },
-      { property: "og:title", content: "Days Inn Hub — Your Digital Front Desk" },
+      { property: "og:title", content: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services" },
       {
         property: "og:description",
         content:

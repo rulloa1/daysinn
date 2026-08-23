@@ -11,6 +11,8 @@ import { guestSignIn } from "@/lib/guest.functions";
 import { writeGuestSession } from "@/lib/guest-session";
 import { KeyRound, QrCode as QrIcon, Sparkles, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
 
+import { FranchiseLegal } from "@/components/franchise-footer";
+
 export const Route = createFileRoute("/checkin")({
   validateSearch: (search: Record<string, unknown>): { room?: string; t?: string } => ({
     ...(typeof search['room'] === "string" ? { room: search['room'] } : {}),
@@ -18,13 +20,13 @@ export const Route = createFileRoute("/checkin")({
   }),
   head: () => ({
     meta: [
-      { title: "Digital Room Sign-In — Days Inn Hub" },
+      { title: "Digital Room Sign-In — Days Inn® by Wyndham Wildwood I-75" },
       {
         name: "description",
         content:
           "Sign in with your room number and last name or scan your mobile QR key to access in-room requests directly on your smartphone.",
       },
-      { property: "og:title", content: "Digital Room Sign-In — Days Inn Hub" },
+      { property: "og:title", content: "Digital Room Sign-In — Days Inn® by Wyndham Wildwood I-75" },
       {
         property: "og:description",
         content:
@@ -209,8 +211,10 @@ function CheckInPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/80 bg-card/40 py-4 text-center text-xs text-muted-foreground">
-        Days Inn Wildwood I-75 · Front Desk Assistance: (352) 748-7766
+      <footer className="border-t border-border/80 bg-card/40 py-6 px-6">
+        <div className="mx-auto max-w-4xl space-y-2">
+          <FranchiseLegal />
+        </div>
       </footer>
     </div>
   );

@@ -63,17 +63,19 @@ const STATUS_CONFIG: Record<string, { label: string; class: string; icon: any }>
   done: { label: "Completed", class: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30", icon: CheckCircle2 },
 };
 
+import { FranchiseLegal } from "@/components/franchise-footer";
+
 export const Route = createFileRoute("/room")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Your In-Room Concierge — Days Inn Hub" },
+      { title: "Your In-Room Concierge — Days Inn® by Wyndham Wildwood I-75" },
       {
         name: "description",
         content:
           "Manage in-room services, request amenities, chat with the front desk, and view your digital room key in real time.",
       },
-      { property: "og:title", content: "Your In-Room Concierge — Days Inn Hub" },
+      { property: "og:title", content: "Your In-Room Concierge — Days Inn® by Wyndham Wildwood I-75" },
       {
         property: "og:description",
         content:
@@ -460,6 +462,13 @@ function RoomHub() {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-12 border-t border-border/80 bg-card/40 py-6 px-6">
+        <div className="mx-auto max-w-6xl space-y-2">
+          <FranchiseLegal />
+        </div>
+      </footer>
 
       {/* Request Modal Dialog */}
       <Dialog open={open !== null} onOpenChange={(next) => !next && setOpen(null)}>

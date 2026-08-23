@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { guestRequests } from "@/lib/guest.functions";
-import { FranchiseLegal } from "@/components/franchise-footer";
-import { Search, Clock, CheckCircle2, AlertCircle, ArrowLeft, KeyRound } from "lucide-react";
+import { FranchiseLegal, FranchiseDisclaimer, BOOKING_URL } from "@/components/franchise-footer";
+import { Search, Clock, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
 
 type Row = {
   id: string;
@@ -28,13 +28,13 @@ export const Route = createFileRoute("/track")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Track Request Status — Days Inn Hub" },
+      { title: "Track Request Status — Days Inn® by Wyndham Wildwood I-75" },
       {
         name: "description",
         content:
-          "Check the live status of anything you asked the front desk for — received, on the way, or completed.",
+          "Check the live status of your in-room requests at Days Inn® by Wyndham Wildwood I-75 — received, on the way, or completed.",
       },
-      { property: "og:title", content: "Track Request Status — Days Inn Hub" },
+      { property: "og:title", content: "Track Request Status — Days Inn® by Wyndham Wildwood I-75" },
       {
         property: "og:description",
         content:
@@ -94,7 +94,7 @@ function TrackPage() {
       {/* Main Content Area */}
       <main className="mx-auto w-full max-w-3xl px-6 py-10 md:px-8 flex-1">
         <div className="text-center max-w-lg mx-auto">
-          <span className="signage text-accent font-bold">Real-Time Dispatch Telemetry</span>
+          <span className="signage text-accent font-bold">Days Inn® by Wyndham Wildwood I-75</span>
           <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-foreground md:text-5xl">
             Track your <span className="text-primary">request</span>.
           </h1>
@@ -243,16 +243,40 @@ function TrackPage() {
           )
         ) : null}
 
-        <div className="mt-10 rounded-2xl border border-border/80 bg-card/60 p-5 text-center text-xs text-muted-foreground">
-          Want full in-room amenities, live messaging, and your digital key?{" "}
+        {/* Wyndham Rewards Callout */}
+        <section className="glass-panel mt-10 rounded-3xl p-6 border border-accent/20">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-accent">
+                <ShieldCheck className="h-3.5 w-3.5" /> Wyndham Rewards®
+              </span>
+              <p className="mt-1 font-serif text-base font-bold text-foreground">
+                Earn 10 points per dollar or 1,000 points on direct qualifying stays.
+              </p>
+              <FranchiseDisclaimer className="mt-1 text-[11px] text-muted-foreground" />
+            </div>
+            <a
+              href={BOOKING_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="spring-hover rounded-xl bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-sm hover:brightness-105"
+            >
+              Learn more ↗
+            </a>
+          </div>
+        </section>
+
+        <div className="mt-6 rounded-2xl border border-border/80 bg-card/60 p-5 text-center text-xs text-muted-foreground">
+          Want in-room concierge chat and your digital key?{" "}
           <Link to="/checkin" className="font-bold text-primary underline underline-offset-4 hover:text-accent">
             Sign in to your room →
           </Link>
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="mt-8 border-t border-border/80 bg-card/40 py-6 px-6">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-5xl space-y-2">
           <FranchiseLegal />
         </div>
       </footer>
