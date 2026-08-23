@@ -15,7 +15,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
+import exteriorAsset from "@/assets/unnamed-2.webp.asset.json";
+import roomAsset from "@/assets/room.webp.asset.json";
+import pool1Asset from "@/assets/unnamed_1.webp.asset.json";
+import bathAsset from "@/assets/unnamed_2.webp.asset.json";
+import pool2Asset from "@/assets/unnamed_3.webp.asset.json";
+import lobbyAsset from "@/assets/unnamed_4.webp.asset.json";
+import doubleAsset from "@/assets/unnamed_5.webp.asset.json";
+import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
+import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
+import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
+
+const GALLERY = [
+  { src: exteriorAsset.url, alt: "Days Inn Wildwood exterior at dusk", caption: "Front entrance" },
+  { src: roomAsset.url, alt: "Two queen beds with coastal artwork", caption: "Two queen room" },
+  { src: doubleAsset.url, alt: "Guest room with two beds, desk and window", caption: "Room view" },
+  { src: pool1Asset.url, alt: "Outdoor pool with lounge chairs and palm trees", caption: "Outdoor pool" },
+  { src: pool2Asset.url, alt: "Pool deck beside the guest room building", caption: "Pool deck" },
+  { src: lobbyAsset.url, alt: "Front desk in the lobby", caption: "Front desk" },
+  { src: breakfastAsset.url, alt: "Breakfast counter with coffee and waffle makers", caption: "Breakfast area" },
+  { src: suiteAsset.url, alt: "Suite sitting area with sofa, desk and TV", caption: "Suite sitting area" },
+  { src: deskAsset.url, alt: "In-room work desk with fridge, microwave and TV", caption: "Work desk & kitchenette" },
+  { src: bathAsset.url, alt: "Bathroom with tub and shower", caption: "Bath" },
+];
 
 const MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933";
