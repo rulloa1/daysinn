@@ -462,11 +462,18 @@ function HousekeepingBoard({
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {list.map((room) => (
-                <button
+                <div
                   key={room.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setActiveId(room.id)}
-                  className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveId(room.id);
+                    }
+                  }}
+                  className={`cursor-pointer border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
                 >
                   <span className="flex items-center justify-between">
                     <span className="text-xl">{room.number}</span>
@@ -488,26 +495,18 @@ function HousekeepingBoard({
                     ) : null}
                   </span>
                   {room.status === "vacant_dirty" ? (
-                    <span
-                      role="button"
-                      tabIndex={0}
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         void markClean(room);
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          void markClean(room);
-                        }
-                      }}
-                      className="signage mt-3 block bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
+                      className="signage mt-3 block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
                     >
                       Mark clean
-                    </span>
+                    </button>
                   ) : null}
-                </button>
+                </div>
               ))}
             </div>
           </section>

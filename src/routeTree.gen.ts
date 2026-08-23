@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
+import { Route as HousekeepingRouteImport } from './routes/housekeeping'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
@@ -29,6 +30,11 @@ const CheckinRoute = CheckinRouteImport.update({
 const FrontDeskRoute = FrontDeskRouteImport.update({
   id: '/front-desk',
   path: '/front-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HousekeepingRoute = HousekeepingRouteImport.update({
+  id: '/housekeeping',
+  path: '/housekeeping',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoomRoute = RoomRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/housekeeping': typeof HousekeepingRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/housekeeping': typeof HousekeepingRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/housekeeping': typeof HousekeepingRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/checkin' | '/front-desk' | '/room' | '/sitemap.xml' | '/staff'
+    | '/'
+    | '/checkin'
+    | '/front-desk'
+    | '/housekeeping'
+    | '/room'
+    | '/sitemap.xml'
+    | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkin' | '/front-desk' | '/room' | '/sitemap.xml' | '/staff'
+  to:
+    | '/'
+    | '/checkin'
+    | '/front-desk'
+    | '/housekeeping'
+    | '/room'
+    | '/sitemap.xml'
+    | '/staff'
   id:
     | '__root__'
     | '/'
     | '/checkin'
     | '/front-desk'
+    | '/housekeeping'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckinRoute: typeof CheckinRoute
   FrontDeskRoute: typeof FrontDeskRoute
+  HousekeepingRoute: typeof HousekeepingRoute
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/front-desk'
       fullPath: '/front-desk'
       preLoaderRoute: typeof FrontDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/housekeeping': {
+      id: '/housekeeping'
+      path: '/housekeeping'
+      fullPath: '/housekeeping'
+      preLoaderRoute: typeof HousekeepingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/room': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckinRoute: CheckinRoute,
   FrontDeskRoute: FrontDeskRoute,
+  HousekeepingRoute: HousekeepingRoute,
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
