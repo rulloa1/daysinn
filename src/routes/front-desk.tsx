@@ -823,6 +823,52 @@ function RoomPanel({
             ) : null}
 
             <div>
+              <p className="signage text-amber">Digital room key</p>
+              <p className="mt-2 font-display text-2xl tracking-[0.3em] tabular-nums">
+                {pin ?? "— — — — — —"}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!canEdit || keyBusy}
+                  onClick={() => void issueKey(room.number)}
+                  className="bg-amber text-ink hover:bg-amber/90"
+                >
+                  {pin ? "Re-issue PIN" : "Issue PIN"}
+                </Button>
+                {pin ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!canEdit || keyBusy}
+                    onClick={() => void clearKey(room.number)}
+                    className="border-cream/25 bg-transparent text-cream hover:bg-cream/10"
+                  >
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-cream/55">
+                The guest sees this instantly in their room portal.
+              </p>
+            </div>
+
+            <div>
+              <p className="signage text-amber">Guest chat</p>
+              <div className="mt-2">
+                <GuestChatPanel
+                  room={room.number}
+                  canEdit={canEdit}
+                  staffName={staff?.name ?? null}
+                />
+              </div>
+            </div>
+
+
+
+            <div>
               <button
                 type="button"
                 onClick={() => setShowHistory((v) => !v)}
