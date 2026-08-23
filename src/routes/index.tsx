@@ -158,23 +158,94 @@ const STOPS = [
   },
 ];
 
+const ROOM_TYPES = [
+  {
+    name: "One King Bed",
+    sleeps: "Sleeps 2",
+    beds: "1 king bed · 300 sq ft",
+    body: "Work desk, mini fridge, microwave, flat-screen TV and free Wi-Fi.",
+    image: deskAsset.url,
+    alt: "King room with work desk, fridge and microwave",
+  },
+  {
+    name: "Two Queen Beds",
+    sleeps: "Sleeps 4",
+    beds: "2 queen beds · 330 sq ft",
+    body: "Our most popular room for families and road-trip crews heading down I-75.",
+    image: roomAsset.url,
+    alt: "Guest room with two queen beds",
+  },
+  {
+    name: "Hospitality Suite",
+    sleeps: "Sleeps 4",
+    beds: "1 king bed + sofa · sitting area",
+    body: "Extra living space with sofa, desk and second TV for longer stays.",
+    image: suiteAsset.url,
+    alt: "Suite sitting area with sofa, desk and TV",
+  },
+];
+
+const AMENITIES = [
+  "Free Daybreak® hot breakfast",
+  "Outdoor heated pool",
+  "Free high-speed Wi-Fi",
+  "Free parking — RV & truck friendly",
+  "Pet-friendly rooms (fees apply)",
+  "Micro-fridge in every room",
+  "Guest laundry access",
+  "Right off I-75 Exit 329",
+];
+
+const POLICIES = [
+  { label: "Check-in", value: "3:00 PM" },
+  { label: "Check-out", value: "11:00 AM" },
+  { label: "Cancellation", value: "Free until 4:00 PM day of arrival on most rates" },
+  { label: "Pets", value: "Welcome in select rooms — additional fee at check-in" },
+  { label: "Smoking", value: "Non-smoking property" },
+  { label: "Age to check in", value: "21+ with valid photo ID and credit card" },
+];
+
+const FAQS = [
+  {
+    q: "How far is the hotel from I-75?",
+    a: "We're less than a minute from I-75 Exit 329 at 551 East SR 44, Wildwood — an easy stop between Ocala and Orlando and about 10 minutes from The Villages.",
+  },
+  {
+    q: "Is breakfast included?",
+    a: "Yes. Complimentary Daybreak® breakfast is served every morning in the lobby, with coffee available throughout the day.",
+  },
+  {
+    q: "Do you allow pets?",
+    a: "Pets are welcome in select rooms. A pet fee is collected at check-in — please tell the front desk when you book so we can assign the right room.",
+  },
+  {
+    q: "Is there parking for trucks and RVs?",
+    a: "Free on-site parking is available, including oversized spaces for trucks and RVs on a first-come basis.",
+  },
+  {
+    q: "What is the best rate?",
+    a: "Booking direct through Wyndham gets you member rates and Wyndham Rewards® points on qualifying stays.",
+  },
+];
+
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services" },
+      { title: "Days Inn® by Wyndham Wildwood I-75 — Rooms, Rates & Direct Booking" },
       {
         name: "description",
         content:
-          "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
+          "Book a room at Days Inn Wildwood off I-75 Exit 329. Free hot breakfast, outdoor pool, free Wi-Fi and parking, pet-friendly rooms, and 3 PM check-in.",
       },
       {
         property: "og:title",
-        content: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services",
+        content: "Days Inn® by Wyndham Wildwood I-75 — Rooms, Rates & Direct Booking",
       },
       {
         property: "og:description",
         content:
-          "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
+          "Book a room at Days Inn Wildwood off I-75 Exit 329. Free hot breakfast, outdoor pool, free Wi-Fi and parking, pet-friendly rooms, and 3 PM check-in.",
       },
       { property: "og:url", content: "https://daysinn.lovable.app/" },
     ],
@@ -185,9 +256,18 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Hotel",
-          name: "Days Inn Hub",
+          name: "Days Inn by Wyndham Wildwood I-75",
           url: "https://daysinn.lovable.app/",
           telephone: "+1-352-748-7766",
+          priceRange: "$$",
+          checkinTime: "15:00",
+          checkoutTime: "11:00",
+          petsAllowed: true,
+          amenityFeature: AMENITIES.map((name) => ({
+            "@type": "LocationFeatureSpecification",
+            name,
+            value: true,
+          })),
           address: {
             "@type": "PostalAddress",
             streetAddress: "551 East SR 44",
@@ -203,8 +283,21 @@ export const Route = createFileRoute("/")({
           },
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: item.a },
+          })),
+        }),
+      },
     ],
   }),
+
 
   component: GuestView,
 });
@@ -219,13 +312,26 @@ function GuestView() {
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
-  const [today, setToday] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("2");
 
   useEffect(() => {
-    setToday(
-      new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
-    );
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 86400000);
+    setCheckIn(today.toISOString().slice(0, 10));
+    setCheckOut(tomorrow.toISOString().slice(0, 10));
   }, []);
+
+  function checkAvailability(event: React.FormEvent) {
+    event.preventDefault();
+    const url = new URL(BOOKING_URL);
+    if (checkIn) url.searchParams.set("checkInDate", checkIn);
+    if (checkOut) url.searchParams.set("checkOutDate", checkOut);
+    if (guests) url.searchParams.set("adults", guests);
+    window.open(url.toString(), "_blank", "noopener");
+  }
+
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -380,46 +486,188 @@ function GuestView() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-5 pb-16 md:px-8">
-        {/* Hero Section with Liquid Glass Treatment */}
-        <section className="glass-hero relative mt-6 h-72 overflow-hidden rounded-3xl border border-white/20 shadow-xl md:h-96">
+        {/* Booking Hero */}
+        <section className="glass-hero relative mt-6 overflow-hidden rounded-3xl border border-white/20 shadow-xl">
           <img
             src={propertyAsset.url}
             alt="Days Inn Wildwood exterior at dusk with lit walkways"
             width={1600}
             height={1067}
-            className="h-full w-full object-cover brightness-[0.88] transition-transform duration-700 hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover brightness-[0.55]"
           />
-          <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-6 md:p-10">
+          <div className="relative flex flex-col justify-end bg-gradient-to-t from-slate-950/92 via-slate-950/55 to-slate-950/30 p-6 pt-24 md:p-10 md:pt-40">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber/20 px-3 py-1 text-[11px] font-bold tracking-wider text-amber backdrop-blur-md border border-amber/30 uppercase">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber backdrop-blur-md border border-amber/30">
                 <Sparkles className="h-3 w-3" />
                 Days Inn® by Wyndham Wildwood I-75
               </span>
-              {today ? (
-                <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-md">
-                  {today}
-                </span>
-              ) : null}
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-md">
+                <MapPin className="h-3 w-3" /> I-75 Exit 329 · Wildwood, FL
+              </span>
             </div>
 
-            <h1 className="mt-3 font-serif text-3xl font-bold tracking-tight text-white md:text-5xl">
-              Welcome — Make yourself at home.
+            <h1 className="mt-3 max-w-2xl font-serif text-3xl font-bold tracking-tight text-white md:text-5xl">
+              Rooms off I-75 with free breakfast, pool & parking.
             </h1>
 
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-200/90 md:text-base">
-              Send an in-room request anytime. Our on-site hospitality team routes and responds in
-              under 10 minutes.
+              Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free Wi-Fi, and RV/truck
+              parking — 10 minutes from The Villages.
+            </p>
+
+            <form
+              onSubmit={checkAvailability}
+              className="mt-5 grid gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-xl sm:grid-cols-[1fr_1fr_auto_auto]"
+            >
+              <div className="space-y-1">
+                <Label htmlFor="check-in" className="text-[11px] font-bold text-white/80">
+                  Check in
+                </Label>
+                <Input
+                  id="check-in"
+                  type="date"
+                  value={checkIn}
+                  onChange={(event) => setCheckIn(event.target.value)}
+                  className="rounded-xl border-white/25 bg-white/90 text-ink"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="check-out" className="text-[11px] font-bold text-white/80">
+                  Check out
+                </Label>
+                <Input
+                  id="check-out"
+                  type="date"
+                  value={checkOut}
+                  onChange={(event) => setCheckOut(event.target.value)}
+                  className="rounded-xl border-white/25 bg-white/90 text-ink"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="guests" className="text-[11px] font-bold text-white/80">
+                  Guests
+                </Label>
+                <Input
+                  id="guests"
+                  type="number"
+                  min={1}
+                  max={6}
+                  value={guests}
+                  onChange={(event) => setGuests(event.target.value)}
+                  className="w-full rounded-xl border-white/25 bg-white/90 text-ink sm:w-24"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="spring-hover mt-auto h-10 rounded-xl bg-accent px-6 font-bold text-accent-foreground shadow-md hover:brightness-105"
+              >
+                Check availability
+              </Button>
+            </form>
+
+            <p className="mt-2 text-[11px] text-slate-300/80">
+              Booking opens on the official Wyndham site — best rate guaranteed for members.
             </p>
           </div>
         </section>
 
-        {/* Quick Request Cards */}
+        {/* Room Types */}
         <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="signage text-accent font-bold">In-Room Guest Concierge</p>
+              <p className="signage text-accent font-bold">Choose Your Room</p>
+              <h2 className="font-serif text-xl font-bold text-foreground">Rooms & Sleeping Options</h2>
+            </div>
+            <a
+              href={BOOKING_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
+            >
+              See live rates <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
+          <div className="grid gap-3.5 md:grid-cols-3">
+            {ROOM_TYPES.map((roomType) => (
+              <article
+                key={roomType.name}
+                className="glass-card overflow-hidden rounded-2xl transition-all duration-200"
+              >
+                <img
+                  src={roomType.image}
+                  alt={roomType.alt}
+                  loading="lazy"
+                  className="h-40 w-full object-cover"
+                />
+                <div className="p-5">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-serif text-base font-bold text-foreground">
+                      {roomType.name}
+                    </h3>
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      {roomType.sleeps}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-semibold text-accent">{roomType.beds}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    {roomType.body}
+                  </p>
+                  <a
+                    href={BOOKING_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline underline-offset-4"
+                  >
+                    Check rates ↗
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Amenities & Policies */}
+        <section className="mt-10 grid gap-3.5 md:grid-cols-2">
+          <div className="glass-card rounded-3xl p-6">
+            <p className="signage text-accent font-bold">Included With Every Stay</p>
+            <h2 className="font-serif text-xl font-bold text-foreground">Amenities</h2>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {AMENITIES.map((amenity) => (
+                <li
+                  key={amenity}
+                  className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+                >
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                  {amenity}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="glass-card rounded-3xl p-6">
+            <p className="signage text-accent font-bold">Good To Know</p>
+            <h2 className="font-serif text-xl font-bold text-foreground">Policies</h2>
+            <dl className="mt-4 divide-y divide-border/70">
+              {POLICIES.map((policy) => (
+                <div key={policy.label} className="flex gap-4 py-2">
+                  <dt className="w-32 shrink-0 text-xs font-bold text-foreground">
+                    {policy.label}
+                  </dt>
+                  <dd className="text-xs leading-relaxed text-muted-foreground">{policy.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* Already staying with us */}
+        <section className="mt-10 rounded-3xl border border-border/70 bg-card/50 p-5 md:p-7">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="signage text-accent font-bold">Already Staying With Us?</p>
               <h2 className="font-serif text-xl font-bold text-foreground">
-                Instant Room Services
+                In-Room Requests & Guest Tools
               </h2>
             </div>
             <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
@@ -427,6 +675,7 @@ function GuestView() {
               10-min average response
             </span>
           </div>
+
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
             {REQUESTS.map((request) => {
@@ -459,7 +708,33 @@ function GuestView() {
               );
             })}
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              to="/checkin"
+              search={{}}
+              className="spring-hover inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm"
+            >
+              Sign in to your room <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/track"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-foreground"
+            >
+              Track a request
+            </Link>
+            <Link
+              to="/guide"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-foreground"
+            >
+              Local guide
+            </Link>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-muted-foreground">
+              <Wifi className="h-3.5 w-3.5 text-accent" /> DaysInn_Guest Wi-Fi
+            </span>
+          </div>
         </section>
+
 
         {/* Late Checkout Luxury Card */}
         <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-900/30 bg-[#1E3A8A] p-7 text-white shadow-xl md:p-9">
@@ -555,6 +830,23 @@ function GuestView() {
             ))}
           </div>
         </section>
+
+        {/* FAQ */}
+        <section className="mt-10">
+          <div className="mb-4">
+            <p className="signage text-accent font-bold">Before You Book</p>
+            <h2 className="font-serif text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+          </div>
+          <div className="grid gap-3.5 md:grid-cols-2">
+            {FAQS.map((item) => (
+              <article key={item.q} className="glass-card rounded-2xl p-5">
+                <h3 className="font-serif text-base font-bold text-foreground">{item.q}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.a}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
 
         {/* Wyndham Rewards Perks */}
         <section className="relative mt-10 rounded-3xl border border-slate-800 bg-[#0f172a] p-7 text-white shadow-xl md:p-9">
