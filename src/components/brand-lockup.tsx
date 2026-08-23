@@ -32,7 +32,7 @@ export function BrandLockup({
             tone === "cream" ? "text-cream/55" : "text-muted-foreground",
           )}
         >
-          Demo Property
+          Days Inn® by Wyndham
         </span>
       </span>
     </span>
