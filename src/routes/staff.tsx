@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
+import { InvitePanel } from "@/components/invite-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
@@ -682,6 +683,7 @@ function Dashboard({
       {isManager ? (
         <div data-tour="team">
           <TeamPanel />
+          <InvitePanel />
         </div>
       ) : null}
 
