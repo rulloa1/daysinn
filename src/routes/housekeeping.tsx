@@ -462,7 +462,12 @@ function HousekeepingBoard({
 
 
   const floors = useMemo(() => {
-    const pool = onlyDirty ? rooms.filter((r) => r.status === "vacant_dirty") : rooms;
+    const pool =
+      filter === "dirty"
+        ? rooms.filter((r) => r.status === "vacant_dirty")
+        : filter === "mine"
+          ? rooms.filter((r) => r.assigned_staff_id === staff.id)
+          : rooms;
     const byFloor = new Map<number, RoomRow[]>();
     for (const room of pool) {
       const list = byFloor.get(room.floor) ?? [];
@@ -479,12 +484,51 @@ function HousekeepingBoard({
             a.number.localeCompare(b.number),
         ),
       }));
-  }, [rooms, onlyDirty]);
+  }, [rooms, filter, staff.id]);
 
   const toClean = rooms.filter((r) => r.status === "vacant_dirty").length;
   const dnd = rooms.filter((r) => r.dnd).length;
   const stayovers = rooms.filter((r) => r.extended_stay).length;
+  const mine = rooms.filter((r) => r.assigned_staff_id === staff.id);
+  const mineLeft = mine.filter((r) => r.status === "vacant_dirty").length;
+  const mineDone = mine.length - mineLeft;
   const active = rooms.find((r) => r.id === activeId) ?? null;
+
+  async function setAssignment(room: RoomRow, toMe: boolean) {
+    if (!canTriage) {
+      toast.error("A manager needs to grant you staff access first.");
+      return;
+    }
+    const patch = toMe
+      ? {
+          assigned_staff_id: staff.id,
+          assigned_name: staff.name,
+          assigned_at: new Date().toISOString(),
+        }
+      : { assigned_staff_id: null, assigned_name: null, assigned_at: null };
+    const previous = rooms;
+    setRooms((prev) =>
+      prev.map((r) =>
+        r.id === room.id
+          ? {
+              ...r,
+              assigned_staff_id: patch.assigned_staff_id,
+              assigned_name: patch.assigned_name,
+            }
+          : r,
+      ),
+    );
+    const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
+    if (error) {
+      setRooms(previous);
+      toast.error("Couldn't update the assignment.");
+      return;
+    }
+    toast.success(
+      toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`,
+    );
+  }
+
 
   async function markClean(room: RoomRow) {
     if (!canTriage) {
