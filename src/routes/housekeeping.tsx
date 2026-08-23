@@ -307,6 +307,7 @@ function HousekeeperLogin({
 }
 
 const ALERTS_KEY = "daysinn.housekeeping.alerts";
+const PUSH_KEY = "daysinn.housekeeping.push";
 
 function HousekeepingBoard({
   staff,
@@ -320,16 +321,26 @@ function HousekeepingBoard({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [onlyDirty, setOnlyDirty] = useState(false);
   const [alertsOn, setAlertsOn] = useState(false);
+  const [pushOn, setPushOn] = useState(false);
   const alertsRef = useRef(false);
+  const pushRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
 
   useEffect(() => {
     setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
+    setPushOn(
+      localStorage.getItem(PUSH_KEY) === "on" && pushPermission() === "granted",
+    );
   }, []);
 
   useEffect(() => {
     alertsRef.current = alertsOn;
   }, [alertsOn]);
+
+  useEffect(() => {
+    pushRef.current = pushOn;
+  }, [pushOn]);
+
 
   useEffect(() => {
     let active = true;
