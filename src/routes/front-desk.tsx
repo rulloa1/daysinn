@@ -596,7 +596,8 @@ function Board() {
                 </div>
               </div>
             ))
-          )}
+            )
+          ) : null}
         </section>
 
         <aside className="space-y-8">
