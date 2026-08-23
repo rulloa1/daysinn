@@ -15,6 +15,7 @@ import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { InvitePanel } from "@/components/invite-panel";
 import { AssignmentBoard } from "@/components/assignment-board";
+import { ScheduleBoard } from "@/components/schedule-board";
 import { PasswordResetGate } from "@/components/password-reset-gate";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { advanceRequest } from "@/lib/request-workflow";
@@ -686,6 +687,7 @@ function Dashboard({
 
       {isManager ? (
         <div>
+          <ScheduleBoard />
           <AssignmentBoard />
           <TeamPanel />
           <InvitePanel />
