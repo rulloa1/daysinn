@@ -168,7 +168,9 @@ function StaffPage() {
   const present = Boolean(demo && presentParam);
 
   useEffect(() => {
-    setDemo(Boolean(demoParam || presentParam) || readPresentationMode());
+    const remembered = readPresentationMode();
+    if (demoParam || presentParam) setPresentationMode(true);
+    setDemo(Boolean(demoParam || presentParam) || remembered);
   }, [demoParam, presentParam]);
 
   useEffect(() => {
