@@ -18,6 +18,8 @@ import {
   pushSupported,
   sendDevicePush,
 } from "@/lib/device-alerts";
+import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push.client";
+
 import {
   Dialog,
   DialogContent,
@@ -436,6 +438,7 @@ function HousekeepingBoard({
     if (pushOn) {
       setPushOn(false);
       localStorage.setItem(PUSH_KEY, "off");
+      void unsubscribeWebPush();
       toast.message("Device notifications off");
       return;
     }
@@ -452,15 +455,24 @@ function HousekeepingBoard({
       setAlertsOn(true);
       localStorage.setItem(ALERTS_KEY, "on");
     }
-    toast.success("Device notifications on", {
-      description: "You'll get a phone alert even when this tab is in the background.",
-    });
+
+    const background = await subscribeWebPush({ id: staff.id ?? undefined, name: staff.name ?? undefined });
+    if (background.ok) {
+      toast.success("Device notifications on", {
+        description: "Alerts arrive even when this tab is closed.",
+      });
+    } else {
+      toast.success("Device notifications on", {
+        description: `Background alerts unavailable: ${background.reason}`,
+      });
+    }
     sendDevicePush(
       "Days Inn housekeeping alerts on",
       "You'll be notified about DND flags and stayovers.",
       "hk-test",
     );
   }
+
 
 
   const floors = useMemo(() => {
