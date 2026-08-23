@@ -175,6 +175,56 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          reporter: string | null
+          reporter_staff_id: string | null
+          resolved_at: string | null
+          room: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          reporter?: string | null
+          reporter_staff_id?: string | null
+          resolved_at?: string | null
+          room: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reporter?: string | null
+          reporter_staff_id?: string | null
+          resolved_at?: string | null
+          room?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tickets_reporter_staff_id_fkey"
+            columns: ["reporter_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -480,12 +530,18 @@ export type Database = {
           extended_stay: boolean
           floor: number
           guest_name: string | null
+          guest_status: string | null
+          hk_stage: string | null
           id: string
+          linen_change: boolean
           notes: string | null
           number: string
           original_check_out: string | null
+          priority: string
+          side: string | null
           status: Database["public"]["Enums"]["room_status"]
           updated_at: string
+          wing: string | null
         }
         Insert: {
           assigned_at?: string | null
@@ -501,12 +557,18 @@ export type Database = {
           extended_stay?: boolean
           floor?: number
           guest_name?: string | null
+          guest_status?: string | null
+          hk_stage?: string | null
           id?: string
+          linen_change?: boolean
           notes?: string | null
           number: string
           original_check_out?: string | null
+          priority?: string
+          side?: string | null
           status?: Database["public"]["Enums"]["room_status"]
           updated_at?: string
+          wing?: string | null
         }
         Update: {
           assigned_at?: string | null
@@ -522,12 +584,18 @@ export type Database = {
           extended_stay?: boolean
           floor?: number
           guest_name?: string | null
+          guest_status?: string | null
+          hk_stage?: string | null
           id?: string
+          linen_change?: boolean
           notes?: string | null
           number?: string
           original_check_out?: string | null
+          priority?: string
+          side?: string | null
           status?: Database["public"]["Enums"]["room_status"]
           updated_at?: string
+          wing?: string | null
         }
         Relationships: [
           {
@@ -863,12 +931,18 @@ export type Database = {
           extended_stay: boolean
           floor: number
           guest_name: string
+          guest_status: string
+          hk_stage: string
           id: string
+          linen_change: boolean
           notes: string
           number: string
           original_check_out: string
+          priority: string
+          side: string
           status: Database["public"]["Enums"]["room_status"]
           updated_at: string
+          wing: string
         }[]
       }
     }
