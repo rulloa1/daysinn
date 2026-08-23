@@ -245,7 +245,9 @@ function GuestView() {
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 via-ink/25 to-transparent p-6 md:p-8">
-            <p className="signage text-amber">Days Inn Wildwood</p>
+            <p className="signage text-amber">
+              Days Inn® by Wyndham · Wildwood
+            </p>
             <h1 className="mt-2 text-3xl text-cream md:text-4xl">
               Good evening — make yourself at home.
             </h1>
