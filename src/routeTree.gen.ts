@@ -14,11 +14,16 @@ import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TrackRouteImport } from './routes/track'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push-dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +51,11 @@ const HousekeepingRoute = HousekeepingRouteImport.update({
   path: '/housekeeping',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RolesRoute = RolesRouteImport.update({
   id: '/roles',
   path: '/roles',
@@ -71,6 +81,29 @@ const TrackRoute = TrackRouteImport.update({
   path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
   id: '/api/public/push-dispatch',
   path: '/api/public/push-dispatch',
@@ -83,11 +116,16 @@ export interface FileRoutesByFullPath {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesByTo {
@@ -96,11 +134,16 @@ export interface FileRoutesByTo {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesById {
@@ -110,11 +153,16 @@ export interface FileRoutesById {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/track': typeof TrackRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRouteTypes {
@@ -125,11 +173,16 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/mcp'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
     | '/track'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,11 +191,16 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/mcp'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
     | '/track'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
   id:
     | '__root__'
@@ -151,11 +209,16 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/mcp'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
     | '/track'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -165,11 +228,16 @@ export interface RootRouteChildren {
   FrontDeskRoute: typeof FrontDeskRoute
   GuideRoute: typeof GuideRoute
   HousekeepingRoute: typeof HousekeepingRoute
+  McpRoute: typeof McpRoute
   RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
   TrackRoute: typeof TrackRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
 }
 
@@ -210,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HousekeepingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roles': {
       id: '/roles'
       path: '/roles'
@@ -245,6 +320,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push-dispatch': {
       id: '/api/public/push-dispatch'
       path: '/api/public/push-dispatch'
@@ -261,11 +364,17 @@ const rootRouteChildren: RootRouteChildren = {
   FrontDeskRoute: FrontDeskRoute,
   GuideRoute: GuideRoute,
   HousekeepingRoute: HousekeepingRoute,
+  McpRoute: McpRoute,
   RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
   TrackRoute: TrackRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
 }
 export const routeTree = rootRouteImport
