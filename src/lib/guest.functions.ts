@@ -26,12 +26,13 @@ function lastNameOf(fullName: string): string {
 
 async function verify({ room, lastName }: Credentials) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("rooms")
     .select("number, guest_name, check_out")
     .eq("number", room)
     .maybeSingle();
 
+  if (error) console.error("[verify] rooms read failed", error);
   if (!data?.guest_name) return null;
   if (lastNameOf(data.guest_name) !== lastName.trim().toLowerCase()) return null;
 
