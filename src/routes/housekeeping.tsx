@@ -488,7 +488,7 @@ function HousekeepingBoard({
             a.number.localeCompare(b.number),
         ),
       }));
-  }, [rooms, filter, staff.id]);
+  }, [rooms, filter, staff.id, query]);
 
   const toClean = rooms.filter((r) => r.status === "vacant_dirty").length;
   const dnd = rooms.filter((r) => r.dnd).length;
