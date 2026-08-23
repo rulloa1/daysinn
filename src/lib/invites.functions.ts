@@ -78,7 +78,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
       throw new Error("A name is required");
     }
     const role = input.role ?? "staff";
-    if (!["manager", "staff", "viewer"].includes(role)) {
+    if (!["manager", "staff", "viewer", "housekeeper"].includes(role)) {
       throw new Error("Unknown role");
     }
     return {
