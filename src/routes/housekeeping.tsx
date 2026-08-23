@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { useStaffRole } from "@/hooks/use-staff-role";
@@ -44,6 +45,8 @@ type RoomRow = {
   dnd: boolean;
   extended_stay: boolean;
   updated_at: string;
+  assigned_staff_id: string | null;
+  assigned_name: string | null;
 };
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
@@ -319,9 +322,10 @@ function HousekeepingBoard({
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [onlyDirty, setOnlyDirty] = useState(false);
+  const [filter, setFilter] = useState<"all" | "dirty" | "mine">("all");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
+  const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
@@ -349,7 +353,7 @@ function HousekeepingBoard({
       const { data, error } = await supabase
         .from("rooms")
         .select(
-          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at",
+          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name",
         )
         .order("number");
       if (!active) return;
@@ -459,7 +463,12 @@ function HousekeepingBoard({
 
 
   const floors = useMemo(() => {
-    const pool = onlyDirty ? rooms.filter((r) => r.status === "vacant_dirty") : rooms;
+    const pool =
+      filter === "dirty"
+        ? rooms.filter((r) => r.status === "vacant_dirty")
+        : filter === "mine"
+          ? rooms.filter((r) => r.assigned_staff_id === staff.id)
+          : rooms;
     const byFloor = new Map<number, RoomRow[]>();
     for (const room of pool) {
       const list = byFloor.get(room.floor) ?? [];
@@ -476,12 +485,51 @@ function HousekeepingBoard({
             a.number.localeCompare(b.number),
         ),
       }));
-  }, [rooms, onlyDirty]);
+  }, [rooms, filter, staff.id]);
 
   const toClean = rooms.filter((r) => r.status === "vacant_dirty").length;
   const dnd = rooms.filter((r) => r.dnd).length;
   const stayovers = rooms.filter((r) => r.extended_stay).length;
+  const mine = rooms.filter((r) => r.assigned_staff_id === staff.id);
+  const mineLeft = mine.filter((r) => r.status === "vacant_dirty").length;
+  const mineDone = mine.length - mineLeft;
   const active = rooms.find((r) => r.id === activeId) ?? null;
+
+  async function setAssignment(room: RoomRow, toMe: boolean) {
+    if (!canTriage) {
+      toast.error("A manager needs to grant you staff access first.");
+      return;
+    }
+    const patch = toMe
+      ? {
+          assigned_staff_id: staff.id,
+          assigned_name: staff.name,
+          assigned_at: new Date().toISOString(),
+        }
+      : { assigned_staff_id: null, assigned_name: null, assigned_at: null };
+    const previous = rooms;
+    setRooms((prev) =>
+      prev.map((r) =>
+        r.id === room.id
+          ? {
+              ...r,
+              assigned_staff_id: patch.assigned_staff_id,
+              assigned_name: patch.assigned_name,
+            }
+          : r,
+      ),
+    );
+    const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
+    if (error) {
+      setRooms(previous);
+      toast.error("Couldn't update the assignment.");
+      return;
+    }
+    toast.success(
+      toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`,
+    );
+  }
+
 
   async function markClean(room: RoomRow) {
     if (!canTriage) {
@@ -548,24 +596,49 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <section className="mt-5 grid grid-cols-3 gap-3">
+      <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="To clean" value={toClean} />
+        <Stat label="My rooms left" value={mineLeft} />
         <Stat label="Do not disturb" value={dnd} />
         <Stat label="Staying over" value={stayovers} />
       </section>
 
+      {mine.length ? (
+        <div className="mt-3 border border-cream/15 bg-cream/[0.03] px-4 py-3">
+          <p className="signage text-cream/50">
+            My shift · {mineDone}/{mine.length} done
+          </p>
+          <div className="mt-2 h-1.5 w-full bg-cream/10">
+            <div
+              className="h-full bg-amber transition-all duration-300"
+              style={{ width: `${Math.round((mineDone / mine.length) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => setOnlyDirty((v) => !v)}
-          className={`signage border px-4 py-3 transition-colors duration-200 ${
-            onlyDirty
-              ? "border-status-dirty bg-status-dirty/20 text-status-dirty"
-              : "border-cream/20 text-cream/60"
-          }`}
-        >
-          {onlyDirty ? "Showing dirty rooms only — tap to show all" : "Show dirty rooms only"}
-        </button>
+        {(
+          [
+            ["all", "All rooms"],
+            ["dirty", "Dirty only"],
+            ["mine", `My rooms (${mine.length})`],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            aria-pressed={filter === key}
+            className={`signage border px-4 py-3 transition-colors duration-200 ${
+              filter === key
+                ? "border-amber bg-amber/15 text-amber"
+                : "border-cream/20 text-cream/60"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
         <button
           type="button"
           onClick={toggleAlerts}
@@ -634,18 +707,43 @@ function HousekeepingBoard({
                         <span aria-hidden>↻</span> Stayover
                       </span>
                     ) : null}
+                    {room.assigned_name ? (
+                      <span
+                        className={`signage px-1.5 py-0.5 text-[0.6rem] ${
+                          room.assigned_staff_id === staff.id
+                            ? "bg-cream text-ink"
+                            : "border border-cream/30 text-cream/60"
+                        }`}
+                      >
+                        {room.assigned_staff_id === staff.id ? "Mine" : room.assigned_name}
+                      </span>
+                    ) : null}
                   </span>
                   {room.status === "vacant_dirty" ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void markClean(room);
-                      }}
-                      className="signage mt-3 block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
-                    >
-                      Mark clean
-                    </button>
+                    <span className="mt-3 block space-y-1.5">
+                      {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void setAssignment(room, room.assigned_staff_id !== staff.id);
+                          }}
+                          className="signage block w-full border border-cream/25 px-2 py-1.5 text-center text-[0.6rem] text-cream/70"
+                        >
+                          {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void markClean(room);
+                        }}
+                        className="signage block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
+                      >
+                        Mark clean
+                      </button>
+                    </span>
                   ) : null}
                 </div>
               ))}
@@ -700,6 +798,27 @@ function HousekeepingBoard({
                 </div>
               </dl>
 
+              <div className="border border-cream/15 bg-cream/[0.03] px-3 py-3">
+                <p className="signage text-cream/45">Assigned to</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-sm text-cream/85">
+                    {active.assigned_name ?? "Unassigned"}
+                  </p>
+                  {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
+                    <button
+                      type="button"
+                      disabled={!canTriage}
+                      onClick={() =>
+                        void setAssignment(active, active.assigned_staff_id !== staff.id)
+                      }
+                      className="signage border border-cream/25 px-3 py-2 text-cream/70 transition-colors duration-200 hover:text-amber disabled:opacity-40"
+                    >
+                      {active.assigned_staff_id === staff.id ? "Release" : "Assign to me"}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
               {active.status === "vacant_dirty" ? (
                 <Button
                   disabled={!canTriage}
@@ -716,10 +835,28 @@ function HousekeepingBoard({
                   Read-only — front desk owns status changes for this room.
                 </p>
               )}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIssueRoom(active);
+                  setActiveId(null);
+                }}
+                className="h-12 w-full border-amber/60 bg-transparent text-base text-amber hover:bg-amber/10 hover:text-amber"
+              >
+                Report an issue
+              </Button>
             </>
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <IssueDialog
+        room={issueRoom}
+        staff={staff}
+        onClose={() => setIssueRoom(null)}
+      />
+
     </div>
   );
 }
@@ -730,5 +867,109 @@ function Stat({ label, value }: { label: string; value: number }) {
       <p className="signage text-cream/45">{label}</p>
       <p className="mt-1 text-2xl">{value}</p>
     </div>
+  );
+}
+
+const ISSUE_TYPES = [
+  { value: "maintenance", label: "Maintenance / repair" },
+  { value: "supplies", label: "Supplies needed" },
+  { value: "damage", label: "Damage or missing item" },
+  { value: "front_desk", label: "Front desk follow-up" },
+] as const;
+
+function IssueDialog({
+  room,
+  staff,
+  onClose,
+}: {
+  room: RoomRow | null;
+  staff: NonNullable<StaffIdentity>;
+  onClose: () => void;
+}) {
+  const [type, setType] = useState<string>("maintenance");
+  const [details, setDetails] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (room) {
+      setType("maintenance");
+      setDetails("");
+    }
+  }, [room]);
+
+  async function submit() {
+    if (!room) return;
+    if (details.trim().length < 3) {
+      toast.error("Add a short description of the issue.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.from("requests").insert({
+      room: room.number,
+      guest_name: `Housekeeping · ${staff.name}`,
+      type,
+      details: details.trim(),
+      status: "new",
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("Couldn't send that to the front desk.");
+      return;
+    }
+    toast.success(`Issue sent for room ${room.number}`);
+    onClose();
+  }
+
+  return (
+    <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="border-cream/20 bg-ink text-cream">
+        {room ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-3xl">Report an issue</DialogTitle>
+              <DialogDescription className="text-cream/60">
+                Room {room.number} · goes straight to the staff request queue.
+              </DialogDescription>
+            </DialogHeader>
+
+            <label className="signage block text-cream/50" htmlFor="issue-type">
+              Type
+            </label>
+            <select
+              id="issue-type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="h-12 w-full border border-cream/25 bg-cream/[0.04] px-3 text-base text-cream"
+            >
+              {ISSUE_TYPES.map((t) => (
+                <option key={t.value} value={t.value} className="text-ink">
+                  {t.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="signage block text-cream/50" htmlFor="issue-details">
+              What's wrong?
+            </label>
+            <Textarea
+              id="issue-details"
+              rows={4}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="e.g. Shower drain is backing up; need two extra bath towels."
+              className="border-cream/20 bg-cream/[0.04] text-base text-cream placeholder:text-cream/35"
+            />
+
+            <Button
+              onClick={() => void submit()}
+              disabled={busy}
+              className="h-12 w-full bg-amber text-base text-ink hover:bg-amber/90"
+            >
+              {busy ? "Sending…" : "Send to front desk"}
+            </Button>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }
