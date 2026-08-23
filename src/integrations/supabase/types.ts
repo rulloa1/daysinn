@@ -261,6 +261,8 @@ export type Database = {
           id: string
           name: string
           pin: string | null
+          sms_alerts: boolean
+          sms_phone: string | null
           updated_at: string
         }
         Insert: {
@@ -270,6 +272,8 @@ export type Database = {
           id?: string
           name: string
           pin?: string | null
+          sms_alerts?: boolean
+          sms_phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -279,6 +283,8 @@ export type Database = {
           id?: string
           name?: string
           pin?: string | null
+          sms_alerts?: boolean
+          sms_phone?: string | null
           updated_at?: string
         }
         Relationships: []
