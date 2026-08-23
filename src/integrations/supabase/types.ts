@@ -97,6 +97,54 @@ export type Database = {
           },
         ]
       }
+      request_notes: {
+        Row: {
+          author_name: string | null
+          author_staff_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          request_id: string
+          status_from: string | null
+          status_to: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          author_staff_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          request_id: string
+          status_from?: string | null
+          status_to?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          author_staff_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          request_id?: string
+          status_from?: string | null
+          status_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_notes_author_staff_id_fkey"
+            columns: ["author_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_notes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requests: {
         Row: {
           created_at: string
@@ -108,6 +156,9 @@ export type Database = {
           resolved_by_staff_id: string | null
           response_seconds: number | null
           room: string
+          started_at: string | null
+          started_by_name: string | null
+          started_by_staff_id: string | null
           status: string
           type: string
           updated_at: string
@@ -122,6 +173,9 @@ export type Database = {
           resolved_by_staff_id?: string | null
           response_seconds?: number | null
           room: string
+          started_at?: string | null
+          started_by_name?: string | null
+          started_by_staff_id?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -136,6 +190,9 @@ export type Database = {
           resolved_by_staff_id?: string | null
           response_seconds?: number | null
           room?: string
+          started_at?: string | null
+          started_by_name?: string | null
+          started_by_staff_id?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -144,6 +201,13 @@ export type Database = {
           {
             foreignKeyName: "requests_resolved_by_staff_id_fkey"
             columns: ["resolved_by_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_started_by_staff_id_fkey"
+            columns: ["started_by_staff_id"]
             isOneToOne: false
             referencedRelation: "staff_members"
             referencedColumns: ["id"]

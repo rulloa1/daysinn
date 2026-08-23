@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { InvitePanel } from "@/components/invite-panel";
+import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
@@ -59,6 +61,10 @@ type RequestRow = {
   details: string | null;
   status: string;
   created_at: string;
+  started_at?: string | null;
+  started_by_name?: string | null;
+  resolved_at?: string | null;
+  resolved_by_name?: string | null;
 };
 
 const STATUSES = ["new", "in_progress", "done"] as const;
@@ -335,7 +341,7 @@ function Dashboard({
     async function load() {
       const { data, error } = await supabase
         .from("requests")
-        .select("id, room, guest_name, type, details, status, created_at")
+        .select("id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
         .order("created_at", { ascending: false });
       if (!active) return;
       if (error) {
@@ -387,35 +393,12 @@ function Dashboard({
       return;
     }
     const previous = rows;
-    setRows((prev) =>
-      prev.map((row) => (row.id === id ? { ...row, status } : row)),
-    );
     const row = previous.find((r) => r.id === id);
-    const resolving = status === "done" && row?.status !== "done";
-    const resolvedPatch = resolving
-      ? {
-          resolved_at: new Date().toISOString(),
-          resolved_by_staff_id: staff?.id ?? null,
-          resolved_by_name: staff?.name ?? null,
-          response_seconds: row
-            ? Math.max(
-                0,
-                Math.round((Date.now() - new Date(row.created_at).getTime()) / 1000),
-              )
-            : null,
-        }
-      : {
-          resolved_at: null,
-          resolved_by_staff_id: null,
-          resolved_by_name: null,
-          response_seconds: null,
-        };
-    const patch =
-      status === "done" && !resolving ? { status } : { status, ...resolvedPatch };
-    const { error } = await supabase
-      .from("requests")
-      .update(patch)
-      .eq("id", id);
+    if (!row) return;
+    setRows((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status } : r)),
+    );
+    const { error } = await advanceRequest(row, status, staff ?? null);
     if (error) {
       setRows(previous);
       toast.error("Update failed — your role may not allow this.");
@@ -673,6 +656,13 @@ function Dashboard({
                     <p className="signage text-cream/40">View only</p>
                   )}
                 </div>
+                {demo ? null : (
+                  <RequestWorkflowPanel
+                    request={row}
+                    canEdit={canTriage}
+                    staff={staff ?? null}
+                  />
+                )}
               </li>
             );
           })}

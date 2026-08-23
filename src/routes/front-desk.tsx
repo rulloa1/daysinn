@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,8 +57,13 @@ type RequestRow = {
   id: string;
   room: string;
   type: string;
+  details?: string | null;
   status: string;
   created_at: string;
+  started_at?: string | null;
+  started_by_name?: string | null;
+  resolved_at?: string | null;
+  resolved_by_name?: string | null;
 };
 
 type BookingRow = {
@@ -232,7 +239,7 @@ function Board() {
           .order("number"),
         supabase
           .from("requests")
-          .select("id, room, type, status, created_at")
+          .select("id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
           .neq("status", "done")
           .order("created_at", { ascending: false }),
         supabase
@@ -787,10 +794,23 @@ function RoomPanel({
             {requests.length ? (
               <div>
                 <p className="signage text-amber">Open guest requests</p>
-                <ul className="mt-2 space-y-1 text-sm text-cream/75">
+                <ul className="mt-2 space-y-3 text-sm text-cream/75">
                   {requests.map((req) => (
-                    <li key={req.id}>
-                      {req.type} · {req.status} · {stamp(req.created_at)}
+                    <li
+                      key={req.id}
+                      className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
+                    >
+                      <p className="text-cream">
+                        {req.type} · {REQUEST_STATUS_LABEL[req.status] ?? req.status}
+                      </p>
+                      {req.details ? (
+                        <p className="mt-1 text-xs text-cream/65">{req.details}</p>
+                      ) : null}
+                      <RequestWorkflowPanel
+                        request={req}
+                        canEdit={canEdit}
+                        staff={staff}
+                      />
                     </li>
                   ))}
                 </ul>

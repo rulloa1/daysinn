@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +37,19 @@ type RoomStatus =
   | "occupied_dnd"
   | "out_of_order"
   | "reserved";
+
+type IssueRow = {
+  id: string;
+  room: string;
+  type: string;
+  details: string | null;
+  status: string;
+  created_at: string;
+  started_at: string | null;
+  started_by_name: string | null;
+  resolved_at: string | null;
+  resolved_by_name: string | null;
+};
 
 type RoomRow = {
   id: string;
@@ -322,6 +337,7 @@ function HousekeepingBoard({
   onSignOut: () => void;
 }) {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
+  const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "dirty" | "mine">("all");
@@ -363,11 +379,25 @@ function HousekeepingBoard({
       if (error) toast.error("Couldn't load rooms.");
       setRooms((data ?? []) as RoomRow[]);
       setLoading(false);
+
+      const { data: issues } = await supabase
+        .from("requests")
+        .select(
+          "id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name",
+        )
+        .neq("status", "done")
+        .order("created_at", { ascending: false });
+      if (active) setOpenIssues((issues ?? []) as IssueRow[]);
     }
 
     void load();
     const channel = supabase
       .channel("housekeeping-feed")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "requests" },
+        () => void load(),
+      )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms" },
@@ -853,6 +883,37 @@ function HousekeepingBoard({
                   ) : null}
                 </div>
               </div>
+
+              {openIssues.filter((i) => i.room === active.number).length ? (
+                <div>
+                  <p className="signage text-amber">Open issues</p>
+                  <ul className="mt-2 space-y-3">
+                    {openIssues
+                      .filter((i) => i.room === active.number)
+                      .map((issue) => (
+                        <li
+                          key={issue.id}
+                          className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
+                        >
+                          <p className="text-sm text-cream">
+                            {issue.type} ·{" "}
+                            {REQUEST_STATUS_LABEL[issue.status] ?? issue.status}
+                          </p>
+                          {issue.details ? (
+                            <p className="mt-1 text-xs text-cream/65">
+                              {issue.details}
+                            </p>
+                          ) : null}
+                          <RequestWorkflowPanel
+                            request={issue}
+                            canEdit={canTriage}
+                            staff={staff}
+                          />
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : null}
 
               {active.status === "vacant_dirty" ? (
                 <Button
