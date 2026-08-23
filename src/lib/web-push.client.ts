@@ -50,7 +50,7 @@ export async function subscribeWebPush(staff: { id?: string; name?: string }) {
         applicationServerKey: urlBase64ToUint8Array(key) as BufferSource,
       }));
 
-    const json = sub.toJSON() as { endpoint?: string; keys?: Record<string, string> };
+    const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
     if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
       return { ok: false as const, reason: "Couldn't read the push subscription." };
     }
