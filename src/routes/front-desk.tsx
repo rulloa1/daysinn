@@ -768,7 +768,9 @@ function RoomPanel({
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
     setNotes(room?.notes ?? "");
-  }, [room?.id, room?.guest_name, room?.notes]);
+    setPin(room?.door_pin ?? null);
+  }, [room?.id, room?.guest_name, room?.notes, room?.door_pin]);
+
 
   return (
     <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
