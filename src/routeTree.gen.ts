@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
+import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
@@ -36,6 +37,11 @@ const FrontDeskRoute = FrontDeskRouteImport.update({
 const HousekeepingRoute = HousekeepingRouteImport.update({
   id: '/housekeeping',
   path: '/housekeeping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RolesRoute = RolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoomRoute = RoomRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/checkin'
     | '/front-desk'
     | '/housekeeping'
+    | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/checkin'
     | '/front-desk'
     | '/housekeeping'
+    | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/checkin'
     | '/front-desk'
     | '/housekeeping'
+    | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   CheckinRoute: typeof CheckinRoute
   FrontDeskRoute: typeof FrontDeskRoute
   HousekeepingRoute: typeof HousekeepingRoute
+  RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/housekeeping'
       fullPath: '/housekeeping'
       preLoaderRoute: typeof HousekeepingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roles': {
+      id: '/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof RolesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/room': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckinRoute: CheckinRoute,
   FrontDeskRoute: FrontDeskRoute,
   HousekeepingRoute: HousekeepingRoute,
+  RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
