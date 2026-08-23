@@ -308,11 +308,19 @@ function GuestView() {
               href={MAP_URL}
               target="_blank"
               rel="noreferrer"
-              className="border border-border p-6 transition-colors duration-200 hover:border-amber"
+              className="border border-border transition-colors duration-200 hover:border-amber"
             >
-              <span className="signage text-amber tabular-nums">01</span>
-              <h3 className="mt-3 text-xl">Find us</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <img
+                src={propertyAsset.url}
+                alt="Days Inn property exterior and parking lot"
+                width={1600}
+                height={1067}
+                loading="lazy"
+                className="h-36 w-full object-cover"
+              />
+              <span className="signage mt-4 block px-6 text-amber tabular-nums">01</span>
+              <h3 className="mt-3 px-6 text-xl">Find us</h3>
+              <p className="mt-2 px-6 pb-6 text-sm text-muted-foreground">
                 2224 W. County Road 48
                 <br />
                 Bushnell, FL 33513, US
