@@ -56,6 +56,10 @@ export type Database = {
           details: string | null
           guest_name: string | null
           id: string
+          resolved_at: string | null
+          resolved_by_name: string | null
+          resolved_by_staff_id: string | null
+          response_seconds: number | null
           room: string
           status: string
           type: string
@@ -66,6 +70,10 @@ export type Database = {
           details?: string | null
           guest_name?: string | null
           id?: string
+          resolved_at?: string | null
+          resolved_by_name?: string | null
+          resolved_by_staff_id?: string | null
+          response_seconds?: number | null
           room: string
           status?: string
           type: string
@@ -76,12 +84,24 @@ export type Database = {
           details?: string | null
           guest_name?: string | null
           id?: string
+          resolved_at?: string | null
+          resolved_by_name?: string | null
+          resolved_by_staff_id?: string | null
+          response_seconds?: number | null
           room?: string
           status?: string
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "requests_resolved_by_staff_id_fkey"
+            columns: ["resolved_by_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       room_qr_tokens: {
         Row: {
@@ -118,6 +138,66 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      room_status_events: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          duration_seconds: number | null
+          id: string
+          is_turnover: boolean
+          new_status: Database["public"]["Enums"]["room_status"]
+          old_status: Database["public"]["Enums"]["room_status"] | null
+          previous_changed_at: string | null
+          room_id: string | null
+          room_number: string
+          staff_member_id: string | null
+          staff_name: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_turnover?: boolean
+          new_status: Database["public"]["Enums"]["room_status"]
+          old_status?: Database["public"]["Enums"]["room_status"] | null
+          previous_changed_at?: string | null
+          room_id?: string | null
+          room_number: string
+          staff_member_id?: string | null
+          staff_name?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_turnover?: boolean
+          new_status?: Database["public"]["Enums"]["room_status"]
+          old_status?: Database["public"]["Enums"]["room_status"] | null
+          previous_changed_at?: string | null
+          room_id?: string | null
+          room_number?: string
+          staff_member_id?: string | null
+          staff_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_status_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_status_events_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rooms: {
         Row: {
@@ -157,6 +237,33 @@ export type Database = {
           notes?: string | null
           number?: string
           status?: Database["public"]["Enums"]["room_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      staff_members: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          pin: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          pin?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          pin?: string | null
           updated_at?: string
         }
         Relationships: []
