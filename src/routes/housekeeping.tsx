@@ -323,6 +323,7 @@ function HousekeepingBoard({
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "dirty" | "mine">("all");
+  const [query, setQuery] = useState("");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
