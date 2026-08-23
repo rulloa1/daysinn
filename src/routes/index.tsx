@@ -708,7 +708,33 @@ function GuestView() {
               );
             })}
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              to="/checkin"
+              search={{}}
+              className="spring-hover inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm"
+            >
+              Sign in to your room <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/track"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-foreground"
+            >
+              Track a request
+            </Link>
+            <Link
+              to="/guide"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-foreground"
+            >
+              Local guide
+            </Link>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-4 py-2 text-xs font-semibold text-muted-foreground">
+              <Wifi className="h-3.5 w-3.5 text-accent" /> DaysInn_Guest Wi-Fi
+            </span>
+          </div>
         </section>
+
 
         {/* Late Checkout Luxury Card */}
         <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-900/30 bg-[#1E3A8A] p-7 text-white shadow-xl md:p-9">
