@@ -13,12 +13,25 @@ const sendSchema = credentials.extend({
   body: z.string().trim().min(1, "Type a message first.").max(1000),
 });
 
+/** A stay ends at midnight on the checkout date; access ends with it. */
+function isPastCheckout(checkOut: string | null): boolean {
+  if (!checkOut) return false;
+  return new Date(`${checkOut}T23:59:59Z`).getTime() < Date.now();
+}
+
 /** Guest-side chat thread + digital room key, gated on room + last name. */
 export const guestThread = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => credentials.parse(input))
   .handler(async ({ data }) => {
+    const { allowGuestAttempt, recordAudit } = await import("@/lib/audit.server");
+    if (!(await allowGuestAttempt("guest_thread", data.room))) {
+      return { ok: false as const, messages: [], key: null };
+    }
+
     const guest = await verifyGuest(data.room, data.lastName);
-    if (!guest) return { ok: false as const, messages: [], key: null };
+    if (!guest || isPastCheckout(guest.checkOut)) {
+      return { ok: false as const, messages: [], key: null };
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
@@ -34,6 +47,14 @@ export const guestThread = createServerFn({ method: "POST" })
       .eq("room", guest.room)
       .eq("sender", "staff")
       .eq("read_by_guest", false);
+
+    if (guest.doorPin) {
+      await recordAudit({
+        entity: "door_key",
+        action: "viewed_by_guest",
+        room: guest.room,
+      });
+    }
 
     return {
       ok: true as const,
@@ -51,8 +72,15 @@ export const guestThread = createServerFn({ method: "POST" })
 export const guestSendMessage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => sendSchema.parse(input))
   .handler(async ({ data }) => {
+    const { allowGuestAttempt } = await import("@/lib/audit.server");
+    if (!(await allowGuestAttempt("guest_message", data.room))) {
+      return { ok: false as const, error: "Too many messages just now — please wait a moment." };
+    }
+
     const guest = await verifyGuest(data.room, data.lastName);
-    if (!guest) return { ok: false as const, error: "We couldn't verify your room." };
+    if (!guest || isPastCheckout(guest.checkOut)) {
+      return { ok: false as const, error: "We couldn't verify your room." };
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("guest_messages").insert({
@@ -84,6 +112,16 @@ export const issueDoorPin = createServerFn({ method: "POST" })
       .eq("number", data.room);
 
     if (error) throw new Error("Could not issue a room key.");
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "door_key",
+      action: "issued",
+      actorUserId: context.userId,
+      room: data.room,
+      detail: { issuedAt },
+    });
+
     return { pin, issuedAt };
   });
 
@@ -100,5 +138,41 @@ export const clearDoorPin = createServerFn({ method: "POST" })
       .from("rooms")
       .update({ door_pin: null, door_pin_set_at: null })
       .eq("number", data.room);
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "door_key",
+      action: "cleared",
+      actorUserId: context.userId,
+      room: data.room,
+    });
+
     return { ok: true as const };
+  });
+
+/** Staff-only read of a room's current key, kept out of client table reads. */
+export const readDoorPin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("rooms")
+      .select("door_pin, door_pin_set_at")
+      .eq("number", data.room)
+      .maybeSingle();
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "door_key",
+      action: "viewed_by_staff",
+      actorUserId: context.userId,
+      room: data.room,
+    });
+
+    return { pin: row?.door_pin ?? null, issuedAt: row?.door_pin_set_at ?? null };
   });

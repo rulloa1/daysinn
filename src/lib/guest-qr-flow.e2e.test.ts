@@ -8,6 +8,7 @@ import {
   issueToken,
   warmApp,
   randomToken,
+  resetGuestAttempts,
   tokenRow,
 } from "./e2e-harness";
 
@@ -41,17 +42,21 @@ beforeAll(async () => {
   if (!serverUp || !e2eReady) return;
 
   const { body } = await db(
-    "rooms?guest_name=not.is.null&select=number,guest_name&limit=1",
+    `rooms?guest_name=not.is.null&check_out=gte.${new Date().toISOString().slice(0, 10)}&select=number,guest_name&limit=1`,
   );
   const occupied = (body as Array<{ number: string; guest_name: string }>)[0];
   if (occupied) {
     room = occupied.number;
     lastName = occupied.guest_name.trim().split(/\s+/).pop() ?? "";
+    await resetGuestAttempts(room);
   }
 });
 
 afterAll(async () => {
-  if (room) await cleanupRoomTokens(room);
+  if (room) {
+    await cleanupRoomTokens(room);
+    await resetGuestAttempts(room);
+  }
 });
 
 describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
@@ -75,7 +80,8 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
 
     const replay = await signIn({ room, lastName, token });
     expect(replay.ok).toBe(false);
-    if (!replay.ok) expect(replay.error).toMatch(/expired or was already used/i);
+    // Denials are deliberately generic so a replayed code leaks nothing.
+    if (!replay.ok) expect(replay.error).toMatch(/couldn't verify that room/i);
   });
 
   it("rejects an expired code", async () => {

@@ -5,7 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { GuestChatPanel } from "@/components/guest-chat-panel";
-import { clearDoorPin, issueDoorPin } from "@/lib/guest-hub.functions";
+import { clearDoorPin, issueDoorPin, readDoorPin } from "@/lib/guest-hub.functions";
 
 import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,7 +54,6 @@ type RoomRow = {
   check_in: string | null;
   check_out: string | null;
   notes: string | null;
-  door_pin?: string | null;
   updated_at: string;
 
 };
@@ -241,7 +240,7 @@ function Board() {
         supabase
           .from("rooms")
           .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, door_pin, updated_at",
+            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
           )
 
           .order("number"),
@@ -736,6 +735,7 @@ function RoomPanel({
   const [pin, setPin] = useState<string | null>(null);
   const [keyBusy, setKeyBusy] = useState(false);
   const mintKey = useServerFn(issueDoorPin);
+  const loadKey = useServerFn(readDoorPin);
   const revokeKey = useServerFn(clearDoorPin);
 
   async function issueKey(number: string) {
@@ -768,8 +768,21 @@ function RoomPanel({
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
     setNotes(room?.notes ?? "");
-    setPin(room?.door_pin ?? null);
-  }, [room?.id, room?.guest_name, room?.notes, room?.door_pin]);
+    setPin(null);
+    if (!room?.number) return;
+    let active = true;
+    // Door PINs are never in the client table read; fetch them staff-gated.
+    void loadKey({ data: { room: room.number } })
+      .then((res) => {
+        if (active) setPin(res.pin);
+      })
+      .catch(() => {
+        if (active) setPin(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [room?.id, room?.number, room?.guest_name, room?.notes, loadKey]);
 
 
   return (

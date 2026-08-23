@@ -47,7 +47,7 @@ begin
     url := 'https://daysinn.lovable.app/api/public/push-dispatch',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-push-secret', 'f91210275155b80ba16fc3365a98c0147a05bfcb669a008e'
+      'x-push-secret', 'REDACTED_ROTATED_SECRET'
     ),
     body := jsonb_build_object(
       'kind', kind,

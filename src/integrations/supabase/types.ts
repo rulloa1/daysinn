@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_events: {
+        Row: {
+          action: string
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string
+          detail: Json
+          entity: string
+          entity_id: string | null
+          id: string
+          room: string | null
+        }
+        Insert: {
+          action: string
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          entity: string
+          entity_id?: string | null
+          id?: string
+          room?: string | null
+        }
+        Update: {
+          action?: string
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          room?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           check_in: string
@@ -50,6 +86,30 @@ export type Database = {
           phone?: string | null
           room?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      guest_auth_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          identifier: string
+          scope: string
+          succeeded: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identifier: string
+          scope: string
+          succeeded?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identifier?: string
+          scope?: string
+          succeeded?: boolean
         }
         Relationships: []
       }
@@ -96,6 +156,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      internal_secrets: {
+        Row: {
+          name: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          name: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          name?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       push_subscriptions: {
         Row: {
