@@ -62,11 +62,16 @@ export const Route = createFileRoute("/room")({
 function RoomHub() {
   const navigate = useNavigate();
   const fetchRequests = useServerFn(guestRequests);
+  const fetchThread = useServerFn(guestThread);
+  const sendMessage = useServerFn(guestSendMessage);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+
 
   useEffect(() => {
     const stored = readGuestSession();
