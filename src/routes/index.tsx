@@ -329,6 +329,34 @@ function GuestView() {
         </section>
 
         <section className="border-t border-border px-6 py-10 md:px-12">
+          <Eyebrow>The property</Eyebrow>
+          <h2 className="mt-3 text-4xl md:text-5xl">A look around</h2>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {GALLERY.map((photo, index) => (
+              <figure
+                key={photo.src}
+                className={`group relative overflow-hidden border border-border ${
+                  index === 0 ? "lg:col-span-2 lg:row-span-2" : ""
+                }`}
+              >
+                <img
+                  src={photo.src}
+                  alt={photo.alt}
+                  loading="lazy"
+                  className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                    index === 0 ? "h-64 lg:h-full lg:min-h-[22rem]" : "h-44"
+                  }`}
+                />
+                <figcaption className="signage absolute inset-x-0 bottom-0 bg-ink/70 px-3 py-2 text-xs text-background">
+                  {photo.caption}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+
+        <section className="border-t border-border px-6 py-10 md:px-12">
           <Eyebrow>Stay connected</Eyebrow>
           <h2 className="mt-3 text-4xl md:text-5xl">Need a hand?</h2>
           <div className="mt-6 grid gap-6 md:grid-cols-3">
