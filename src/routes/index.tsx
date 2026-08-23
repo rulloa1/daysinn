@@ -18,7 +18,7 @@ import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
 
 const MAP_URL =
-  "https://www.google.com/maps/search/?api=1&query=28.80252200339344,-82.13464007721517";
+  "https://www.google.com/maps/search/?api=1&query=551+FL-44,+Wildwood,+FL+34785";
 
 const REQUESTS = [
   {
@@ -91,10 +91,10 @@ export const Route = createFileRoute("/")({
           telephone: "+1-352-793-5010",
           address: {
             "@type": "PostalAddress",
-            streetAddress: "2224 W. County Road 48",
-            addressLocality: "Bushnell",
+            streetAddress: "551 FL-44",
+            addressLocality: "Wildwood",
             addressRegion: "FL",
-            postalCode: "33513",
+            postalCode: "34785",
             addressCountry: "US",
           },
         }),
@@ -321,9 +321,9 @@ function GuestView() {
               <span className="signage mt-4 block px-6 text-amber tabular-nums">01</span>
               <h3 className="mt-3 px-6 text-xl">Find us</h3>
               <p className="mt-2 px-6 pb-6 text-sm text-muted-foreground">
-                2224 W. County Road 48
+                551 FL-44
                 <br />
-                Bushnell, FL 33513, US
+                Wildwood, FL 34785, US
               </p>
             </a>
             <a
