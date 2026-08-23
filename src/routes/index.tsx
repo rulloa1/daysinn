@@ -357,6 +357,38 @@ function GuestView() {
           </div>
         </section>
 
+        {/* Wyndham Rewards */}
+        <section className="mt-9 rounded-3xl bg-ink p-6 text-cream shadow-lg md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="signage text-amber">Wyndham Rewards® Member Benefits</p>
+              <h2 className="mt-2 text-2xl text-cream">
+                Book direct. Earn more on every stay.
+              </h2>
+            </div>
+            <a
+              href={BOOKING_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-xl bg-amber px-5 py-3 text-sm font-bold text-ink transition-colors duration-200 hover:bg-cream"
+            >
+              Check rates ↗
+            </a>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {REWARDS.map((perk) => (
+              <article
+                key={perk.title}
+                className="rounded-2xl border-l-4 border-amber bg-cream/10 p-4"
+              >
+                <h3 className="text-base text-cream">{perk.title}</h3>
+                <p className="mt-1.5 text-sm text-cream/75">{perk.body}</p>
+              </article>
+            ))}
+          </div>
+          <FranchiseDisclaimer className="mt-4 text-[11px] leading-relaxed text-cream/60" />
+        </section>
+
         {/* Map & directions */}
         <PropertyMap />
 
