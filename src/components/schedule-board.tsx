@@ -334,30 +334,113 @@ export function ScheduleBoard() {
                 <p className="mt-2 text-xs text-cream/40">No shifts</p>
               ) : (
                 <ul className="mt-2 space-y-2">
-                  {list.map((shift) => (
-                    <li key={shift.id} className="border border-cream/15 bg-cream/[0.04] p-2">
-                      <p className="text-sm">{shift.staff_name}</p>
-                      <p className="text-xs text-cream/60">
-                        {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}
-                      </p>
-                      {shift.notes ? (
-                        <p className="mt-1 text-[11px] text-cream/50">{shift.notes}</p>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => void removeShift(shift.id)}
-                        className="mt-1 text-[11px] uppercase tracking-wide text-clay hover:text-cream"
+                  {list.map((shift) => {
+                    const count = shiftRooms.filter((r) => r.schedule_id === shift.id).length;
+                    const active = shift.id === activeShiftId;
+                    return (
+                      <li
+                        key={shift.id}
+                        className={`border p-2 transition ${
+                          active
+                            ? "border-amber bg-amber/15"
+                            : "border-cream/15 bg-cream/[0.04]"
+                        }`}
                       >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={() => setActiveShiftId(active ? null : shift.id)}
+                          className="w-full text-left"
+                        >
+                          <p className="text-sm">{shift.staff_name}</p>
+                          <p className="text-xs text-cream/60">
+                            {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}
+                          </p>
+                          <p className="mt-1 text-[11px] uppercase tracking-wide text-amber">
+                            {count} room{count === 1 ? "" : "s"} · {active ? "editing" : "assign"}
+                          </p>
+                        </button>
+                        {shift.notes ? (
+                          <p className="mt-1 text-[11px] text-cream/50">{shift.notes}</p>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => void removeShift(shift.id)}
+                          className="mt-1 text-[11px] uppercase tracking-wide text-clay hover:text-cream"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
           );
         })}
       </div>
+
+      <div className="mt-6 border border-cream/15 bg-ink/40 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="font-display text-lg">Rooms for this shift</h3>
+          {activeShift ? (
+            <Badge className="bg-amber/20 text-[11px] text-cream">
+              {activeShift.staff_name} · {dayLabel(activeShift.work_date)} ·{" "}
+              {timeLabel(activeShift.start_time)}–{timeLabel(activeShift.end_time)}
+            </Badge>
+          ) : null}
+          <label className="ml-auto flex items-center gap-2 text-xs text-cream/60">
+            <input
+              type="checkbox"
+              checked={onlyDirty}
+              onChange={(event) => setOnlyDirty(event.target.checked)}
+            />
+            Dirty rooms only
+          </label>
+          <Button
+            disabled={busy || !activeShift || activeRooms.length === 0}
+            onClick={() => void pushToBoard()}
+            className="h-9 bg-amber text-ink hover:bg-amber/90"
+          >
+            Send to housekeeping board
+          </Button>
+        </div>
+
+        {!activeShift ? (
+          <p className="mt-3 text-sm text-cream/55">
+            Pick a shift above to give that housekeeper specific rooms for that date and time.
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-cream/60">
+              {activeRooms.length === 0
+                ? "No rooms on this shift yet."
+                : `Assigned: ${activeRooms.map((r) => r.room_number).join(", ")}`}
+            </p>
+            <div className="mt-3 flex max-h-64 flex-wrap gap-2 overflow-y-auto">
+              {rooms
+                .filter((room) => (onlyDirty ? room.status === "vacant_dirty" : true))
+                .map((room) => {
+                  const picked = activeRoomNumbers.has(room.number);
+                  return (
+                    <button
+                      key={room.id}
+                      type="button"
+                      onClick={() => void toggleRoom(room)}
+                      className={`border px-3 py-1.5 text-sm transition ${
+                        picked
+                          ? "border-amber bg-amber/25 text-cream"
+                          : "border-cream/20 bg-ink/60 text-cream/70 hover:border-cream/40"
+                      }`}
+                    >
+                      {room.number}
+                    </button>
+                  );
+                })}
+            </div>
+          </>
+        )}
+      </div>
+
 
       <div className="mt-8">
         <h3 className="font-display text-lg">Supervisor access</h3>
