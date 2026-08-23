@@ -12,7 +12,7 @@ export function BrandLockup({
     <span className={cn("flex items-center gap-3", className)}>
       <img
         src={logoAsset.url}
-        alt="Rodeway Inn"
+        alt="Days Inn"
         width={112}
         height={56}
         className="h-8 w-auto"

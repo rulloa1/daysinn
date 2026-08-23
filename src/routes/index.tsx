@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import roomDusk from "@/assets/room-dusk.jpg";
+import propertyAsset from "@/assets/days-inn-property.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
 
 const MAP_URL =
@@ -65,13 +65,13 @@ const STOPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Rodeway Hub — Your Digital Front Desk" },
+      { title: "Days Inn Hub — Your Digital Front Desk" },
       {
         name: "description",
         content:
           "Send a room request once and we route it to the right person in under 10 minutes. Towels, housekeeping, repairs, and front-desk questions.",
       },
-      { property: "og:title", content: "Rodeway Hub — Your Digital Front Desk" },
+      { property: "og:title", content: "Days Inn Hub — Your Digital Front Desk" },
       {
         property: "og:description",
         content:
@@ -86,7 +86,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Hotel",
-          name: "Rodeway Hub",
+          name: "Days Inn Hub",
           url: "https://rodewayinn.lovable.app/",
           telephone: "+1-352-793-5010",
           address: {
@@ -229,10 +229,10 @@ function GuestView() {
           </div>
           <div className="relative hidden overflow-hidden border border-ink/15 md:block">
             <img
-              src={roomDusk}
-              alt="Motel room at dusk with warm lamp light and crisp white bedding"
+              src={propertyAsset.url}
+              alt="Days Inn exterior at dusk with lit walkways and open parking lot"
               width={1600}
-              height={1100}
+              height={1067}
               className="h-full w-full object-cover"
             />
             <div className="signage absolute bottom-4 left-4 bg-ink px-4 py-2.5 text-cream">
@@ -308,11 +308,19 @@ function GuestView() {
               href={MAP_URL}
               target="_blank"
               rel="noreferrer"
-              className="border border-border p-6 transition-colors duration-200 hover:border-amber"
+              className="border border-border transition-colors duration-200 hover:border-amber"
             >
-              <span className="signage text-amber tabular-nums">01</span>
-              <h3 className="mt-3 text-xl">Find us</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <img
+                src={propertyAsset.url}
+                alt="Days Inn property exterior and parking lot"
+                width={1600}
+                height={1067}
+                loading="lazy"
+                className="h-36 w-full object-cover"
+              />
+              <span className="signage mt-4 block px-6 text-amber tabular-nums">01</span>
+              <h3 className="mt-3 px-6 text-xl">Find us</h3>
+              <p className="mt-2 px-6 pb-6 text-sm text-muted-foreground">
                 2224 W. County Road 48
                 <br />
                 Bushnell, FL 33513, US

@@ -17,13 +17,13 @@ export const Route = createFileRoute("/checkin")({
   }),
   head: () => ({
     meta: [
-      { title: "Room Sign-In — Rodeway Hub" },
+      { title: "Room Sign-In — Days Inn Hub" },
       {
         name: "description",
         content:
           "Scan the QR code and sign in with your room number and last name to send requests from your phone.",
       },
-      { property: "og:title", content: "Room Sign-In — Rodeway Hub" },
+      { property: "og:title", content: "Room Sign-In — Days Inn Hub" },
       {
         property: "og:description",
         content:
