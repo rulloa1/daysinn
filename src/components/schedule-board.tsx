@@ -49,6 +49,10 @@ function timeLabel(value: string) {
 export function ScheduleBoard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [shiftRooms, setShiftRooms] = useState<ShiftRoom[]>([]);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
+  const [onlyDirty, setOnlyDirty] = useState(false);
   const [weekStart, setWeekStart] = useState(() => isoDate(0));
   const [memberId, setMemberId] = useState("");
   const [date, setDate] = useState(() => isoDate(0));
@@ -68,7 +72,7 @@ export function ScheduleBoard() {
   );
 
   const load = useCallback(async () => {
-    const [staffRes, shiftRes] = await Promise.all([
+    const [staffRes, shiftRes, roomRes, assignRes] = await Promise.all([
       supabase
         .from("staff_members")
         .select("id, name, department, is_supervisor")
@@ -81,17 +85,86 @@ export function ScheduleBoard() {
         .lte("work_date", days[6]!)
         .order("work_date")
         .order("start_time"),
+      supabase.from("rooms").select("id, number, floor, status").order("number"),
+      supabase
+        .from("shift_room_assignments")
+        .select("id, schedule_id, staff_member_id, staff_name, work_date, room_id, room_number")
+        .gte("work_date", days[0]!)
+        .lte("work_date", days[6]!)
+        .order("room_number"),
     ]);
     if (staffRes.data) {
       setMembers(staffRes.data as Member[]);
       setMemberId((prev) => prev || (staffRes.data[0]?.id ?? ""));
     }
     if (shiftRes.data) setShifts(shiftRes.data as Shift[]);
+    if (roomRes.data) setRooms(roomRes.data as Room[]);
+    if (assignRes.data) setShiftRooms(assignRes.data as ShiftRoom[]);
   }, [days]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const activeShift = shifts.find((s) => s.id === activeShiftId) ?? null;
+  const activeRooms = shiftRooms.filter((r) => r.schedule_id === activeShiftId);
+  const activeRoomNumbers = new Set(activeRooms.map((r) => r.room_number));
+
+  async function toggleRoom(room: Room) {
+    if (!activeShift) return;
+    const existing = activeRooms.find((r) => r.room_number === room.number);
+    if (existing) {
+      const { error } = await supabase.from("shift_room_assignments").delete().eq("id", existing.id);
+      if (error) {
+        toast.error("Couldn't remove that room.");
+        return;
+      }
+      setShiftRooms((prev) => prev.filter((r) => r.id !== existing.id));
+      return;
+    }
+    const { data, error } = await supabase
+      .from("shift_room_assignments")
+      .insert({
+        schedule_id: activeShift.id,
+        staff_member_id: activeShift.staff_member_id,
+        staff_name: activeShift.staff_name,
+        work_date: activeShift.work_date,
+        room_id: room.id,
+        room_number: room.number,
+      })
+      .select("id, schedule_id, staff_member_id, staff_name, work_date, room_id, room_number")
+      .single();
+    if (error || !data) {
+      toast.error("Couldn't assign that room.");
+      return;
+    }
+    setShiftRooms((prev) => [...prev, data as ShiftRoom]);
+  }
+
+  /** Push a shift's room list onto the live housekeeping board. */
+  async function pushToBoard() {
+    if (!activeShift || activeRooms.length === 0) {
+      toast.error("Assign at least one room to this shift first.");
+      return;
+    }
+    setBusy(true);
+    const ids = activeRooms.map((r) => r.room_id).filter((id): id is string => Boolean(id));
+    const { error } = await supabase
+      .from("rooms")
+      .update({
+        assigned_staff_id: activeShift.staff_member_id,
+        assigned_name: activeShift.staff_name,
+        assigned_at: new Date().toISOString(),
+      })
+      .in("id", ids);
+    setBusy(false);
+    if (error) {
+      toast.error("Couldn't push the assignment to the board.");
+      return;
+    }
+    toast.success(`${ids.length} room(s) sent to ${activeShift.staff_name}'s board.`);
+  }
+
 
   async function addShift() {
     const person = members.find((m) => m.id === memberId);
