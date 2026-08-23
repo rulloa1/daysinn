@@ -209,6 +209,8 @@ function Board() {
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
+  const [view, setView] = useState<"map" | "list">("map");
+  const [mapFloor, setMapFloor] = useState<1 | 2>(1);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
