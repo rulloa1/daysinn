@@ -22,6 +22,7 @@ import {
   sendDevicePush,
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
+import { FloorPlan } from "@/components/floor-plan";
 
 import {
   Dialog,
@@ -340,6 +341,8 @@ function HousekeepingBoard({
   const [query, setQuery] = useState("");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">("both");
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
@@ -716,11 +719,60 @@ function HousekeepingBoard({
               {pushOn ? "Phone alerts on" : "Phone alerts off"}
             </button>
           ) : null}
+
+          {/* View Mode Toggle: Grid List vs Interactive Property Map */}
+          <div className="flex shrink-0 snap-start items-center rounded border border-cream/20 bg-cream/5 p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`signage px-3 py-2 transition-colors duration-200 ${
+                viewMode === "grid" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
+              }`}
+            >
+              Grid list
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              className={`signage px-3 py-2 transition-colors duration-200 ${
+                viewMode === "map" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
+              }`}
+            >
+              Property map
+            </button>
+          </div>
         </div>
       </div>
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
+      ) : viewMode === "map" ? (
+        <div className="mt-6 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="signage text-cream/60">Interactive Property Blueprint ({rooms.length} rooms)</p>
+            <div className="flex gap-1.5">
+              {(["both", 1, 2] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setMapFloor(f)}
+                  className={`signage px-3 py-1.5 transition-colors duration-150 ${
+                    mapFloor === f
+                      ? "border border-amber bg-amber text-ink font-bold"
+                      : "border border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
+                  }`}
+                >
+                  {f === "both" ? "Both Floors" : `Floor ${f}`}
+                </button>
+              ))}
+            </div>
+          </div>
+          <FloorPlan
+            floor={mapFloor}
+            rooms={rooms}
+            onSelect={(roomId) => setActiveId(roomId)}
+          />
+        </div>
       ) : floors.length === 0 ? (
         <div className="mt-8 border border-cream/15 bg-cream/[0.03] p-6 text-center">
           <p className="signage text-cream/50">No rooms match</p>
