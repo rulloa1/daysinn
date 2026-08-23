@@ -238,8 +238,9 @@ function Board() {
         supabase
           .from("rooms")
           .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
+            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, door_pin, updated_at",
           )
+
           .order("number"),
         supabase
           .from("requests")
