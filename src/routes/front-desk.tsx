@@ -210,6 +210,9 @@ function Board() {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
+  const [resolvedToday, setResolvedToday] = useState<
+    { id: string; response_seconds: number | null }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const { canTriage, loading: roleLoading } = useStaffRole();
   const { members, staff, select, addMember } = useStaffIdentity();
@@ -219,7 +222,7 @@ function Board() {
     let active = true;
 
     async function load() {
-      const [roomRes, reqRes, bookRes, eventRes] = await Promise.all([
+      const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         supabase
           .from("rooms")
           .select(
@@ -242,6 +245,10 @@ function Board() {
           )
           .order("changed_at", { ascending: false })
           .limit(500),
+        supabase
+          .from("requests")
+          .select("id, response_seconds")
+          .gte("resolved_at", startOfToday()),
       ]);
       if (!active) return;
       if (roomRes.error) toast.error("Couldn't load the room board.");
@@ -249,6 +256,9 @@ function Board() {
       setRequests((reqRes.data ?? []) as RequestRow[]);
       setBookings((bookRes.data ?? []) as BookingRow[]);
       setEvents((eventRes.data ?? []) as RoomStatusEvent[]);
+      setResolvedToday(
+        (resolvedRes.data ?? []) as { id: string; response_seconds: number | null }[],
+      );
       setLoading(false);
     }
 
