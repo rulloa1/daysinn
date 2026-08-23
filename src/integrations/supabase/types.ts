@@ -506,6 +506,64 @@ export type Database = {
           },
         ]
       }
+      shift_room_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          room_id: string | null
+          room_number: string
+          schedule_id: string
+          staff_member_id: string
+          staff_name: string
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          room_id?: string | null
+          room_number: string
+          schedule_id: string
+          staff_member_id: string
+          staff_name: string
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          room_id?: string | null
+          room_number?: string
+          schedule_id?: string
+          staff_member_id?: string
+          staff_name?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_room_assignments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_room_assignments_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "staff_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_room_assignments_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_invites: {
         Row: {
           accepted_at: string | null
