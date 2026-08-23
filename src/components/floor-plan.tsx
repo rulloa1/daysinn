@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cornerRoom, northWing, westWing, type FloorKey } from "@/lib/property-layout";
 import { Waves, MapPin } from "lucide-react";
 
