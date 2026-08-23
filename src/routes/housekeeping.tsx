@@ -300,6 +300,8 @@ function HousekeeperLogin({
   );
 }
 
+const ALERTS_KEY = "daysinn.housekeeping.alerts";
+
 function HousekeepingBoard({
   staff,
   onSignOut,
