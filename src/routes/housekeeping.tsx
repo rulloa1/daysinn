@@ -25,6 +25,7 @@ import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
+import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 
 import {
   Dialog,
