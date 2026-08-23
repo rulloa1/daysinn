@@ -36,6 +36,9 @@ import {
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
 import { usePresentationMode } from "@/lib/presentation";
+import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
+import { PRIORITY_BADGE, toGuestStatus, wingForRoom } from "@/lib/room-model";
+import { GUEST_STATUSES, PRIORITY_LEVELS, type PriorityLevel } from "@/types/operations";
 
 type RoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
@@ -50,8 +53,25 @@ type RoomRow = {
   check_in: string | null;
   check_out: string | null;
   notes: string | null;
+  wing: string | null;
+  side: string | null;
+  guest_status: string | null;
+  hk_stage: string | null;
+  priority: string | null;
+  linen_change: boolean | null;
   updated_at: string;
 };
+
+type RoomPatch = {
+  status?: RoomStatus;
+  guest_name?: string | null;
+  notes?: string | null;
+  guest_status?: string | null;
+  hk_stage?: string | null;
+  priority?: string;
+  linen_change?: boolean;
+};
+
 
 type RequestRow = {
   id: string;
@@ -235,7 +255,7 @@ function Board() {
       const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         rpc("rooms_board")
           .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
+            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, wing, side, guest_status, hk_stage, priority, linen_change, updated_at",
           )
           .order("number"),
         rpc("requests_board")
@@ -380,10 +400,7 @@ function Board() {
 
   const activeRoom = rooms.find((r) => r.id === activeRoomId) ?? null;
 
-  async function saveRoom(
-    room: RoomRow,
-    patch: { status?: RoomStatus; guest_name?: string | null; notes?: string | null },
-  ) {
+  async function saveRoom(room: RoomRow, patch: RoomPatch) {
     if (!canTriage) {
       toast.error("You don't have permission to update rooms.");
       return;
@@ -593,6 +610,29 @@ function Board() {
                         <p className="mt-1 truncate text-xs text-cream/70">
                           {room.guest_name ?? room.bed_type}
                         </p>
+                        <p className="mt-1 truncate text-[11px] text-cream/45">
+                          {room.wing ?? wingForRoom(room.number)} ·{" "}
+                          {toGuestStatus({ ...room, status: room.status })}
+                        </p>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {room.priority && room.priority !== "Normal" ? (
+                            <span
+                              className={`signage px-1.5 py-0.5 text-[10px] ${PRIORITY_BADGE[room.priority as PriorityLevel]}`}
+                            >
+                              {room.priority}
+                            </span>
+                          ) : null}
+                          {room.linen_change ? (
+                            <span className="signage bg-cream/12 px-1.5 py-0.5 text-[10px] text-cream/75">
+                              Linen
+                            </span>
+                          ) : null}
+                          {room.hk_stage ? (
+                            <span className="signage bg-amber/20 px-1.5 py-0.5 text-[10px] text-amber">
+                              {room.hk_stage === "in_progress" ? "In progress" : "Inspected"}
+                            </span>
+                          ) : null}
+                        </div>
                         {open ? (
                           <p className="signage mt-1 text-amber">
                             {open} request{open === 1 ? "" : "s"}
@@ -789,10 +829,7 @@ function RoomPanel({
   history: RoomStatusEvent[];
   staff: StaffIdentity;
   onClose: () => void;
-  onSave: (
-    room: RoomRow,
-    patch: { status?: RoomStatus; guest_name?: string | null; notes?: string | null },
-  ) => Promise<void>;
+  onSave: (room: RoomRow, patch: RoomPatch) => Promise<void>;
   onQr: (room: RoomRow) => void;
 }) {
   const [guest, setGuest] = useState("");
@@ -888,6 +925,78 @@ function RoomPanel({
                 ))}
               </div>
             </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="signage text-cream/55">Guest status</p>
+                <select
+                  value={room.guest_status ?? toGuestStatus({ ...room, status: room.status })}
+                  disabled={!canEdit}
+                  onChange={(e) => void onSave(room, { guest_status: e.target.value })}
+                  className="mt-2 h-10 w-full border border-cream/20 bg-ink px-3 text-sm text-cream disabled:opacity-45"
+                >
+                  {GUEST_STATUSES.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <p className="signage text-cream/55">Priority</p>
+                <div className="mt-2 flex gap-2">
+                  {PRIORITY_LEVELS.map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      disabled={!canEdit}
+                      onClick={() => void onSave(room, { priority: level })}
+                      className={`signage border px-3 py-2 text-[11px] disabled:opacity-45 ${
+                        (room.priority ?? "Normal") === level
+                          ? "border-amber text-amber"
+                          : "border-cream/20 text-cream/60"
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="signage text-cream/55">Cleaning stage</p>
+                <div className="mt-2 flex gap-2">
+                  {[
+                    { value: null, label: "None" },
+                    { value: "in_progress", label: "In progress" },
+                    { value: "inspected", label: "Inspected" },
+                  ].map((stage) => (
+                    <button
+                      key={stage.label}
+                      type="button"
+                      disabled={!canEdit}
+                      onClick={() => void onSave(room, { hk_stage: stage.value })}
+                      className={`signage border px-3 py-2 text-[11px] disabled:opacity-45 ${
+                        (room.hk_stage ?? null) === stage.value
+                          ? "border-amber text-amber"
+                          : "border-cream/20 text-cream/60"
+                      }`}
+                    >
+                      {stage.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="flex items-end gap-2 pb-2 text-sm text-cream/75">
+                <input
+                  type="checkbox"
+                  disabled={!canEdit}
+                  checked={Boolean(room.linen_change)}
+                  onChange={(e) => void onSave(room, { linen_change: e.target.checked })}
+                />
+                Linen change needed
+              </label>
+            </div>
+
 
             <div className="space-y-3">
               <div>
