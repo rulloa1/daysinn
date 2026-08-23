@@ -79,8 +79,8 @@ export const completePasswordReset = createServerFn({ method: "POST" })
       string,
       unknown
     >;
-    delete metadata.password_reset_required;
-    metadata.password_reset_completed_at = new Date().toISOString();
+    delete metadata["password_reset_required"];
+    metadata["password_reset_completed_at"] = new Date().toISOString();
 
     const { error } = await supabaseAdmin.auth.admin.updateUserById(
       context.userId,
