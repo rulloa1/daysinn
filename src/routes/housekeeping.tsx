@@ -647,7 +647,7 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <ShiftClock staff={staff} />
+      {staff.id ? <ShiftClock staff={{ id: staff.id, name: staff.name }} /> : null}
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />

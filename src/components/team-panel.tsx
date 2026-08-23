@@ -16,6 +16,7 @@ const ROLES: AppRole[] = ["manager", "staff", "housekeeper", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
   manager: "Manager",
   staff: "Staff",
+  housekeeper: "Housekeeper",
   viewer: "Viewer",
 };
 
