@@ -302,7 +302,17 @@ export const Route = createFileRoute("/")({
   component: GuestView,
 });
 
+type AvailabilityRow = {
+  room_type: string;
+  label: string;
+  beds: string;
+  max_occupancy: number;
+  nightly_rate: number;
+  available_count: number;
+};
+
 function GuestView() {
+
   const [open, setOpen] = useState<
     (typeof REQUESTS)[number] | { id: string; label: string; prompt: string } | null
   >(null);
