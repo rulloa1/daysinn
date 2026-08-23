@@ -681,7 +681,7 @@ function HousekeepingBoard({
 
 
   return (
-    <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
+    <div className="ops-surface min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
       <header className="border-b border-cream/15 pb-4 sm:pb-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between sm:gap-4">
           <div className="min-w-0">
