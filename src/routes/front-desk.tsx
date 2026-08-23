@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { QrCode } from "@/components/qr-code";
@@ -18,7 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
 
-type RoomStatus = "occupied" | "vacant_clean" | "vacant_dirty" | "out_of_order";
+type RoomStatus =
+  | "vacant_clean"
+  | "vacant_dirty"
+  | "occupied"
+  | "occupied_dnd"
+  | "out_of_order"
+  | "reserved";
 
 type RoomRow = {
   id: string;
@@ -30,6 +38,7 @@ type RoomRow = {
   check_in: string | null;
   check_out: string | null;
   notes: string | null;
+  updated_at: string;
 };
 
 type RequestRow = {
@@ -40,42 +49,77 @@ type RequestRow = {
   created_at: string;
 };
 
+type BookingRow = {
+  id: string;
+  guest_name: string;
+  room: string;
+  phone: string | null;
+  check_in: string;
+  check_out: string;
+  notes: string | null;
+};
+
 const STATUS_ORDER: RoomStatus[] = [
-  "occupied",
   "vacant_clean",
   "vacant_dirty",
+  "occupied",
+  "occupied_dnd",
+  "reserved",
   "out_of_order",
 ];
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
+  vacant_clean: "Vacant clean",
+  vacant_dirty: "Vacant dirty",
   occupied: "Occupied",
-  vacant_clean: "Ready",
-  vacant_dirty: "Needs clean",
+  occupied_dnd: "Occupied / DND",
+  reserved: "Reserved / arriving",
   out_of_order: "Out of order",
 };
 
-const STATUS_CLASS: Record<RoomStatus, string> = {
-  occupied: "border-cream/25 bg-cream/10 text-cream",
-  vacant_clean: "border-sage/50 bg-sage/20 text-sage",
-  vacant_dirty: "border-amber/50 bg-amber/15 text-amber",
-  out_of_order: "border-cream/20 bg-transparent text-cream/45 line-through",
+/** Card + dot colour per status. Status colour is the primary scan cue. */
+const STATUS_CARD: Record<RoomStatus, string> = {
+  vacant_clean: "border-status-clean/55 bg-status-clean/12 hover:bg-status-clean/20",
+  vacant_dirty: "border-status-dirty/55 bg-status-dirty/12 hover:bg-status-dirty/20",
+  occupied: "border-status-occupied/55 bg-status-occupied/14 hover:bg-status-occupied/22",
+  occupied_dnd: "border-status-dnd/55 bg-status-dnd/14 hover:bg-status-dnd/22",
+  reserved: "border-status-reserved/55 bg-status-reserved/12 hover:bg-status-reserved/20",
+  out_of_order: "border-status-ooo/55 bg-status-ooo/12 hover:bg-status-ooo/20",
+};
+
+const STATUS_DOT: Record<RoomStatus, string> = {
+  vacant_clean: "bg-status-clean",
+  vacant_dirty: "bg-status-dirty",
+  occupied: "bg-status-occupied",
+  occupied_dnd: "bg-status-dnd",
+  reserved: "bg-status-reserved",
+  out_of_order: "bg-status-ooo",
+};
+
+const STATUS_TEXT: Record<RoomStatus, string> = {
+  vacant_clean: "text-status-clean",
+  vacant_dirty: "text-status-dirty",
+  occupied: "text-status-occupied",
+  occupied_dnd: "text-status-dnd",
+  reserved: "text-status-reserved",
+  out_of_order: "text-status-ooo",
 };
 
 export const Route = createFileRoute("/front-desk")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Front Desk — Days Inn Hub" },
+      { title: "Front Desk Board — Days Inn Hub" },
       {
         name: "description",
         content:
-          "Front desk operations board: room status, arrivals and departures today, and open guest requests at a glance.",
+          "Front desk board: live room status across three floors, arrivals and departures today, bookings log, and open guest requests.",
       },
-      { property: "og:title", content: "Front Desk — Days Inn Hub" },
+      { property: "og:title", content: "Front Desk Board — Days Inn Hub" },
       {
         property: "og:description",
         content:
-          "Room board, arrivals and departures, and open requests in one shift view.",
+          "Room status grid, bookings log, and open requests in one shift view.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -86,6 +130,15 @@ export const Route = createFileRoute("/front-desk")({
 function today() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function stamp(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
 }
 
 function FrontDeskPage() {
@@ -118,7 +171,7 @@ function FrontDeskPage() {
           <BrandLockup tone="cream" />
           <h1 className="mt-8 text-4xl">Front desk</h1>
           <p className="mt-2 text-sm text-cream/60">
-            Sign in with your staff account to open the operations board.
+            Sign in with your staff account to open the board.
           </p>
           <Button
             asChild
@@ -143,7 +196,9 @@ function FrontDeskPage() {
 function Board() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [loading, setLoading] = useState(true);
   const { canTriage, loading: roleLoading } = useStaffRole();
@@ -153,11 +208,11 @@ function Board() {
     let active = true;
 
     async function load() {
-      const [roomRes, reqRes] = await Promise.all([
+      const [roomRes, reqRes, bookRes] = await Promise.all([
         supabase
           .from("rooms")
           .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes",
+            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
           )
           .order("number"),
         supabase
@@ -165,28 +220,26 @@ function Board() {
           .select("id, room, type, status, created_at")
           .neq("status", "done")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("bookings")
+          .select("id, guest_name, room, phone, check_in, check_out, notes")
+          .order("check_in"),
       ]);
       if (!active) return;
       if (roomRes.error) toast.error("Couldn't load the room board.");
       setRooms((roomRes.data ?? []) as RoomRow[]);
       setRequests((reqRes.data ?? []) as RequestRow[]);
+      setBookings((bookRes.data ?? []) as BookingRow[]);
       setLoading(false);
     }
 
-    load();
+    void load();
 
     const channel = supabase
       .channel("front-desk-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "rooms" },
-        () => load(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "requests" },
-        () => load(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => void load())
       .subscribe();
 
     return () => {
@@ -195,24 +248,32 @@ function Board() {
     };
   }, []);
 
-  const stats = useMemo(() => {
-    const counts = STATUS_ORDER.reduce(
+  const counts = useMemo(() => {
+    return STATUS_ORDER.reduce(
       (acc, status) => {
         acc[status] = rooms.filter((room) => room.status === status).length;
         return acc;
       },
       {} as Record<RoomStatus, number>,
     );
+  }, [rooms]);
+
+  const occupancy = useMemo(() => {
     const sellable = rooms.filter((r) => r.status !== "out_of_order").length;
-    return {
-      counts,
-      occupancy: sellable
-        ? Math.round((counts.occupied / sellable) * 100)
-        : 0,
-      arrivals: rooms.filter((r) => r.check_in === day),
-      departures: rooms.filter((r) => r.check_out === day),
-    };
-  }, [rooms, day]);
+    const taken = rooms.filter(
+      (r) => r.status === "occupied" || r.status === "occupied_dnd",
+    ).length;
+    return sellable ? Math.round((taken / sellable) * 100) : 0;
+  }, [rooms]);
+
+  const arrivals = useMemo(
+    () => bookings.filter((b) => b.check_in === day),
+    [bookings, day],
+  );
+  const departures = useMemo(
+    () => bookings.filter((b) => b.check_out === day),
+    [bookings, day],
+  );
 
   const visible =
     filter === "all" ? rooms : rooms.filter((room) => room.status === filter);
@@ -227,37 +288,48 @@ function Board() {
     return [...map.entries()].sort((a, b) => a[0] - b[0]);
   }, [visible]);
 
-  const openByRoom = useMemo(() => {
-    const map = new Map<string, number>();
+  const requestsByRoom = useMemo(() => {
+    const map = new Map<string, RequestRow[]>();
     for (const req of requests) {
-      map.set(req.room, (map.get(req.room) ?? 0) + 1);
+      const list = map.get(req.room) ?? [];
+      list.push(req);
+      map.set(req.room, list);
     }
     return map;
   }, [requests]);
 
-  async function setStatus(room: RoomRow, status: RoomStatus) {
+  const activeRoom = rooms.find((r) => r.id === activeRoomId) ?? null;
+
+  async function saveRoom(
+    room: RoomRow,
+    patch: { status?: RoomStatus; guest_name?: string | null; notes?: string | null },
+  ) {
     if (!canTriage) {
       toast.error("You don't have permission to update rooms.");
       return;
     }
     const previous = rooms;
     setRooms((prev) =>
-      prev.map((r) => (r.id === room.id ? { ...r, status } : r)),
+      prev.map((r) =>
+        r.id === room.id
+          ? { ...r, ...patch, updated_at: new Date().toISOString() }
+          : r,
+      ),
     );
     const { error } = await supabase
       .from("rooms")
-      .update({ status })
+      .update(patch)
       .eq("id", room.id);
     if (error) {
       setRooms(previous);
       toast.error("Couldn't update that room.");
       return;
     }
-    toast.success(`Room ${room.number} — ${STATUS_LABEL[status]}`);
+    toast.success(`Room ${room.number} updated`);
   }
 
   return (
-    <div className="min-h-screen bg-ink px-6 py-8 text-cream md:px-12">
+    <div className="min-h-screen bg-ink px-4 py-8 text-cream md:px-12">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 pb-6">
         <div>
           <BrandLockup tone="cream" />
@@ -265,26 +337,16 @@ function Board() {
             <span aria-hidden className="h-3 w-[3px] bg-amber" />
             Front desk · Shift board
           </p>
-          <h1 className="mt-3 text-4xl">Operations</h1>
+          <h1 className="mt-3 text-4xl">Front desk board</h1>
         </div>
         <div className="flex items-center gap-4">
-          <Link
-            to="/staff"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
+          <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Request queue
           </Link>
-          <Link
-            to="/checkin"
-            search={{}}
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
+          <Link to="/checkin" search={{}} className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Guest sign-in
           </Link>
-          <Link
-            to="/"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
+          <Link to="/" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Guest view
           </Link>
         </div>
@@ -295,146 +357,87 @@ function Board() {
           <p className="signage text-amber">View-only access</p>
           <p className="mt-2 text-sm text-cream/70">
             You can watch the board, but a manager must grant you staff access
-            before you can change room statuses.
+            before you can change rooms or bookings.
           </p>
         </div>
       ) : null}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Occupancy" value={`${stats.occupancy}%`} />
-        <Stat label="Arrivals today" value={stats.arrivals.length} />
-        <Stat label="Departures today" value={stats.departures.length} />
+      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Occupancy" value={`${occupancy}%`} />
+        <Stat label="Arrivals today" value={arrivals.length} />
+        <Stat label="Departures today" value={departures.length} />
         <Stat label="Open requests" value={requests.length} />
       </section>
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {STATUS_ORDER.map((status) => (
-          <div
-            key={status}
-            className="border border-cream/15 bg-cream/[0.03] px-5 py-4"
-          >
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              {STATUS_LABEL[status]}
-            </p>
-            <p className="mt-2 text-3xl">{stats.counts[status] ?? 0}</p>
-          </div>
-        ))}
+      <section className="mt-4 grid gap-3 grid-cols-2 lg:grid-cols-6">
+        {STATUS_ORDER.map((status) => {
+          const on = filter === status;
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFilter(on ? "all" : status)}
+              aria-pressed={on}
+              className={`border px-4 py-3 text-left transition-colors duration-200 ${STATUS_CARD[status]} ${on ? "ring-2 ring-amber" : ""}`}
+            >
+              <p className="signage flex items-center gap-2 text-cream/75">
+                <span aria-hidden className={`h-3 w-[3px] ${STATUS_DOT[status]}`} />
+                {STATUS_LABEL[status]}
+              </p>
+              <p className="mt-2 text-3xl">{counts[status] ?? 0}</p>
+            </button>
+          );
+        })}
       </section>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[2fr_1fr]">
-        <section>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant={filter === "all" ? "default" : "outline"}
-              className={
-                filter === "all"
-                  ? "bg-amber text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-              }
-              onClick={() => setFilter("all")}
-            >
-              All rooms
-            </Button>
-            {STATUS_ORDER.map((status) => (
-              <Button
-                key={status}
-                size="sm"
-                variant={filter === status ? "default" : "outline"}
-                className={
-                  filter === status
-                    ? "bg-amber text-ink hover:bg-amber/90"
-                    : "border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                }
-                onClick={() => setFilter(status)}
-              >
-                {STATUS_LABEL[status]}
-              </Button>
-            ))}
-          </div>
+      {filter !== "all" ? (
+        <button
+          type="button"
+          onClick={() => setFilter("all")}
+          className="signage mt-4 text-amber underline-offset-4 hover:underline"
+        >
+          Clear filter — showing {STATUS_LABEL[filter]} ({visible.length})
+        </button>
+      ) : null}
 
+      <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
+        <section>
           {loading ? (
-            <p className="mt-8 text-sm text-cream/50">Loading the board…</p>
+            <p className="text-sm text-cream/50">Loading the board…</p>
           ) : byFloor.length === 0 ? (
-            <p className="mt-8 text-sm text-cream/50">No rooms match.</p>
+            <p className="text-sm text-cream/50">No rooms match this filter.</p>
           ) : (
             byFloor.map(([floor, list]) => (
-              <div key={floor} className="mt-8">
-                <p className="signage text-cream/50">Floor {floor}</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {list.map((room) => (
-                    <article
-                      key={room.id}
-                      className="border border-cream/15 bg-cream/[0.03] p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h2 className="text-2xl leading-none">
-                            {room.number}
-                          </h2>
-                          <p className="mt-1 text-xs text-cream/50">
-                            {room.bed_type}
-                          </p>
+              <div key={floor} className="mb-8">
+                <p className="signage text-cream/50">
+                  Floor {floor} · {list.length} rooms
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                  {list.map((room) => {
+                    const open = requestsByRoom.get(room.number)?.length ?? 0;
+                    return (
+                      <button
+                        key={room.id}
+                        type="button"
+                        onClick={() => setActiveRoomId(room.id)}
+                        className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-2xl leading-none">{room.number}</span>
+                          <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`} />
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={STATUS_CLASS[room.status]}
-                        >
+                        <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
                           {STATUS_LABEL[room.status]}
-                        </Badge>
-                      </div>
-
-                      <p className="mt-3 text-sm text-cream/70">
-                        {room.guest_name ?? "Vacant"}
-                        {room.check_out ? (
-                          <span className="text-cream/40">
-                            {" "}
-                            · out {room.check_out}
-                          </span>
+                        </p>
+                        <p className="mt-1 truncate text-xs text-cream/70">
+                          {room.guest_name ?? room.bed_type}
+                        </p>
+                        {open ? (
+                          <p className="signage mt-1 text-amber">{open} request{open === 1 ? "" : "s"}</p>
                         ) : null}
-                      </p>
-                      {room.notes ? (
-                        <p className="mt-1 text-xs text-cream/45">
-                          {room.notes}
-                        </p>
-                      ) : null}
-                      {openByRoom.get(room.number) ? (
-                        <p className="signage mt-2 text-amber">
-                          {openByRoom.get(room.number)} open request
-                          {openByRoom.get(room.number) === 1 ? "" : "s"}
-                        </p>
-                      ) : null}
-
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={() => setQrRoom(room)}
-                          className="signage text-cream/60 underline-offset-4 transition-colors duration-200 hover:text-amber hover:underline"
-                        >
-                          Guest QR →
-                        </button>
-                      </div>
-
-                      {canTriage ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {STATUS_ORDER.filter((s) => s !== room.status).map(
-                            (status) => (
-                              <Button
-                                key={status}
-                                size="sm"
-                                variant="outline"
-                                className="border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
-                                onClick={() => setStatus(room, status)}
-                              >
-                                {STATUS_LABEL[status]}
-                              </Button>
-                            ),
-                          )}
-                        </div>
-                      ) : null}
-                    </article>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))
@@ -442,90 +445,406 @@ function Board() {
         </section>
 
         <aside className="space-y-8">
-          <div>
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              Departures today
-            </p>
-            <ul className="mt-3 space-y-2">
-              {stats.departures.length === 0 ? (
-                <li className="text-sm text-cream/45">Nothing scheduled.</li>
-              ) : (
-                stats.departures.map((room) => (
-                  <li
-                    key={room.id}
-                    className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-                  >
-                    <span>Room {room.number}</span>
-                    <span className="text-cream/55">
-                      {room.guest_name ?? "—"}
-                    </span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+          <Panel title="Arriving today">
+            {arrivals.length === 0 ? (
+              <li className="text-sm text-cream/45">Nothing scheduled.</li>
+            ) : (
+              arrivals.map((b) => (
+                <li key={b.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                  <span>Room {b.room}</span>
+                  <span className="text-cream/55">{b.guest_name}</span>
+                </li>
+              ))
+            )}
+          </Panel>
 
-          <div>
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              Arrivals today
-            </p>
-            <ul className="mt-3 space-y-2">
-              {stats.arrivals.length === 0 ? (
-                <li className="text-sm text-cream/45">Nothing scheduled.</li>
-              ) : (
-                stats.arrivals.map((room) => (
-                  <li
-                    key={room.id}
-                    className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-                  >
-                    <span>Room {room.number}</span>
-                    <span className="text-cream/55">
-                      {room.guest_name ?? room.notes ?? "Expected"}
-                    </span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+          <Panel title="Departing today">
+            {departures.length === 0 ? (
+              <li className="text-sm text-cream/45">Nothing scheduled.</li>
+            ) : (
+              departures.map((b) => (
+                <li key={b.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                  <span>Room {b.room}</span>
+                  <span className="text-cream/55">{b.guest_name}</span>
+                </li>
+              ))
+            )}
+          </Panel>
 
-          <div>
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              Open requests
-            </p>
-            <ul className="mt-3 space-y-2">
-              {requests.length === 0 ? (
-                <li className="text-sm text-cream/45">Queue is clear.</li>
-              ) : (
-                requests.slice(0, 8).map((req) => (
-                  <li
-                    key={req.id}
-                    className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
+          <Panel title="Open requests">
+            {requests.length === 0 ? (
+              <li className="text-sm text-cream/45">Queue is clear.</li>
+            ) : (
+              requests.slice(0, 8).map((req) => (
+                <li key={req.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                  <button
+                    type="button"
+                    className="text-left underline-offset-4 hover:text-amber hover:underline"
+                    onClick={() => {
+                      const match = rooms.find((r) => r.number === req.room);
+                      if (match) setActiveRoomId(match.id);
+                    }}
                   >
-                    <span>
-                      Room {req.room}
-                      <span className="text-cream/45"> · {req.type}</span>
-                    </span>
-                    <span className="signage text-amber">
-                      {req.status === "new" ? "New" : "Working"}
-                    </span>
-                  </li>
-                ))
-              )}
-            </ul>
-            <Link
-              to="/staff"
-              className="signage mt-4 inline-block text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Open the full queue →
-            </Link>
-          </div>
+                    Room {req.room} · {req.type}
+                  </button>
+                  <span className="text-cream/45">{stamp(req.created_at)}</span>
+                </li>
+              ))
+            )}
+          </Panel>
         </aside>
       </div>
 
+      <BookingsLog
+        bookings={bookings}
+        canEdit={canTriage}
+        arrivals={arrivals}
+        departures={departures}
+      />
+
+      <RoomPanel
+        room={activeRoom}
+        canEdit={canTriage}
+        requests={activeRoom ? (requestsByRoom.get(activeRoom.number) ?? []) : []}
+        onClose={() => setActiveRoomId(null)}
+        onSave={saveRoom}
+        onQr={(room) => {
+          setActiveRoomId(null);
+          setQrRoom(room);
+        }}
+      />
+
       <RoomQrDialog room={qrRoom} onClose={() => setQrRoom(null)} />
+    </div>
+  );
+}
+
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="signage flex items-center gap-2 text-cream/60">
+        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+        {title}
+      </p>
+      <ul className="mt-3 space-y-2">{children}</ul>
+    </div>
+  );
+}
+
+function RoomPanel({
+  room,
+  canEdit,
+  requests,
+  onClose,
+  onSave,
+  onQr,
+}: {
+  room: RoomRow | null;
+  canEdit: boolean;
+  requests: RequestRow[];
+  onClose: () => void;
+  onSave: (
+    room: RoomRow,
+    patch: { status?: RoomStatus; guest_name?: string | null; notes?: string | null },
+  ) => Promise<void>;
+  onQr: (room: RoomRow) => void;
+}) {
+  const [guest, setGuest] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setGuest(room?.guest_name ?? "");
+    setNotes(room?.notes ?? "");
+  }, [room?.id, room?.guest_name, room?.notes]);
+
+  return (
+    <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="border-cream/20 bg-ink text-cream sm:max-w-md">
+        {room ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-3xl">Room {room.number}</DialogTitle>
+              <DialogDescription className="text-cream/60">
+                {room.bed_type} · Floor {room.floor} · updated {stamp(room.updated_at)}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div>
+              <p className="signage text-cream/55">Status</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {STATUS_ORDER.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    disabled={!canEdit}
+                    onClick={() => void onSave(room, { status })}
+                    className={`border px-3 py-2 text-left text-xs transition-colors duration-200 disabled:opacity-45 ${STATUS_CARD[status]} ${room.status === status ? "ring-2 ring-amber" : ""}`}
+                  >
+                    <span aria-hidden className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[status]}`} />
+                    {STATUS_LABEL[status]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="signage text-cream/55">Guest name</p>
+                <Input
+                  value={guest}
+                  disabled={!canEdit}
+                  onChange={(e) => setGuest(e.target.value)}
+                  placeholder="Unassigned"
+                  className="mt-2 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
+                />
+              </div>
+              <div>
+                <p className="signage text-cream/55">Notes</p>
+                <Textarea
+                  value={notes}
+                  disabled={!canEdit}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="AC repaired, late checkout requested…"
+                  className="mt-2 min-h-20 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
+                />
+              </div>
+            </div>
+
+            {requests.length ? (
+              <div>
+                <p className="signage text-amber">Open guest requests</p>
+                <ul className="mt-2 space-y-1 text-sm text-cream/75">
+                  {requests.map((req) => (
+                    <li key={req.id}>
+                      {req.type} · {req.status} · {stamp(req.created_at)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="bg-amber text-ink hover:bg-amber/90"
+                disabled={!canEdit || saving}
+                onClick={async () => {
+                  setSaving(true);
+                  await onSave(room, {
+                    guest_name: guest.trim() || null,
+                    notes: notes.trim() || null,
+                  });
+                  setSaving(false);
+                  onClose();
+                }}
+              >
+                Save changes
+              </Button>
+              <Button
+                variant="outline"
+                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                onClick={() => onQr(room)}
+              >
+                Guest QR
+              </Button>
+            </div>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BookingsLog({
+  bookings,
+  canEdit,
+  arrivals,
+  departures,
+}: {
+  bookings: BookingRow[];
+  canEdit: boolean;
+  arrivals: BookingRow[];
+  departures: BookingRow[];
+}) {
+  const [form, setForm] = useState({
+    guest_name: "",
+    room: "",
+    phone: "",
+    check_in: today(),
+    check_out: today(),
+    notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+
+  async function add() {
+    if (!form.guest_name.trim() || !form.room.trim()) {
+      toast.error("Guest name and room number are required.");
+      return;
+    }
+    if (form.check_out < form.check_in) {
+      toast.error("Check-out can't be before check-in.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.from("bookings").insert({
+      guest_name: form.guest_name.trim(),
+      room: form.room.trim(),
+      phone: form.phone.trim() || null,
+      check_in: form.check_in,
+      check_out: form.check_out,
+      notes: form.notes.trim() || null,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("Couldn't save that booking.");
+      return;
+    }
+    toast.success("Booking added.");
+    setForm({
+      guest_name: "",
+      room: "",
+      phone: "",
+      check_in: today(),
+      check_out: today(),
+      notes: "",
+    });
+  }
+
+  async function remove(id: string) {
+    const { error } = await supabase.from("bookings").delete().eq("id", id);
+    if (error) {
+      toast.error("Couldn't remove that booking.");
+      return;
+    }
+    toast.success("Booking removed.");
+  }
+
+  const field = "border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35";
+
+  return (
+    <section className="mt-12 border-t border-cream/15 pt-8">
+      <p className="signage flex items-center gap-2 text-cream/60">
+        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+        Bookings log
+      </p>
+      <h2 className="mt-3 text-3xl">
+        {bookings.length} booking{bookings.length === 1 ? "" : "s"} on file
+      </h2>
+
+      {canEdit ? (
+        <div className="mt-6 grid gap-3 border border-cream/15 bg-cream/[0.03] p-4 md:grid-cols-3 xl:grid-cols-6">
+          <Input
+            value={form.guest_name}
+            onChange={(e) => setForm({ ...form, guest_name: e.target.value })}
+            placeholder="Guest name"
+            className={field}
+          />
+          <Input
+            value={form.room}
+            onChange={(e) => setForm({ ...form, room: e.target.value })}
+            placeholder="Room"
+            className={field}
+          />
+          <Input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="Phone (optional)"
+            className={field}
+          />
+          <Input
+            type="date"
+            aria-label="Check-in date"
+            value={form.check_in}
+            onChange={(e) => setForm({ ...form, check_in: e.target.value })}
+            className={field}
+          />
+          <Input
+            type="date"
+            aria-label="Check-out date"
+            value={form.check_out}
+            onChange={(e) => setForm({ ...form, check_out: e.target.value })}
+            className={field}
+          />
+          <Input
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            placeholder="Notes (optional)"
+            className={field}
+          />
+          <Button
+            className="bg-amber text-ink hover:bg-amber/90 md:col-span-3 xl:col-span-2"
+            disabled={busy}
+            onClick={() => void add()}
+          >
+            Add booking
+          </Button>
+        </div>
+      ) : null}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <BookingList title="Arriving today" rows={arrivals} canEdit={false} onRemove={remove} />
+        <BookingList title="Departing today" rows={departures} canEdit={false} onRemove={remove} />
+      </div>
+
+      <div className="mt-6">
+        <BookingList
+          title="All bookings"
+          rows={[...bookings].sort((a, b) => a.check_in.localeCompare(b.check_in))}
+          canEdit={canEdit}
+          onRemove={remove}
+        />
+      </div>
+    </section>
+  );
+}
+
+function BookingList({
+  title,
+  rows,
+  canEdit,
+  onRemove,
+}: {
+  title: string;
+  rows: BookingRow[];
+  canEdit: boolean;
+  onRemove: (id: string) => Promise<void>;
+}) {
+  return (
+    <div>
+      <p className="signage text-cream/55">{title}</p>
+      <ul className="mt-3 space-y-2">
+        {rows.length === 0 ? (
+          <li className="text-sm text-cream/45">Nothing here yet.</li>
+        ) : (
+          rows.map((b) => (
+            <li
+              key={b.id}
+              className="flex flex-wrap items-center justify-between gap-3 border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
+            >
+              <div>
+                <p className="text-cream">
+                  {b.guest_name} · Room {b.room}
+                </p>
+                <p className="text-xs text-cream/55">
+                  {b.check_in} → {b.check_out}
+                  {b.phone ? ` · ${b.phone}` : ""}
+                  {b.notes ? ` · ${b.notes}` : ""}
+                </p>
+              </div>
+              {canEdit ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
+                  onClick={() => void onRemove(b.id)}
+                >
+                  Remove
+                </Button>
+              ) : null}
+            </li>
+          ))
+        )}
+      </ul>
     </div>
   );
 }

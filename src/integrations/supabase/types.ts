@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          guest_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          room: string
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          guest_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          room: string
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          guest_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          room?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       requests: {
         Row: {
           created_at: string
@@ -155,7 +191,13 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "staff" | "viewer"
-      room_status: "occupied" | "vacant_clean" | "vacant_dirty" | "out_of_order"
+      room_status:
+        | "occupied"
+        | "vacant_clean"
+        | "vacant_dirty"
+        | "out_of_order"
+        | "occupied_dnd"
+        | "reserved"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -284,7 +326,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "staff", "viewer"],
-      room_status: ["occupied", "vacant_clean", "vacant_dirty", "out_of_order"],
+      room_status: [
+        "occupied",
+        "vacant_clean",
+        "vacant_dirty",
+        "out_of_order",
+        "occupied_dnd",
+        "reserved",
+      ],
     },
   },
 } as const
