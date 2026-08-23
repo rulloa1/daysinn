@@ -950,7 +950,7 @@ function HousekeepingBoard({
 
                   {actionable ? (
                     <span className="mt-auto block pt-3">
-                      <span className="grid grid-cols-2 gap-1">
+                      <span className="grid grid-cols-2 gap-1.5">
                         {QUICK_STATUS.map((option) => (
                           <button
                             key={option.status}
@@ -960,7 +960,7 @@ function HousekeepingBoard({
                               e.stopPropagation();
                               void setStatus(room, option.status);
                             }}
-                            className={`signage px-1.5 py-2 text-center text-[0.6rem] transition-opacity disabled:opacity-25 ${option.className}`}
+                            className={`signage flex min-h-11 touch-manipulation items-center justify-center px-1.5 py-2 text-center text-[0.65rem] transition-opacity disabled:opacity-25 sm:min-h-9 sm:text-[0.6rem] ${option.className}`}
                           >
                             {option.label}
                           </button>
@@ -972,7 +972,7 @@ function HousekeepingBoard({
                           e.stopPropagation();
                           void setAssignment(room, !mine);
                         }}
-                        className={`signage mt-1 block w-full px-2 py-2 text-center text-[0.6rem] transition-colors ${
+                        className={`signage mt-1.5 flex min-h-11 w-full touch-manipulation items-center justify-center px-2 py-2 text-center text-[0.65rem] transition-colors sm:min-h-9 sm:text-[0.6rem] ${
                           mine
                             ? "border border-cream/25 text-cream/60 hover:text-cream"
                             : "border border-amber/60 text-amber hover:bg-amber hover:text-ink"
@@ -980,6 +980,7 @@ function HousekeepingBoard({
                       >
                         {mine ? "Release" : "Claim room"}
                       </button>
+
                     </span>
                   ) : null}
                 </div>
