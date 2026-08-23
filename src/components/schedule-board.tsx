@@ -23,6 +23,24 @@ type Shift = {
   notes: string | null;
 };
 
+type Room = {
+  id: string;
+  number: string;
+  floor: number;
+  status: string;
+};
+
+type ShiftRoom = {
+  id: string;
+  schedule_id: string;
+  staff_member_id: string;
+  staff_name: string;
+  work_date: string;
+  room_id: string | null;
+  room_number: string;
+};
+
+
 function isoDate(offsetDays = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
