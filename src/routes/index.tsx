@@ -97,6 +97,11 @@ export const Route = createFileRoute("/")({
             postalCode: "34785",
             addressCountry: "US",
           },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: 28.872883,
+            longitude: -82.093933,
+          },
         }),
       },
     ],
