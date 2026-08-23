@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { guestRequests } from "@/lib/guest.functions";
 import { FranchiseLegal } from "@/components/franchise-footer";
+import { Search, Clock, CheckCircle2, AlertCircle, ArrowLeft, KeyRound } from "lucide-react";
 
 type Row = {
   id: string;
@@ -17,23 +18,23 @@ type Row = {
 };
 
 const STEPS = ["new", "in_progress", "done"] as const;
-const STEP_LABEL: Record<string, string> = {
-  new: "Received",
-  in_progress: "On the way",
-  done: "Completed",
+const STEP_CONFIG: Record<string, { label: string; description: string }> = {
+  new: { label: "Received", description: "Dispatched to on-site team" },
+  in_progress: { label: "On The Way", description: "Staff is fulfilling your request" },
+  done: { label: "Completed", description: "Delivered & resolved" },
 };
 
 export const Route = createFileRoute("/track")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Track a Request — Days Inn® by Wyndham Wildwood" },
+      { title: "Track Request Status — Days Inn Hub" },
       {
         name: "description",
         content:
           "Check the live status of anything you asked the front desk for — received, on the way, or completed.",
       },
-      { property: "og:title", content: "Track a Request — Days Inn® by Wyndham Wildwood" },
+      { property: "og:title", content: "Track Request Status — Days Inn Hub" },
       {
         property: "og:description",
         content:
@@ -64,124 +65,197 @@ function TrackPage() {
       });
       if (!result.ok) {
         setRows(null);
-        setError("We couldn't match that room and last name. Check with the front desk.");
+        setError("We couldn't match that room and last name. Please check with the front desk.");
       } else {
         setRows(result.requests as Row[]);
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Something went wrong retrieving your request. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-12">
-        <BrandLockup />
-        <nav className="flex items-center gap-4">
-          <Link to="/" className="signage text-muted-foreground hover:text-foreground">
-            Guest hub
-          </Link>
-          <Link to="/guide" className="signage text-muted-foreground hover:text-foreground">
-            Local guide
-          </Link>
-        </nav>
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between selection:bg-amber/30 selection:text-ink">
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 border-b border-border/80 bg-background/80 px-6 py-4 backdrop-blur-xl md:px-12">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+          <BrandLockup />
+          <nav className="flex items-center gap-4">
+            <Link to="/" className="spring-hover inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Guest hub
+            </Link>
+          </nav>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-6 py-10 md:px-12">
-        <p className="signage flex items-center gap-2 text-muted-foreground">
-          <span aria-hidden className="h-3 w-[3px] bg-amber" />
-          Request status
-        </p>
-        <h1 className="mt-2 font-display text-4xl leading-[1.05] md:text-5xl">
-          Track your <em className="text-amber">request.</em>
-        </h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          No app, no sign-in code. Just your room number and the last name on the
-          reservation.
-        </p>
-
-        <form onSubmit={lookup} className="mt-6 grid gap-4 sm:grid-cols-[1fr_1.4fr_auto] sm:items-end">
-          <div className="space-y-2">
-            <Label htmlFor="track-room">Room</Label>
-            <Input
-              id="track-room"
-              value={room}
-              onChange={(event) => setRoom(event.target.value)}
-              placeholder="e.g. 214"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="track-name">Last name</Label>
-            <Input
-              id="track-name"
-              value={lastName}
-              onChange={(event) => setLastName(event.target.value)}
-              placeholder="Ulloa"
-              required
-            />
-          </div>
-          <Button type="submit" disabled={loading} className="bg-amber text-ink hover:bg-amber/90">
-            {loading ? "Checking…" : "Check status"}
-          </Button>
-        </form>
-
-        {error ? (
-          <p className="mt-5 border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
-            {error}
+      {/* Main Content Area */}
+      <main className="mx-auto w-full max-w-3xl px-6 py-10 md:px-8 flex-1">
+        <div className="text-center max-w-lg mx-auto">
+          <span className="signage text-accent font-bold">Real-Time Dispatch Telemetry</span>
+          <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-foreground md:text-5xl">
+            Track your <span className="text-primary">request</span>.
+          </h1>
+          <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+            Enter your room number and last name to view live status updates on towels, repairs, or housekeeping.
           </p>
-        ) : null}
+        </div>
 
+        {/* Lookup Card */}
+        <section className="glass-card mt-8 rounded-3xl p-6 md:p-8">
+          <form onSubmit={lookup} className="grid gap-4 sm:grid-cols-[1fr_1.3fr_auto] sm:items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="track-room" className="text-xs font-semibold text-foreground">
+                Room Number
+              </Label>
+              <Input
+                id="track-room"
+                value={room}
+                onChange={(event) => setRoom(event.target.value)}
+                placeholder="e.g. 214"
+                className="h-11 rounded-xl border-border/80 bg-background/80 text-sm focus-visible:ring-accent"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="track-name" className="text-xs font-semibold text-foreground">
+                Last Name
+              </Label>
+              <Input
+                id="track-name"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                placeholder="e.g. Smith"
+                className="h-11 rounded-xl border-border/80 bg-background/80 text-sm focus-visible:ring-accent"
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="spring-hover h-11 rounded-xl bg-accent px-6 font-bold text-accent-foreground shadow-md hover:brightness-105"
+            >
+              {loading ? (
+                "Searching…"
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <Search className="h-4 w-4" /> Check
+                </span>
+              )}
+            </Button>
+          </form>
+
+          {error ? (
+            <div className="mt-5 flex items-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          ) : null}
+        </section>
+
+        {/* Results Area */}
         {rows ? (
           rows.length === 0 ? (
-            <p className="mt-6 border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Nothing open for this room right now.
-            </p>
+            <div className="glass-panel mt-6 rounded-3xl p-8 text-center">
+              <p className="font-serif text-base font-bold text-foreground">No active requests found</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                There are no open room tickets currently logged for Room {room}.
+              </p>
+            </div>
           ) : (
-            <ul className="mt-6 space-y-3">
-              {rows.map((row) => {
-                const index = STEPS.indexOf(row.status as (typeof STEPS)[number]);
-                return (
-                  <li key={row.id} className="border border-border bg-card p-4">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-display text-lg">{row.type}</span>
-                      <span className="signage text-amber">
-                        {STEP_LABEL[row.status] ?? row.status}
-                      </span>
-                    </div>
-                    {row.details ? (
-                      <p className="mt-1 text-sm text-muted-foreground">{row.details}</p>
-                    ) : null}
-                    <div className="mt-3 flex gap-1" aria-hidden>
-                      {STEPS.map((step, stepIndex) => (
-                        <span
-                          key={step}
-                          className={`h-1 flex-1 ${stepIndex <= index ? "bg-amber" : "bg-border"}`}
-                        />
-                      ))}
-                    </div>
-                    <p className="signage mt-2 text-muted-foreground">
-                      Sent {new Date(row.created_at).toLocaleString()}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="mt-8 space-y-4">
+              <h2 className="font-serif text-lg font-bold text-foreground">
+                Requests for Room {room} ({rows.length})
+              </h2>
+
+              <ul className="space-y-4">
+                {rows.map((row) => {
+                  const currentStepIndex = STEPS.indexOf(row.status as (typeof STEPS)[number]);
+                  const activeIndex = currentStepIndex >= 0 ? currentStepIndex : 0;
+
+                  return (
+                    <li key={row.id} className="glass-card rounded-3xl p-6 transition-all">
+                      <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-3">
+                        <div>
+                          <span className="font-serif text-base font-bold text-foreground">{row.type}</span>
+                          {row.details ? (
+                            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{row.details}</p>
+                          ) : null}
+                        </div>
+                        <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary">
+                          {STEP_CONFIG[row.status]?.label ?? row.status}
+                        </span>
+                      </div>
+
+                      {/* Multi-Step Timeline */}
+                      <div className="mt-6">
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          {STEPS.map((step, idx) => {
+                            const isPast = idx < activeIndex;
+                            const isCurrent = idx === activeIndex;
+                            const config = STEP_CONFIG[step];
+
+                            return (
+                              <div key={step} className="flex flex-col items-center">
+                                <div
+                                  className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold transition-all ${
+                                    isPast
+                                      ? "bg-emerald-500 text-white"
+                                      : isCurrent
+                                      ? "bg-accent text-accent-foreground ring-4 ring-accent/20 animate-pulse"
+                                      : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {isPast ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
+                                </div>
+                                <span className={`mt-2 font-serif text-xs font-bold ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
+                                  {config.label}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground hidden sm:block">
+                                  {config.description}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Progress Line */}
+                        <div className="relative mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-500 to-accent transition-all duration-500"
+                            style={{ width: `${((activeIndex + 1) / STEPS.length) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <p className="mt-4 text-right text-[10px] text-muted-foreground">
+                        Logged {new Date(row.created_at).toLocaleString()}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )
         ) : null}
 
-        <p className="mt-10 text-sm text-muted-foreground">
-          Want to chat with the desk and see your room key?{" "}
-          <Link to="/checkin" className="underline decoration-amber decoration-2 underline-offset-4">
-            Sign in to your room
+        <div className="mt-10 rounded-2xl border border-border/80 bg-card/60 p-5 text-center text-xs text-muted-foreground">
+          Want full in-room amenities, live messaging, and your digital key?{" "}
+          <Link to="/checkin" className="font-bold text-primary underline underline-offset-4 hover:text-accent">
+            Sign in to your room →
           </Link>
-          .
-        </p>
+        </div>
       </main>
 
-      <FranchiseLegal />
+      <footer className="mt-8 border-t border-border/80 bg-card/40 py-6 px-6">
+        <div className="mx-auto max-w-5xl">
+          <FranchiseLegal />
+        </div>
+      </footer>
     </div>
   );
 }
