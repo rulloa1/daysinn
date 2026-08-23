@@ -33,7 +33,7 @@ export const Route = createFileRoute("/roles")({
 function RolesPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const role = useStaffRole(session?.user.id ?? null);
+  const role = useStaffRole();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
