@@ -237,11 +237,24 @@ function GuestView() {
             Sign in to your room
           </Link>
           <Link
+            to="/guide"
+            className="signage hidden text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline sm:inline-flex"
+          >
+            Local guide
+          </Link>
+          <Link
+            to="/track"
+            className="signage hidden text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline sm:inline-flex"
+          >
+            Track a request
+          </Link>
+          <Link
             to="/staff"
             className="signage hidden text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline sm:inline-flex"
           >
             Staff
           </Link>
+
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
@@ -276,12 +289,27 @@ function GuestView() {
                   Book now
                 </a>
                 <Link
+                  to="/guide"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
+                >
+                  Local guide
+                </Link>
+                <Link
+                  to="/track"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
+                >
+                  Track a request
+                </Link>
+                <Link
                   to="/staff"
                   onClick={() => setMenuOpen(false)}
                   className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
                 >
                   Staff portal
                 </Link>
+
               </nav>
             </SheetContent>
           </Sheet>

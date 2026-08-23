@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { GuestChatPanel } from "@/components/guest-chat-panel";
+import { clearDoorPin, issueDoorPin } from "@/lib/guest-hub.functions";
+
 import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -51,7 +54,9 @@ type RoomRow = {
   check_in: string | null;
   check_out: string | null;
   notes: string | null;
+  door_pin?: string | null;
   updated_at: string;
+
 };
 
 type RequestRow = {
@@ -236,8 +241,9 @@ function Board() {
         supabase
           .from("rooms")
           .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, updated_at",
+            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, door_pin, updated_at",
           )
+
           .order("number"),
         supabase
           .from("requests")
@@ -727,11 +733,44 @@ function RoomPanel({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [pin, setPin] = useState<string | null>(null);
+  const [keyBusy, setKeyBusy] = useState(false);
+  const mintKey = useServerFn(issueDoorPin);
+  const revokeKey = useServerFn(clearDoorPin);
+
+  async function issueKey(number: string) {
+    setKeyBusy(true);
+    try {
+      const result = await mintKey({ data: { room: number } });
+      setPin(result.pin);
+      toast.success(`Room key issued for ${number}.`);
+    } catch {
+      toast.error("Could not issue a room key.");
+    } finally {
+      setKeyBusy(false);
+    }
+  }
+
+  async function clearKey(number: string) {
+    setKeyBusy(true);
+    try {
+      await revokeKey({ data: { room: number } });
+      setPin(null);
+      toast.success(`Room key cleared for ${number}.`);
+    } catch {
+      toast.error("Could not clear the room key.");
+    } finally {
+      setKeyBusy(false);
+    }
+  }
+
 
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
     setNotes(room?.notes ?? "");
-  }, [room?.id, room?.guest_name, room?.notes]);
+    setPin(room?.door_pin ?? null);
+  }, [room?.id, room?.guest_name, room?.notes, room?.door_pin]);
+
 
   return (
     <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
@@ -818,6 +857,52 @@ function RoomPanel({
                 </ul>
               </div>
             ) : null}
+
+            <div>
+              <p className="signage text-amber">Digital room key</p>
+              <p className="mt-2 font-display text-2xl tracking-[0.3em] tabular-nums">
+                {pin ?? "— — — — — —"}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!canEdit || keyBusy}
+                  onClick={() => void issueKey(room.number)}
+                  className="bg-amber text-ink hover:bg-amber/90"
+                >
+                  {pin ? "Re-issue PIN" : "Issue PIN"}
+                </Button>
+                {pin ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!canEdit || keyBusy}
+                    onClick={() => void clearKey(room.number)}
+                    className="border-cream/25 bg-transparent text-cream hover:bg-cream/10"
+                  >
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-cream/55">
+                The guest sees this instantly in their room portal.
+              </p>
+            </div>
+
+            <div>
+              <p className="signage text-amber">Guest chat</p>
+              <div className="mt-2">
+                <GuestChatPanel
+                  room={room.number}
+                  canEdit={canEdit}
+                  staffName={staff?.name ?? null}
+                />
+              </div>
+            </div>
+
+
 
             <div>
               <button

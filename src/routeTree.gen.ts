@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push-dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -32,6 +34,11 @@ const CheckinRoute = CheckinRouteImport.update({
 const FrontDeskRoute = FrontDeskRouteImport.update({
   id: '/front-desk',
   path: '/front-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HousekeepingRoute = HousekeepingRouteImport.update({
@@ -59,6 +66,11 @@ const StaffRoute = StaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
   id: '/api/public/push-dispatch',
   path: '/api/public/push-dispatch',
@@ -69,22 +81,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/track': typeof TrackRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/track': typeof TrackRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesById {
@@ -92,11 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
   '/front-desk': typeof FrontDeskRoute
+  '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/track': typeof TrackRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRouteTypes {
@@ -105,33 +123,39 @@ export interface FileRouteTypes {
     | '/'
     | '/checkin'
     | '/front-desk'
+    | '/guide'
     | '/housekeeping'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/track'
     | '/api/public/push-dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/checkin'
     | '/front-desk'
+    | '/guide'
     | '/housekeeping'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/track'
     | '/api/public/push-dispatch'
   id:
     | '__root__'
     | '/'
     | '/checkin'
     | '/front-desk'
+    | '/guide'
     | '/housekeeping'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/track'
     | '/api/public/push-dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -139,11 +163,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckinRoute: typeof CheckinRoute
   FrontDeskRoute: typeof FrontDeskRoute
+  GuideRoute: typeof GuideRoute
   HousekeepingRoute: typeof HousekeepingRoute
   RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
+  TrackRoute: typeof TrackRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
 }
 
@@ -168,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/front-desk'
       fullPath: '/front-desk'
       preLoaderRoute: typeof FrontDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/housekeeping': {
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push-dispatch': {
       id: '/api/public/push-dispatch'
       path: '/api/public/push-dispatch'
@@ -219,11 +259,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckinRoute: CheckinRoute,
   FrontDeskRoute: FrontDeskRoute,
+  GuideRoute: GuideRoute,
   HousekeepingRoute: HousekeepingRoute,
   RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
+  TrackRoute: TrackRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
 }
 export const routeTree = rootRouteImport
