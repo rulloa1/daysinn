@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cornerRoom, northWing, westWing, type FloorKey } from "@/lib/property-layout";
 import { Waves, MapPin } from "lucide-react";
 
@@ -129,9 +129,46 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
 
   const columns = `repeat(${north.length}, minmax(0, 1fr))`;
 
+  // The plan is drawn at a fixed width so the wings keep the proportions of the
+  // aerial photo, then scaled down to whatever space the dashboard gives it.
+  const PLAN_WIDTH = 1000;
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const planRef = useRef<HTMLDivElement | null>(null);
+  const [scale, setScale] = useState(1);
+  const [planHeight, setPlanHeight] = useState(0);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const plan = planRef.current;
+    if (!frame || !plan) return;
+    const measure = () => {
+      const available = frame.clientWidth;
+      setScale(Math.min(1, available / PLAN_WIDTH));
+      setPlanHeight(plan.offsetHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    observer.observe(plan);
+    return () => observer.disconnect();
+  }, [both, floor, rooms.length]);
+
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white shadow-2xl">
-      <div className="min-w-[1000px] space-y-3">
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white shadow-2xl">
+      <div
+        ref={frameRef}
+        className="overflow-hidden"
+        style={{ height: planHeight ? planHeight * scale : undefined }}
+      >
+        <div
+          ref={planRef}
+          className="space-y-3"
+          style={{
+            width: PLAN_WIDTH,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+        >
         <ZoneLabel
           label="Rear parking · FL-44 highway frontage"
           className="border-amber-500/20 bg-slate-900/90 text-amber-300"
@@ -207,7 +244,8 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
           </div>
         </div>
 
-        <ZoneLabel label="Overflow parking" />
+          <ZoneLabel label="Overflow parking" />
+        </div>
       </div>
     </div>
   );
