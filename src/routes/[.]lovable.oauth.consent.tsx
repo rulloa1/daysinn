@@ -156,7 +156,8 @@ function Consent() {
 
   if (!details) return shell(<p className="text-sm text-cream/60">Loading request…</p>);
 
-  const clientName = details?.client?.name ?? "an app";
+  const clientName =
+    (details?.["client"] as { name?: string } | undefined)?.name ?? "an app";
   return shell(
     <>
       <h1 className="text-3xl leading-tight">Connect {clientName}</h1>
