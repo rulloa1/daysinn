@@ -74,7 +74,7 @@ export const issueDoorPin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 
-    const pin = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+    const pin = String((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) % 1000000).padStart(6, "0");
     const issuedAt = new Date().toISOString();
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
