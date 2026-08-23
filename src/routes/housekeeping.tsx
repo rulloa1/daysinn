@@ -24,6 +24,7 @@ import {
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
 import { ShiftClock } from "@/components/shift-clock";
+import { MySchedule } from "@/components/my-schedule";
 
 import {
   Dialog,
@@ -334,7 +335,8 @@ function HousekeepingBoard({
   staff: NonNullable<StaffIdentity>;
   onSignOut: () => void;
 }) {
-  const [rooms, setRooms] = useState<RoomRow[]>([]);
+  const [allRooms, setAllRooms] = useState<RoomRow[]>([]);
+  const [supervisor, setSupervisor] = useState(false);
   const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -348,6 +350,33 @@ function HousekeepingBoard({
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
+
+  useEffect(() => {
+    let active = true;
+    async function loadSupervisor() {
+      if (!staff.id) return;
+      const { data } = await supabase
+        .from("staff_members")
+        .select("is_supervisor")
+        .eq("id", staff.id)
+        .maybeSingle();
+      if (active) setSupervisor(Boolean(data?.is_supervisor));
+    }
+    void loadSupervisor();
+    return () => {
+      active = false;
+    };
+  }, [staff.id]);
+
+  // Regular housekeepers only see their own rooms plus anything unassigned.
+  // Supervisors see the full board and who is cleaning what.
+  const rooms = useMemo(
+    () =>
+      supervisor
+        ? allRooms
+        : allRooms.filter((r) => !r.assigned_staff_id || r.assigned_staff_id === staff.id),
+    [allRooms, supervisor, staff.id],
+  );
 
   useEffect(() => {
     setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
@@ -374,7 +403,7 @@ function HousekeepingBoard({
         .order("number");
       if (!active) return;
       if (error) toast.error("Couldn't load rooms.");
-      setRooms((data ?? []) as RoomRow[]);
+      setAllRooms((data ?? []) as RoomRow[]);
       setLoading(false);
 
       const { data: issues } = await supabase
@@ -541,8 +570,8 @@ function HousekeepingBoard({
           assigned_at: new Date().toISOString(),
         }
       : { assigned_staff_id: null, assigned_name: null, assigned_at: null };
-    const previous = rooms;
-    setRooms((prev) =>
+    const previous = allRooms;
+    setAllRooms((prev) =>
       prev.map((r) =>
         r.id === room.id
           ? {
@@ -555,7 +584,7 @@ function HousekeepingBoard({
     );
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
     if (error) {
-      setRooms(previous);
+      setAllRooms(previous);
       toast.error("Couldn't update the assignment.");
       return;
     }
@@ -567,8 +596,8 @@ function HousekeepingBoard({
       toast.error("A manager needs to grant you staff access first.");
       return;
     }
-    const previous = rooms;
-    setRooms((prev) =>
+    const previous = allRooms;
+    setAllRooms((prev) =>
       prev.map((r) =>
         r.id === room.id
           ? { ...r, status: "vacant_clean", updated_at: new Date().toISOString() }
@@ -580,7 +609,7 @@ function HousekeepingBoard({
       .update({ status: "vacant_clean" })
       .eq("id", room.id);
     if (error) {
-      setRooms(previous);
+      setAllRooms(previous);
       toast.error("Couldn't update that room.");
       return;
     }
@@ -647,7 +676,12 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      {staff.id ? <ShiftClock staff={{ id: staff.id, name: staff.name }} /> : null}
+      {staff.id ? (
+        <>
+          <ShiftClock staff={{ id: staff.id, name: staff.name }} />
+          <MySchedule staff={{ id: staff.id, name: staff.name }} supervisor={supervisor} />
+        </>
+      ) : null}
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />
