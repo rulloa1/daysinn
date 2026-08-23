@@ -38,6 +38,7 @@ export function MySchedule({
   supervisor: boolean;
 }) {
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [roomsByShift, setRoomsByShift] = useState<Record<string, string[]>>({});
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -54,7 +55,21 @@ export function MySchedule({
       if (!supervisor) query = query.eq("staff_member_id", staff.id);
       const { data } = await query;
       if (!active) return;
-      setShifts((data ?? []) as Shift[]);
+      const list = (data ?? []) as Shift[];
+      setShifts(list);
+      if (list.length > 0) {
+        const { data: assigned } = await supabase
+          .from("shift_room_assignments")
+          .select("schedule_id, room_number")
+          .in("schedule_id", list.map((s) => s.id))
+          .order("room_number");
+        if (!active) return;
+        const map: Record<string, string[]> = {};
+        for (const row of assigned ?? []) {
+          (map[row.schedule_id] ??= []).push(row.room_number);
+        }
+        setRoomsByShift(map);
+      }
       setLoaded(true);
     }
     void load();
@@ -84,6 +99,11 @@ export function MySchedule({
                   {dayLabel(shift.work_date)}
                   {supervisor ? ` · ${shift.staff_name}` : ""}
                 </p>
+                {roomsByShift[shift.id]?.length ? (
+                  <p className="text-[11px] text-amber">
+                    Rooms: {roomsByShift[shift.id]!.join(", ")}
+                  </p>
+                ) : null}
                 {shift.notes ? (
                   <p className="text-[11px] text-cream/50">{shift.notes}</p>
                 ) : null}
