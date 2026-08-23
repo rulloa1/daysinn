@@ -321,9 +321,10 @@ function HousekeepingBoard({
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [onlyDirty, setOnlyDirty] = useState(false);
+  const [filter, setFilter] = useState<"all" | "dirty" | "mine">("all");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
+  const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
