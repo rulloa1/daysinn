@@ -706,18 +706,43 @@ function HousekeepingBoard({
                         <span aria-hidden>↻</span> Stayover
                       </span>
                     ) : null}
+                    {room.assigned_name ? (
+                      <span
+                        className={`signage px-1.5 py-0.5 text-[0.6rem] ${
+                          room.assigned_staff_id === staff.id
+                            ? "bg-cream text-ink"
+                            : "border border-cream/30 text-cream/60"
+                        }`}
+                      >
+                        {room.assigned_staff_id === staff.id ? "Mine" : room.assigned_name}
+                      </span>
+                    ) : null}
                   </span>
                   {room.status === "vacant_dirty" ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void markClean(room);
-                      }}
-                      className="signage mt-3 block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
-                    >
-                      Mark clean
-                    </button>
+                    <span className="mt-3 block space-y-1.5">
+                      {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void setAssignment(room, room.assigned_staff_id !== staff.id);
+                          }}
+                          className="signage block w-full border border-cream/25 px-2 py-1.5 text-center text-[0.6rem] text-cream/70"
+                        >
+                          {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void markClean(room);
+                        }}
+                        className="signage block w-full bg-status-clean px-2 py-2 text-center text-[0.65rem] text-ink"
+                      >
+                        Mark clean
+                      </button>
+                    </span>
                   ) : null}
                 </div>
               ))}
