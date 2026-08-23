@@ -64,6 +64,9 @@ type RoomRow = {
   updated_at: string;
   assigned_staff_id: string | null;
   assigned_name: string | null;
+  hk_stage: string | null;
+  priority: string | null;
+  linen_change: boolean | null;
 };
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
@@ -413,7 +416,7 @@ function HousekeepingBoard({
       const { data, error } = await supabase
         .from("rooms")
         .select(
-          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name",
+          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change",
         )
         .order("number");
       if (!active) return;
@@ -604,6 +607,41 @@ function HousekeepingBoard({
       return;
     }
     toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
+  }
+
+  /** Mark the transient cleaning stage (In Progress / Inspected). */
+  async function setStage(room: RoomRow, stage: string | null) {
+    if (!canTriage) {
+      toast.error("A manager needs to grant you staff access first.");
+      return;
+    }
+    const previous = allRooms;
+    setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, hk_stage: stage } : r)));
+    const { error } = await supabase.from("rooms").update({ hk_stage: stage }).eq("id", room.id);
+    if (error) {
+      setAllRooms(previous);
+      toast.error("Couldn't update that room.");
+      return;
+    }
+    toast.success(
+      stage === null
+        ? `Room ${room.number} stage cleared`
+        : `Room ${room.number} · ${stage === "in_progress" ? "In progress" : "Inspected"}`,
+    );
+  }
+
+  /** Toggle the linen-change flag for a room. */
+  async function toggleLinen(room: RoomRow) {
+    if (!canTriage) return;
+    const next = !room.linen_change;
+    setAllRooms((prev) =>
+      prev.map((r) => (r.id === room.id ? { ...r, linen_change: next } : r)),
+    );
+    const { error } = await supabase
+      .from("rooms")
+      .update({ linen_change: next })
+      .eq("id", room.id);
+    if (error) toast.error("Couldn't update the linen flag.");
   }
 
   /** Quick status change from the housekeeping board. */
@@ -1039,6 +1077,33 @@ function HousekeepingBoard({
                       </Button>
                     ))}
                   </div>
+                  <p className="signage mt-4 text-cream/45">Stage</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {[
+                      { value: null, label: "None" },
+                      { value: "in_progress", label: "In progress" },
+                      { value: "inspected", label: "Inspected" },
+                    ].map((stage) => (
+                      <Button
+                        key={stage.label}
+                        variant="outline"
+                        disabled={!canTriage || (active.hk_stage ?? null) === stage.value}
+                        onClick={() => void setStage(active, stage.value)}
+                        className="h-11 border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
+                      >
+                        {stage.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <label className="mt-4 flex items-center gap-2 text-sm text-cream/75">
+                    <input
+                      type="checkbox"
+                      disabled={!canTriage}
+                      checked={Boolean(active.linen_change)}
+                      onChange={() => void toggleLinen(active)}
+                    />
+                    Linen change needed
+                  </label>
                 </div>
               ) : (
                 <p className="text-xs text-cream/45">
