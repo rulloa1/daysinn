@@ -289,12 +289,27 @@ function GuestView() {
                   Book now
                 </a>
                 <Link
+                  to="/guide"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
+                >
+                  Local guide
+                </Link>
+                <Link
+                  to="/track"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
+                >
+                  Track a request
+                </Link>
+                <Link
                   to="/staff"
                   onClick={() => setMenuOpen(false)}
                   className="rounded-full border border-border px-4 py-3 text-center text-sm font-semibold text-ink"
                 >
                   Staff portal
                 </Link>
+
               </nav>
             </SheetContent>
           </Sheet>
