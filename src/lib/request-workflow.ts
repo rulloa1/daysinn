@@ -41,6 +41,17 @@ export type RequestNote = {
   created_at: string;
 };
 
+type RequestPatch = {
+  status: string;
+  started_at?: string | null;
+  started_by_staff_id?: string | null;
+  started_by_name?: string | null;
+  resolved_at?: string | null;
+  resolved_by_staff_id?: string | null;
+  resolved_by_name?: string | null;
+  response_seconds?: number | null;
+};
+
 /** Timestamps written when a request moves into a given status. */
 export function statusPatch(
   next: string,
@@ -48,14 +59,14 @@ export function statusPatch(
   staff: StaffIdentity,
 ) {
   const now = new Date().toISOString();
-  const patch: Record<string, unknown> = { status: next };
+  const patch: RequestPatch = { status: next };
 
   if (next === "in_progress") {
     patch['started_at'] = current.started_at ?? now;
-    patch['started_by_staff_id'] = current.started_at
-      ? undefined
-      : (staff?.id ?? null);
-    patch['started_by_name'] = current.started_at ? undefined : (staff?.name ?? null);
+    if (!current.started_at) {
+      patch['started_by_staff_id'] = staff?.id ?? null;
+      patch['started_by_name'] = staff?.name ?? null;
+    }
     patch['resolved_at'] = null;
     patch['resolved_by_staff_id'] = null;
     patch['resolved_by_name'] = null;
@@ -78,9 +89,6 @@ export function statusPatch(
     patch['response_seconds'] = null;
   }
 
-  for (const key of Object.keys(patch)) {
-    if (patch[key] === undefined) delete patch[key];
-  }
   return patch;
 }
 
