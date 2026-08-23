@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,10 @@ function timeAgo(iso: string) {
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
+  validateSearch: z.object({
+    demo: z.coerce.boolean().optional(),
+    present: z.coerce.boolean().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Staff Dashboard — Days Inn Hub" },
@@ -147,9 +152,16 @@ const DEMO_ROWS: RequestRow[] = [
 ];
 
 function StaffPage() {
+  const { demo: demoParam, present: presentParam } = useSearch({ from: "/staff" });
+  const navigate = useNavigate({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [demo, setDemo] = useState(false);
+  const [demo, setDemo] = useState(Boolean(demoParam || presentParam));
+  const present = Boolean(demo && presentParam);
+
+  useEffect(() => {
+    setDemo(Boolean(demoParam || presentParam));
+  }, [demoParam, presentParam]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -170,8 +182,13 @@ function StaffPage() {
     );
   }
 
+  const exitDemo = () => {
+    setDemo(false);
+    void navigate({ to: "/staff", search: {} });
+  };
+
   if (session) return <Dashboard />;
-  if (demo) return <Dashboard demo onExitDemo={() => setDemo(false)} />;
+  if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} />;
   return <SignIn onDemo={() => setDemo(true)} />;
 }
 
@@ -268,6 +285,13 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
           >
             Open demo view
           </Button>
+          <Link
+            to="/staff"
+            search={{ demo: true, present: true }}
+            className="signage mt-3 inline-block text-sm text-cream/50 transition-colors duration-200 hover:text-amber"
+          >
+            Open presentation mode →
+          </Link>
           <p className="mt-2 text-xs text-cream/40">
             Sample requests only — no real guest data, nothing is saved.
           </p>
@@ -279,9 +303,11 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
 
 function Dashboard({
   demo = false,
+  present = false,
   onExitDemo,
 }: {
   demo?: boolean;
+  present?: boolean;
   onExitDemo?: () => void;
 }) {
   const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
@@ -293,7 +319,7 @@ function Dashboard({
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
-  const [tourOpen, setTourOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(present);
   const { staff } = useStaffIdentity();
 
   useEffect(() => {
@@ -441,32 +467,36 @@ function Dashboard({
           >
             Walkthrough
           </button>
-          <Link
-            to="/front-desk"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Front desk
-          </Link>
-          <Link
-            to="/housekeeping"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Housekeeping
-          </Link>
-          <Link
-            to="/"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Guest view
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-            onClick={demo ? onExitDemo : signOut}
-          >
-            {demo ? "Exit demo" : "Sign out"}
-          </Button>
+          {!present ? (
+            <>
+              <Link
+                to="/front-desk"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Front desk
+              </Link>
+              <Link
+                to="/housekeeping"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Housekeeping
+              </Link>
+              <Link
+                to="/"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Guest view
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                onClick={demo ? onExitDemo : signOut}
+              >
+                {demo ? "Exit demo" : "Sign out"}
+              </Button>
+            </>
+          ) : null}
         </div>
       </header>
 
