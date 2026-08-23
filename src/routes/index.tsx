@@ -133,15 +133,6 @@ export const Route = createFileRoute("/")({
   component: GuestView,
 });
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="signage flex items-center gap-2 text-muted-foreground">
-      <span aria-hidden className="h-3 w-[3px] bg-amber" />
-      {children}
-    </p>
-  );
-}
-
 function GuestView() {
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
   const [room, setRoom] = useState("");
