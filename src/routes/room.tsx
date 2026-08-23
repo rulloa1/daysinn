@@ -216,12 +216,93 @@ function RoomHub() {
           </section>
         </div>
 
+        <div className="mt-10 grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <section>
+            <h2 className="text-2xl">Your digital room key</h2>
+            {thread.data?.key?.pin ? (
+              <div className="mt-3 border border-amber/60 bg-amber/10 p-6">
+                <p className="signage text-muted-foreground">Room {session.room} · door PIN</p>
+                <p className="mt-2 font-display text-5xl tracking-[0.3em] tabular-nums">
+                  {thread.data.key.pin}
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Enter this on the keypad. It expires at checkout
+                  {thread.data.key.checkOut ? ` (${thread.data.key.checkOut})` : ""}. Keep it
+                  private — the front desk can re-issue a new one any time.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-3 border border-dashed border-border p-6 text-sm text-muted-foreground">
+                No digital key issued for this room yet. Ask the front desk and it will appear
+                here automatically.
+              </p>
+            )}
+          </section>
+
+          <section>
+            <h2 className="text-2xl">Chat with the front desk</h2>
+            <div className="mt-3 flex h-64 flex-col border border-border bg-card">
+              <div className="flex-1 space-y-2 overflow-y-auto p-4">
+                {messages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Say hello — someone at the desk is watching this thread.
+                  </p>
+                ) : (
+                  messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`border px-3 py-2 text-sm ${
+                        message.sender === "staff"
+                          ? "mr-6 border-border bg-background"
+                          : "ml-6 border-amber/50 bg-amber/10"
+                      }`}
+                    >
+                      <p>{message.body}</p>
+                      <p className="signage mt-1 text-muted-foreground">
+                        {message.sender === "staff"
+                          ? message.author_name ?? "Front desk"
+                          : "You"}{" "}
+                        ·{" "}
+                        {new Date(message.created_at).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <form onSubmit={sendChat} className="flex gap-2 border-t border-border p-3">
+                <Input
+                  value={chatDraft}
+                  maxLength={1000}
+                  onChange={(event) => setChatDraft(event.target.value)}
+                  placeholder="Type a message…"
+                  aria-label="Message the front desk"
+                />
+                <Button
+                  type="submit"
+                  disabled={chatSending || !chatDraft.trim()}
+                  className="bg-amber text-ink hover:bg-amber/90"
+                >
+                  Send
+                </Button>
+              </form>
+            </div>
+          </section>
+        </div>
+
         <p className="mt-10 text-sm text-muted-foreground">
           Need something else?{" "}
+          <Link to="/guide" className="underline decoration-amber decoration-2 underline-offset-4">
+            See the local guide
+          </Link>{" "}
+          or{" "}
           <Link to="/" className="underline decoration-amber decoration-2 underline-offset-4">
-            Browse the guest hub
+            browse the guest hub
           </Link>
         </p>
+
       </main>
 
       <Dialog open={open !== null} onOpenChange={(next) => !next && setOpen(null)}>
