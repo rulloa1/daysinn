@@ -25,6 +25,7 @@ import {
   type StaffIdentity,
 } from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
+import { FloorPlan } from "@/components/floor-plan";
 import { MetricsExportButton } from "@/components/metrics-export-button";
 import {
   Dialog,
@@ -337,6 +338,12 @@ function Board() {
     }
     return map;
   }, [requests]);
+
+  const openCountByRoom = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const [room, list] of requestsByRoom) map.set(room, list.length);
+    return map;
+  }, [requestsByRoom]);
 
   const dayStart = startOfToday();
 
