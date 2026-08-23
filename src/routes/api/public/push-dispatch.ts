@@ -32,10 +32,22 @@ export const Route = createFileRoute("/api/public/push-dispatch")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env["PUSH_DISPATCH_SECRET"];
-        if (!secret || request.headers.get("x-push-secret") !== secret) {
+        const presented = request.headers.get("x-push-secret") ?? "";
+
+        // The shared secret lives in the database (rotatable without a deploy);
+        // the env var stays supported as a fallback.
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: secretRow } = await supabaseAdmin
+          .from("internal_secrets")
+          .select("value")
+          .eq("name", "push_dispatch_secret")
+          .maybeSingle();
+
+        const expected = secretRow?.value ?? process.env["PUSH_DISPATCH_SECRET"] ?? "";
+        if (!expected || presented.length !== expected.length || presented !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
+
 
         let payload: Body;
         try {
