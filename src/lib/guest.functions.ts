@@ -85,13 +85,13 @@ export const guestSignIn = createServerFn({ method: "POST" })
 
     if (data.token && !(await consumeToken(data.room, data.token))) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL };
+      return { ok: false as const, error: GENERIC_DENIAL, dbg: "token" };
     }
 
     const guest = await verify(data);
     if (!guest) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL };
+      return { ok: false as const, error: GENERIC_DENIAL, dbg: "verify" };
     }
 
     // Access dies at checkout, even if the session cookie says otherwise.
@@ -100,7 +100,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
       : null;
     if (checkoutMs !== null && checkoutMs < Date.now()) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
-      return { ok: false as const, error: GENERIC_DENIAL };
+      return { ok: false as const, error: GENERIC_DENIAL, dbg: "checkout" };
     }
 
     const sessionMs = Date.now() + GUEST_SESSION_HOURS * 60 * 60 * 1000;
