@@ -279,6 +279,13 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
           >
             Open demo view
           </Button>
+          <Link
+            to="/staff"
+            search={{ demo: true, present: true }}
+            className="signage mt-3 inline-block text-sm text-cream/50 transition-colors duration-200 hover:text-amber"
+          >
+            Open presentation mode →
+          </Link>
           <p className="mt-2 text-xs text-cream/40">
             Sample requests only — no real guest data, nothing is saved.
           </p>
