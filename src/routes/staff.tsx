@@ -206,20 +206,25 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
-      <div className="w-full max-w-sm">
-        <BrandLockup tone="cream" />
-        <Link
-          to="/"
-          className="signage mt-8 inline-block text-cream/60 transition-colors duration-200 hover:text-amber"
-        >
-          ← Guest view
-        </Link>
-        <h1 className="mt-4 text-4xl">Staff sign in</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-ink px-6 py-12 text-cream">
+      <div className="w-full max-w-md">
+        <div className="flex items-center justify-between gap-4">
+          <BrandLockup tone="cream" />
+          <Link
+            to="/"
+            className="signage shrink-0 text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            ← Guest view
+          </Link>
+        </div>
+      </div>
+
+      <div className="w-full max-w-md rounded-2xl border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
+        <h1 className="text-4xl leading-tight">Staff sign in</h1>
         <p className="mt-2 text-sm text-cream/60">
           A cleaner queue means a calmer shift. Sign in to work the board.
         </p>
-        <form onSubmit={submit} className="mt-8 space-y-4">
+        <form onSubmit={submit} className="mt-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -249,24 +254,29 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
             {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
-        <button
-          type="button"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="mt-4 text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
-        >
-          {mode === "signin"
-            ? "Need a staff account? Create one"
-            : "Already have an account? Sign in"}
-        </button>
-        <div className="mt-8 border-t border-cream/15 pt-6">
-          <p className="signage flex items-center gap-2 text-cream/50">
-            <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            Presenting?
-          </p>
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            className="text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
+          >
+            {mode === "signin"
+              ? "Need a staff account? Create one"
+              : "Already have an account? Sign in"}
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full max-w-md rounded-2xl border border-cream/10 p-6">
+        <p className="signage flex items-center gap-2 text-cream/50">
+          <span aria-hidden className="h-3 w-[3px] bg-amber" />
+          Presenting?
+        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button
             type="button"
             variant="outline"
-            className="mt-3 w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+            className="flex-1 border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
             onClick={onDemo}
           >
             Open demo view
@@ -274,18 +284,19 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
           <Link
             to="/staff"
             search={{ demo: true, present: true }}
-            className="signage mt-3 inline-block text-sm text-cream/50 transition-colors duration-200 hover:text-amber"
+            className="signage text-sm text-cream/50 transition-colors duration-200 hover:text-amber"
           >
-            Open presentation mode →
+            Presentation mode →
           </Link>
-          <p className="mt-2 text-xs text-cream/40">
-            Sample requests only — no real guest data, nothing is saved.
-          </p>
         </div>
+        <p className="mt-3 text-xs text-cream/40">
+          Sample requests only — no real guest data, nothing is saved.
+        </p>
       </div>
     </div>
   );
 }
+
 
 function Dashboard({
   demo = false,
