@@ -32,7 +32,7 @@ async function verify({ room, lastName }: Credentials) {
     .eq("number", room)
     .maybeSingle();
 
-  if (error) console.error("[verify] rooms read failed", error);
+  console.error("[verify] result", JSON.stringify({ data, error, lastName }));
   if (!data?.guest_name) return null;
   if (lastNameOf(data.guest_name) !== lastName.trim().toLowerCase()) return null;
 
