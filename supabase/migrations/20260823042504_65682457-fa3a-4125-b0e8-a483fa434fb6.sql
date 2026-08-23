@@ -1,0 +1,1 @@
+revoke all on function public.notify_housekeeping_push() from public, anon, authenticated;
