@@ -27,6 +27,26 @@ import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
 import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
 import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
+import {
+  BOOKING_URL,
+  FranchiseDisclaimer,
+  FranchiseLegal,
+} from "@/components/franchise-footer";
+
+const REWARDS = [
+  {
+    title: "Wyndham Rewards® Member Rates",
+    body: "Exclusive member-only pricing when you book direct through Wyndham.",
+  },
+  {
+    title: "10 points per dollar",
+    body: "Earn 10 points per dollar spent or 1,000 points on direct qualifying stays — whichever is more.",
+  },
+  {
+    title: "Free Wi-Fi & Daybreak® breakfast",
+    body: "Complimentary Wi-Fi property-wide plus Daybreak® breakfast, where available.",
+  },
+];
 
 const GALLERY = [
   { src: exteriorAsset.url, alt: "Days Inn Wildwood exterior at dusk", caption: "Front entrance" },
@@ -190,6 +210,14 @@ function GuestView() {
       <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:px-10">
         <BrandLockup />
         <div className="flex items-center gap-3">
+          <a
+            href={BOOKING_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-amber px-4 py-2 text-xs font-bold text-ink shadow-sm transition-colors duration-200 hover:bg-ink hover:text-cream"
+          >
+            Book now
+          </a>
           <Link
             to="/checkin"
             search={{}}
@@ -217,7 +245,9 @@ function GuestView() {
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 via-ink/25 to-transparent p-6 md:p-8">
-            <p className="signage text-amber">Days Inn Wildwood</p>
+            <p className="signage text-amber">
+              Days Inn® by Wyndham · Wildwood
+            </p>
             <h1 className="mt-2 text-3xl text-cream md:text-4xl">
               Good evening — make yourself at home.
             </h1>
@@ -327,6 +357,38 @@ function GuestView() {
           </div>
         </section>
 
+        {/* Wyndham Rewards */}
+        <section className="mt-9 rounded-3xl bg-ink p-6 text-cream shadow-lg md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="signage text-amber">Wyndham Rewards® Member Benefits</p>
+              <h2 className="mt-2 text-2xl text-cream">
+                Book direct. Earn more on every stay.
+              </h2>
+            </div>
+            <a
+              href={BOOKING_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-xl bg-amber px-5 py-3 text-sm font-bold text-ink transition-colors duration-200 hover:bg-cream"
+            >
+              Check rates ↗
+            </a>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {REWARDS.map((perk) => (
+              <article
+                key={perk.title}
+                className="rounded-2xl border-l-4 border-amber bg-cream/10 p-4"
+              >
+                <h3 className="text-base text-cream">{perk.title}</h3>
+                <p className="mt-1.5 text-sm text-cream/75">{perk.body}</p>
+              </article>
+            ))}
+          </div>
+          <FranchiseDisclaimer className="mt-4 text-[11px] leading-relaxed text-cream/60" />
+        </section>
+
         {/* Map & directions */}
         <PropertyMap />
 
@@ -353,11 +415,14 @@ function GuestView() {
         </section>
       </main>
 
-      <footer className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-6 md:px-10">
-        <BrandLockup />
-        <p className="signage text-muted-foreground">
-          Simple stays. Thoughtful service.
-        </p>
+      <footer className="mt-4 space-y-4 border-t border-border px-5 py-6 md:px-10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <BrandLockup />
+          <p className="signage text-muted-foreground">
+            Simple stays. Thoughtful service.
+          </p>
+        </div>
+        <FranchiseLegal />
       </footer>
 
 
