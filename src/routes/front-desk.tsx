@@ -37,12 +37,7 @@ import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
 import { usePresentationMode } from "@/lib/presentation";
 
 type RoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 type RoomRow = {
   id: string;
@@ -55,7 +50,6 @@ type RoomRow = {
   check_out: string | null;
   notes: string | null;
   updated_at: string;
-
 };
 
 type RequestRow = {
@@ -140,8 +134,7 @@ export const Route = createFileRoute("/front-desk")({
       { property: "og:title", content: "Front Desk Board — Days Inn Hub" },
       {
         property: "og:description",
-        content:
-          "Room status grid, bookings log, and open requests in one shift view.",
+        content: "Room status grid, bookings log, and open requests in one shift view.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -169,9 +162,7 @@ function FrontDeskPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, next) =>
-      setSession(next),
-    );
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
     supabase.auth.getSession().then(({ data: { session: current } }) => {
       setSession(current);
       setReady(true);
@@ -196,10 +187,7 @@ function FrontDeskPage() {
           <p className="mt-2 text-sm text-cream/60">
             Sign in with your staff account to open the board.
           </p>
-          <Button
-            asChild
-            className="mt-6 w-full bg-amber text-ink hover:bg-amber/90"
-          >
+          <Button asChild className="mt-6 w-full bg-amber text-ink hover:bg-amber/90">
             <Link to="/staff">Go to staff sign in</Link>
           </Button>
           <Link
@@ -239,7 +227,7 @@ function Board() {
       const rpc = supabase.rpc as unknown as (
         fn: string,
         args?: Record<string, unknown>,
-      ) => any;
+      ) => ReturnType<typeof supabase.rpc>;
       const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
         rpc("rooms_board")
           .select(
@@ -247,7 +235,9 @@ function Board() {
           )
           .order("number"),
         rpc("requests_board")
-          .select("id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
+          .select(
+            "id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name",
+          )
           .neq("status", "done")
           .order("created_at", { ascending: false }),
         supabase
@@ -261,9 +251,7 @@ function Board() {
           )
           .order("changed_at", { ascending: false })
           .limit(500),
-        rpc("requests_board")
-          .select("id, response_seconds")
-          .gte("resolved_at", startOfToday()),
+        rpc("requests_board").select("id, response_seconds").gte("resolved_at", startOfToday()),
       ]);
       if (!active) return;
       if (roomRes.error) toast.error("Couldn't load the room board.");
@@ -282,9 +270,21 @@ function Board() {
     const channel = supabase
       .channel("front-desk-feed")
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "room_status_events" }, () => void load())
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "requests" },
+        () => void load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => void load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "room_status_events" },
+        () => void load(),
+      )
       .subscribe();
 
     return () => {
@@ -311,17 +311,10 @@ function Board() {
     return sellable ? Math.round((taken / sellable) * 100) : 0;
   }, [rooms]);
 
-  const arrivals = useMemo(
-    () => bookings.filter((b) => b.check_in === day),
-    [bookings, day],
-  );
-  const departures = useMemo(
-    () => bookings.filter((b) => b.check_out === day),
-    [bookings, day],
-  );
+  const arrivals = useMemo(() => bookings.filter((b) => b.check_in === day), [bookings, day]);
+  const departures = useMemo(() => bookings.filter((b) => b.check_out === day), [bookings, day]);
 
-  const visible =
-    filter === "all" ? rooms : rooms.filter((room) => room.status === filter);
+  const visible = filter === "all" ? rooms : rooms.filter((room) => room.status === filter);
 
   const byFloor = useMemo(() => {
     const map = new Map<number, RoomRow[]>();
@@ -349,12 +342,7 @@ function Board() {
     () =>
       average(
         events
-          .filter(
-            (e) =>
-              e.is_turnover &&
-              e.duration_seconds != null &&
-              e.changed_at >= dayStart,
-          )
+          .filter((e) => e.is_turnover && e.duration_seconds != null && e.changed_at >= dayStart)
           .map((e) => e.duration_seconds as number),
       ),
     [events, dayStart],
@@ -393,15 +381,10 @@ function Board() {
     const previous = rooms;
     setRooms((prev) =>
       prev.map((r) =>
-        r.id === room.id
-          ? { ...r, ...patch, updated_at: new Date().toISOString() }
-          : r,
+        r.id === room.id ? { ...r, ...patch, updated_at: new Date().toISOString() } : r,
       ),
     );
-    const { error } = await supabase
-      .from("rooms")
-      .update(patch)
-      .eq("id", room.id);
+    const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
     if (error) {
       setRooms(previous);
       toast.error("Couldn't update that room.");
@@ -421,9 +404,7 @@ function Board() {
     }
 
     toast.success(
-      staff
-        ? `Room ${room.number} updated by ${staff.name}`
-        : `Room ${room.number} updated`,
+      staff ? `Room ${room.number} updated by ${staff.name}` : `Room ${room.number} updated`,
     );
   }
 
@@ -441,16 +422,29 @@ function Board() {
         <div className="flex flex-wrap items-center gap-4">
           <StaffPicker members={members} staff={staff} onSelect={select} onAdd={addMember} />
           <MetricsExportButton />
-          <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+          <Link
+            to="/staff"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
             Request queue
           </Link>
-          <Link to="/housekeeping" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+          <Link
+            to="/housekeeping"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
             Housekeeping
           </Link>
-          <Link to="/checkin" search={{}} className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+          <Link
+            to="/checkin"
+            search={{}}
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
             Guest sign-in
           </Link>
-          <Link to="/" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+          <Link
+            to="/"
+            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
             Guest view
           </Link>
         </div>
@@ -460,8 +454,8 @@ function Board() {
         <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
           <p className="signage text-amber">View-only access</p>
           <p className="mt-2 text-sm text-cream/70">
-            You can watch the board, but a manager must grant you staff access
-            before you can change rooms or bookings.
+            You can watch the board, but a manager must grant you staff access before you can change
+            rooms or bookings.
           </p>
         </div>
       ) : null}
@@ -530,7 +524,10 @@ function Board() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-2xl leading-none">{room.number}</span>
-                          <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`} />
+                          <span
+                            aria-hidden
+                            className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
+                          />
                         </div>
                         <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
                           {STATUS_LABEL[room.status]}
@@ -539,7 +536,9 @@ function Board() {
                           {room.guest_name ?? room.bed_type}
                         </p>
                         {open ? (
-                          <p className="signage mt-1 text-amber">{open} request{open === 1 ? "" : "s"}</p>
+                          <p className="signage mt-1 text-amber">
+                            {open} request{open === 1 ? "" : "s"}
+                          </p>
                         ) : null}
                       </button>
                     );
@@ -556,7 +555,10 @@ function Board() {
               <li className="text-sm text-cream/45">Nothing scheduled.</li>
             ) : (
               arrivals.map((b) => (
-                <li key={b.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                <li
+                  key={b.id}
+                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
+                >
                   <span>Room {b.room}</span>
                   <span className="text-cream/55">{b.guest_name}</span>
                 </li>
@@ -569,7 +571,10 @@ function Board() {
               <li className="text-sm text-cream/45">Nothing scheduled.</li>
             ) : (
               departures.map((b) => (
-                <li key={b.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                <li
+                  key={b.id}
+                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
+                >
                   <span>Room {b.room}</span>
                   <span className="text-cream/55">{b.guest_name}</span>
                 </li>
@@ -582,7 +587,10 @@ function Board() {
               <li className="text-sm text-cream/45">Queue is clear.</li>
             ) : (
               requests.slice(0, 8).map((req) => (
-                <li key={req.id} className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm">
+                <li
+                  key={req.id}
+                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
+                >
                   <button
                     type="button"
                     className="text-left underline-offset-4 hover:text-amber hover:underline"
@@ -764,7 +772,6 @@ function RoomPanel({
     }
   }
 
-
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
     setNotes(room?.notes ?? "");
@@ -784,7 +791,6 @@ function RoomPanel({
     };
   }, [room?.id, room?.number, room?.guest_name, room?.notes, loadKey]);
 
-
   return (
     <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="border-cream/20 bg-ink text-cream sm:max-w-md">
@@ -799,8 +805,7 @@ function RoomPanel({
 
             {!staff ? (
               <p className="border border-amber/45 bg-amber/10 px-3 py-2 text-xs text-cream/75">
-                Pick who is on the desk at the top of the board so changes are
-                attributed to you.
+                Pick who is on the desk at the top of the board so changes are attributed to you.
               </p>
             ) : null}
 
@@ -815,7 +820,10 @@ function RoomPanel({
                     onClick={() => void onSave(room, { status })}
                     className={`border px-3 py-2 text-left text-xs transition-colors duration-200 disabled:opacity-45 ${STATUS_CARD[status]} ${room.status === status ? "ring-2 ring-amber" : ""}`}
                   >
-                    <span aria-hidden className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[status]}`} />
+                    <span
+                      aria-hidden
+                      className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[status]}`}
+                    />
                     {STATUS_LABEL[status]}
                   </button>
                 ))}
@@ -850,21 +858,14 @@ function RoomPanel({
                 <p className="signage text-amber">Open guest requests</p>
                 <ul className="mt-2 space-y-3 text-sm text-cream/75">
                   {requests.map((req) => (
-                    <li
-                      key={req.id}
-                      className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
-                    >
+                    <li key={req.id} className="border border-cream/15 bg-cream/[0.03] px-3 py-2">
                       <p className="text-cream">
                         {req.type} · {REQUEST_STATUS_LABEL[req.status] ?? req.status}
                       </p>
                       {req.details ? (
                         <p className="mt-1 text-xs text-cream/65">{req.details}</p>
                       ) : null}
-                      <RequestWorkflowPanel
-                        request={req}
-                        canEdit={canEdit}
-                        staff={staff}
-                      />
+                      <RequestWorkflowPanel request={req} canEdit={canEdit} staff={staff} />
                     </li>
                   ))}
                 </ul>
@@ -915,8 +916,6 @@ function RoomPanel({
               </div>
             </div>
 
-
-
             <div>
               <button
                 type="button"
@@ -936,10 +935,8 @@ function RoomPanel({
                         className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
                       >
                         <p className="text-cream/85">
-                          {event.old_status
-                            ? STATUS_LABEL[event.old_status as RoomStatus]
-                            : "—"}{" "}
-                          → {STATUS_LABEL[event.new_status as RoomStatus]}
+                          {event.old_status ? STATUS_LABEL[event.old_status as RoomStatus] : "—"} →{" "}
+                          {STATUS_LABEL[event.new_status as RoomStatus]}
                         </p>
                         <p className="mt-1 text-cream/50">
                           {event.staff_name ?? "Unattributed"} · {stamp(event.changed_at)}
@@ -1179,18 +1176,10 @@ function BookingList({
   );
 }
 
-function RoomQrDialog({
-  room,
-  onClose,
-}: {
-  room: RoomRow | null;
-  onClose: () => void;
-}) {
+function RoomQrDialog({ room, onClose }: { room: RoomRow | null; onClose: () => void }) {
   const rotate = useServerFn(rotateRoomQr);
   const revoke = useServerFn(revokeRoomQr);
-  const [state, setState] = useState<{ url: string; expiresAt: string } | null>(
-    null,
-  );
+  const [state, setState] = useState<{ url: string; expiresAt: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const number = room?.number ?? null;
@@ -1240,22 +1229,16 @@ function RoomQrDialog({
         <DialogHeader>
           <DialogTitle>Room {room?.number} sign-in</DialogTitle>
           <DialogDescription>
-            Single-use code. It expires on its own and is burned the moment the
-            guest signs in, so an old scan or screenshot won't work later.
+            Single-use code. It expires on its own and is burned the moment the guest signs in, so
+            an old scan or screenshot won't work later.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-3">
           {state && !expired ? (
             <>
-              <QrCode
-                value={state.url}
-                size={220}
-                alt={`Sign-in QR for room ${room?.number}`}
-              />
+              <QrCode value={state.url} size={220} alt={`Sign-in QR for room ${room?.number}`} />
               <p className="signage text-amber">Expires in {countdown}</p>
-              <p className="break-all text-center text-xs text-muted-foreground">
-                {state.url}
-              </p>
+              <p className="break-all text-center text-xs text-muted-foreground">{state.url}</p>
             </>
           ) : (
             <p className="py-10 text-sm text-muted-foreground">

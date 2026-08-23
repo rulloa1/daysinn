@@ -12,10 +12,7 @@ function lastNameOf(fullName: string): string {
   return (parts[parts.length - 1] ?? "").toLowerCase();
 }
 
-export async function verifyGuest(
-  room: string,
-  lastName: string,
-): Promise<VerifiedGuest | null> {
+export async function verifyGuest(room: string, lastName: string): Promise<VerifiedGuest | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("rooms")

@@ -48,7 +48,6 @@ export const Route = createFileRoute("/api/public/push-dispatch")({
           return new Response("Unauthorized", { status: 401 });
         }
 
-
         let payload: Body;
         try {
           payload = (await request.json()) as Body;

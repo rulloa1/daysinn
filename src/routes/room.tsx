@@ -42,25 +42,56 @@ type GuestMessage = {
   created_at: string;
 };
 
-import {
-  clearGuestSession,
-  readGuestSession,
-  type GuestSession,
-} from "@/lib/guest-session";
+import { clearGuestSession, readGuestSession, type GuestSession } from "@/lib/guest-session";
 import { requestSchema } from "@/lib/request-schema";
 
 const REQUESTS = [
-  { id: "towels", label: "Fresh Towels & Linens", prompt: "How many towels or linens do you need for the bath?", icon: Sparkles },
-  { id: "housekeeping", label: "Housekeeping Refresh", prompt: "Tell us the best time to stop by for a quick room tidy.", icon: BedDouble },
-  { id: "problem", label: "Maintenance & Repairs", prompt: "What needs attention or repair in your room?", icon: Wrench },
-  { id: "front-desk", label: "Front Desk Assistance", prompt: "How can our front desk team help you right now?", icon: MessageSquare },
-  { id: "late-checkout", label: "Request Late Checkout", prompt: "What time would you prefer to depart tomorrow?", icon: Clock },
+  {
+    id: "towels",
+    label: "Fresh Towels & Linens",
+    prompt: "How many towels or linens do you need for the bath?",
+    icon: Sparkles,
+  },
+  {
+    id: "housekeeping",
+    label: "Housekeeping Refresh",
+    prompt: "Tell us the best time to stop by for a quick room tidy.",
+    icon: BedDouble,
+  },
+  {
+    id: "problem",
+    label: "Maintenance & Repairs",
+    prompt: "What needs attention or repair in your room?",
+    icon: Wrench,
+  },
+  {
+    id: "front-desk",
+    label: "Front Desk Assistance",
+    prompt: "How can our front desk team help you right now?",
+    icon: MessageSquare,
+  },
+  {
+    id: "late-checkout",
+    label: "Request Late Checkout",
+    prompt: "What time would you prefer to depart tomorrow?",
+    icon: Clock,
+  },
 ];
 
-const STATUS_CONFIG: Record<string, { label: string; class: string; icon: any }> = {
+import type { LucideIcon } from "lucide-react";
+
+const STATUS_CONFIG: Record<string, { label: string; class: string; icon: LucideIcon }> = {
   new: { label: "Received", class: "bg-amber/15 text-amber border-amber/30", icon: Clock },
-  in_progress: { label: "In Progress", class: "bg-primary/15 text-primary border-primary/30", icon: AlertCircle },
-  done: { label: "Completed", class: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30", icon: CheckCircle2 },
+  in_progress: {
+    label: "In Progress",
+    class: "bg-primary/15 text-primary border-primary/30",
+    icon: AlertCircle,
+  },
+  done: {
+    label: "Completed",
+    class: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+    icon: CheckCircle2,
+  },
 };
 
 import { FranchiseLegal } from "@/components/franchise-footer";
@@ -75,7 +106,10 @@ export const Route = createFileRoute("/room")({
         content:
           "Manage in-room services, request amenities, chat with the front desk, and view your digital room key in real time.",
       },
-      { property: "og:title", content: "Your In-Room Concierge — Days Inn® by Wyndham Wildwood I-75" },
+      {
+        property: "og:title",
+        content: "Your In-Room Concierge — Days Inn® by Wyndham Wildwood I-75",
+      },
       {
         property: "og:description",
         content:
@@ -195,7 +229,7 @@ function RoomHub() {
       <header className="sticky top-0 z-30 border-b border-border/80 bg-background/80 px-4 py-3.5 backdrop-blur-xl md:px-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <BrandLockup />
-          
+
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-bold text-primary">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -220,7 +254,10 @@ function RoomHub() {
           <div>
             <span className="signage text-accent font-bold">In-Room Guest Portal</span>
             <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-foreground md:text-5xl">
-              Welcome, <span className="text-primary">{session.guestName || `Guest in ${session.room}`}</span>
+              Welcome,{" "}
+              <span className="text-primary">
+                {session.guestName || `Guest in ${session.room}`}
+              </span>
             </h1>
             <p className="mt-1.5 text-xs text-muted-foreground">
               Direct service line for Room {session.room}
@@ -242,8 +279,12 @@ function RoomHub() {
         {/* Top Section: Quick In-Room Requests Grid */}
         <section className="mt-8">
           <div className="mb-4">
-            <h2 className="font-serif text-xl font-bold text-foreground">In-Room Concierge Requests</h2>
-            <p className="text-xs text-muted-foreground">Tap any service below to request immediate assistance.</p>
+            <h2 className="font-serif text-xl font-bold text-foreground">
+              In-Room Concierge Requests
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Tap any service below to request immediate assistance.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -273,19 +314,22 @@ function RoomHub() {
 
         {/* Middle Section: Active Requests & Digital Key */}
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          
           {/* Active Requests List */}
           <section className="glass-card flex flex-col justify-between rounded-3xl p-6 md:p-7">
             <div>
               <div className="flex items-center justify-between border-b border-border/70 pb-3">
-                <h2 className="font-serif text-lg font-bold text-foreground">Your Active Requests</h2>
+                <h2 className="font-serif text-lg font-bold text-foreground">
+                  Your Active Requests
+                </h2>
                 <span className="text-xs font-semibold text-muted-foreground">
                   {rows.length} {rows.length === 1 ? "request" : "requests"}
                 </span>
               </div>
 
               {history.isLoading ? (
-                <p className="py-8 text-center text-xs text-muted-foreground">Checking request status…</p>
+                <p className="py-8 text-center text-xs text-muted-foreground">
+                  Checking request status…
+                </p>
               ) : rows.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="text-sm font-medium text-foreground">No active room requests</p>
@@ -320,10 +364,16 @@ function RoomHub() {
                           </span>
                         </div>
                         {row.details ? (
-                          <p className="text-xs text-muted-foreground leading-relaxed">{row.details}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {row.details}
+                          </p>
                         ) : null}
                         <p className="text-[10px] text-muted-foreground">
-                          Requested at {new Date(row.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          Requested at{" "}
+                          {new Date(row.created_at).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </li>
                     );
@@ -393,7 +443,6 @@ function RoomHub() {
               </div>
             </section>
           </div>
-
         </div>
 
         {/* Bottom Section: Real-Time Front Desk Chat */}
@@ -404,8 +453,12 @@ function RoomHub() {
                 <MessageSquare className="h-4 w-4" />
               </span>
               <div>
-                <h2 className="font-serif text-lg font-bold text-foreground">Direct Desk Messaging</h2>
-                <p className="text-xs text-muted-foreground">Front desk staff monitors this channel live.</p>
+                <h2 className="font-serif text-lg font-bold text-foreground">
+                  Direct Desk Messaging
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Front desk staff monitors this channel live.
+                </p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
@@ -434,8 +487,14 @@ function RoomHub() {
                   >
                     <p>{message.body}</p>
                     <span className="mt-1 text-[10px] text-muted-foreground font-medium self-end">
-                      {message.sender === "staff" ? message.author_name ?? "Front Desk Staff" : "You"} ·{" "}
-                      {new Date(message.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      {message.sender === "staff"
+                        ? (message.author_name ?? "Front Desk Staff")
+                        : "You"}{" "}
+                      ·{" "}
+                      {new Date(message.created_at).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                 ))

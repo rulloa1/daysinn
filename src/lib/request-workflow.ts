@@ -53,40 +53,36 @@ type RequestPatch = {
 };
 
 /** Timestamps written when a request moves into a given status. */
-export function statusPatch(
-  next: string,
-  current: WorkflowRequest,
-  staff: StaffIdentity,
-) {
+export function statusPatch(next: string, current: WorkflowRequest, staff: StaffIdentity) {
   const now = new Date().toISOString();
   const patch: RequestPatch = { status: next };
 
   if (next === "in_progress") {
-    patch['started_at'] = current.started_at ?? now;
+    patch["started_at"] = current.started_at ?? now;
     if (!current.started_at) {
-      patch['started_by_staff_id'] = staff?.id ?? null;
-      patch['started_by_name'] = staff?.name ?? null;
+      patch["started_by_staff_id"] = staff?.id ?? null;
+      patch["started_by_name"] = staff?.name ?? null;
     }
-    patch['resolved_at'] = null;
-    patch['resolved_by_staff_id'] = null;
-    patch['resolved_by_name'] = null;
-    patch['response_seconds'] = null;
+    patch["resolved_at"] = null;
+    patch["resolved_by_staff_id"] = null;
+    patch["resolved_by_name"] = null;
+    patch["response_seconds"] = null;
   } else if (next === "done") {
-    patch['resolved_at'] = now;
-    patch['resolved_by_staff_id'] = staff?.id ?? null;
-    patch['resolved_by_name'] = staff?.name ?? null;
-    patch['response_seconds'] = Math.max(
+    patch["resolved_at"] = now;
+    patch["resolved_by_staff_id"] = staff?.id ?? null;
+    patch["resolved_by_name"] = staff?.name ?? null;
+    patch["response_seconds"] = Math.max(
       0,
       Math.round((Date.now() - new Date(current.created_at).getTime()) / 1000),
     );
   } else {
-    patch['started_at'] = null;
-    patch['started_by_staff_id'] = null;
-    patch['started_by_name'] = null;
-    patch['resolved_at'] = null;
-    patch['resolved_by_staff_id'] = null;
-    patch['resolved_by_name'] = null;
-    patch['response_seconds'] = null;
+    patch["started_at"] = null;
+    patch["started_by_staff_id"] = null;
+    patch["started_by_name"] = null;
+    patch["resolved_at"] = null;
+    patch["resolved_by_staff_id"] = null;
+    patch["resolved_by_name"] = null;
+    patch["response_seconds"] = null;
   }
 
   return patch;
@@ -100,10 +96,7 @@ export async function advanceRequest(
   note?: string,
 ) {
   const patch = statusPatch(next, current, staff);
-  const { error } = await supabase
-    .from("requests")
-    .update(patch)
-    .eq("id", current.id);
+  const { error } = await supabase.from("requests").update(patch).eq("id", current.id);
   if (error) return { error: error.message };
 
   await supabase.from("request_notes").insert({
@@ -119,11 +112,7 @@ export async function advanceRequest(
 }
 
 /** Add a free-text note without changing the status. */
-export async function addRequestNote(
-  requestId: string,
-  body: string,
-  staff: StaffIdentity,
-) {
+export async function addRequestNote(requestId: string, body: string, staff: StaffIdentity) {
   const { error } = await supabase.from("request_notes").insert({
     request_id: requestId,
     body: body.trim(),

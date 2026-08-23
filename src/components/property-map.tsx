@@ -18,9 +18,8 @@ const DIRECTIONS = [
 ];
 
 export function PropertyMap() {
-  const browserKey = import.meta.env['VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY'] as
-    | string
-    | undefined;
+  const browserKey = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as
+    string | undefined;
   const embedUrl = browserKey
     ? `https://www.google.com/maps/embed/v1/place?key=${browserKey}&q=${LAT},${LNG}&zoom=15`
     : null;

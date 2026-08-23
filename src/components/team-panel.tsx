@@ -38,15 +38,9 @@ export function TeamPanel() {
     setResetting(true);
     try {
       const result = await forceReset({ data: undefined });
-      toast.success(
-        `${result.flagged} account(s) flagged, ${result.emailed} reset email(s) sent.`,
-      );
+      toast.success(`${result.flagged} account(s) flagged, ${result.emailed} reset email(s) sent.`);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Couldn't start the password reset.",
-      );
+      toast.error(error instanceof Error ? error.message : "Couldn't start the password reset.");
     }
     setResetting(false);
   }
@@ -71,9 +65,7 @@ export function TeamPanel() {
       toast.success(`Role set to ${ROLE_LABEL[role]}.`);
       await load();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't update that role.",
-      );
+      toast.error(error instanceof Error ? error.message : "Couldn't update that role.");
     }
     setBusy(null);
   }
@@ -85,9 +77,7 @@ export function TeamPanel() {
       toast.success("Access revoked.");
       await load();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't revoke that role.",
-      );
+      toast.error(error instanceof Error ? error.message : "Couldn't revoke that role.");
     }
     setBusy(null);
   }
@@ -100,17 +90,16 @@ export function TeamPanel() {
       </p>
       <h2 className="mt-3 font-display text-2xl">Team access</h2>
       <p className="mt-2 max-w-2xl text-sm text-cream/60">
-        Managers grant and revoke roles. Staff and managers can triage the
-        queue; viewers can only watch it. Revoked members keep no access until a
-        role is granted again.
+        Managers grant and revoke roles. Staff and managers can triage the queue; viewers can only
+        watch it. Revoked members keep no access until a role is granted again.
       </p>
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border border-cream/15 bg-ink/40 p-4">
         <div className="min-w-[14rem] flex-1">
           <p className="text-sm">Force a password reset</p>
           <p className="mt-1 text-xs text-cream/55">
-            Flags every account with a role and emails a reset link. Breached
-            and weak passwords are now blocked at sign-up and reset.
+            Flags every account with a role and emails a reset link. Breached and weak passwords are
+            now blocked at sign-up and reset.
           </p>
         </div>
         <Button
@@ -128,10 +117,7 @@ export function TeamPanel() {
         {members.map((member) => {
           const current = member.roles[0] as AppRole | undefined;
           return (
-            <li
-              key={member.id}
-              className="flex flex-wrap items-center justify-between gap-4 py-4"
-            >
+            <li key={member.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
               <div>
                 <p className="text-sm">{member.email}</p>
                 <Badge className="mt-2 bg-cream/15 text-cream">

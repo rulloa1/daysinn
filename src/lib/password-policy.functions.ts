@@ -15,9 +15,7 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<ForceResetResult> => {
     await assertManager(context.supabase, context.userId);
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { recordAudit } = await import("@/lib/audit.server");
 
     const { data: roleRows, error: roleError } = await supabaseAdmin
@@ -25,9 +23,7 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
       .select("user_id");
     if (roleError) throw roleError;
 
-    const ids = Array.from(
-      new Set((roleRows ?? []).map((row) => row.user_id as string)),
-    );
+    const ids = Array.from(new Set((roleRows ?? []).map((row) => row.user_id as string)));
 
     let flagged = 0;
     let emailed = 0;
@@ -49,8 +45,7 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
       flagged += 1;
 
       if (user.email) {
-        const { error: mailError } =
-          await supabaseAdmin.auth.resetPasswordForEmail(user.email);
+        const { error: mailError } = await supabaseAdmin.auth.resetPasswordForEmail(user.email);
         if (!mailError) emailed += 1;
       }
     }
@@ -69,23 +64,15 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
 export const completePasswordReset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(
-      context.userId,
-    );
-    const metadata = { ...(userRes?.user?.user_metadata ?? {}) } as Record<
-      string,
-      unknown
-    >;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const metadata = { ...(userRes?.user?.user_metadata ?? {}) } as Record<string, unknown>;
     delete metadata["password_reset_required"];
     metadata["password_reset_completed_at"] = new Date().toISOString();
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(
-      context.userId,
-      { user_metadata: metadata },
-    );
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(context.userId, {
+      user_metadata: metadata,
+    });
     if (error) throw error;
 
     const { recordAudit } = await import("@/lib/audit.server");

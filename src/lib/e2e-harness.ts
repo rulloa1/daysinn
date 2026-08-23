@@ -46,20 +46,16 @@ function decode(node: SerovalNode | undefined): unknown {
   }
 }
 
-
 export const APP_URL = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
 
-const SUPABASE_URL =
-  process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
+const SUPABASE_URL = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
 const SERVICE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"] ?? "";
 
 /** True when the harness has everything it needs to run. */
 export const e2eReady = Boolean(SUPABASE_URL && SERVICE_KEY);
 
 export function serverFnUrl(file: string, exportName: string): string {
-  const id = Buffer.from(
-    JSON.stringify({ file: `${file}?tss-serverfn-split`, export: exportName }),
-  )
+  const id = Buffer.from(JSON.stringify({ file: `${file}?tss-serverfn-split`, export: exportName }))
     .toString("base64")
     .replace(/=+$/, "");
   return `${APP_URL}/_serverFn/${id}`;

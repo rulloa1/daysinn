@@ -7,7 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { guestRequests } from "@/lib/guest.functions";
 import { FranchiseLegal, FranchiseDisclaimer, BOOKING_URL } from "@/components/franchise-footer";
-import { Search, Clock, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Search,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ArrowLeft,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
 type Row = {
   id: string;
@@ -34,7 +42,10 @@ export const Route = createFileRoute("/track")({
         content:
           "Check the live status of your in-room requests at Days Inn® by Wyndham Wildwood I-75 — received, on the way, or completed.",
       },
-      { property: "og:title", content: "Track Request Status — Days Inn® by Wyndham Wildwood I-75" },
+      {
+        property: "og:title",
+        content: "Track Request Status — Days Inn® by Wyndham Wildwood I-75",
+      },
       {
         property: "og:description",
         content:
@@ -83,7 +94,10 @@ function TrackPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
           <BrandLockup />
           <nav className="flex items-center gap-4">
-            <Link to="/" className="spring-hover inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/"
+              className="spring-hover inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
               <ArrowLeft className="h-3.5 w-3.5" />
               Guest hub
             </Link>
@@ -99,7 +113,8 @@ function TrackPage() {
             Track your <span className="text-primary">request</span>.
           </h1>
           <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-            Enter your room number and last name to view live status updates on towels, repairs, or housekeeping.
+            Enter your room number and last name to view live status updates on towels, repairs, or
+            housekeeping.
           </p>
         </div>
 
@@ -161,7 +176,9 @@ function TrackPage() {
         {rows ? (
           rows.length === 0 ? (
             <div className="glass-panel mt-6 rounded-3xl p-8 text-center">
-              <p className="font-serif text-base font-bold text-foreground">No active requests found</p>
+              <p className="font-serif text-base font-bold text-foreground">
+                No active requests found
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 There are no open room tickets currently logged for Room {room}.
               </p>
@@ -181,9 +198,13 @@ function TrackPage() {
                     <li key={row.id} className="glass-card rounded-3xl p-6 transition-all">
                       <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-3">
                         <div>
-                          <span className="font-serif text-base font-bold text-foreground">{row.type}</span>
+                          <span className="font-serif text-base font-bold text-foreground">
+                            {row.type}
+                          </span>
                           {row.details ? (
-                            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{row.details}</p>
+                            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                              {row.details}
+                            </p>
                           ) : null}
                         </div>
                         <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary">
@@ -197,7 +218,7 @@ function TrackPage() {
                           {STEPS.map((step, idx) => {
                             const isPast = idx < activeIndex;
                             const isCurrent = idx === activeIndex;
-                            const config = STEP_CONFIG[step];
+                            const config = STEP_CONFIG[step] ?? { label: step, description: "" };
 
                             return (
                               <div key={step} className="flex flex-col items-center">
@@ -206,13 +227,15 @@ function TrackPage() {
                                     isPast
                                       ? "bg-emerald-500 text-white"
                                       : isCurrent
-                                      ? "bg-accent text-accent-foreground ring-4 ring-accent/20 animate-pulse"
-                                      : "bg-muted text-muted-foreground"
+                                        ? "bg-accent text-accent-foreground ring-4 ring-accent/20 animate-pulse"
+                                        : "bg-muted text-muted-foreground"
                                   }`}
                                 >
                                   {isPast ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
                                 </div>
-                                <span className={`mt-2 font-serif text-xs font-bold ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
+                                <span
+                                  className={`mt-2 font-serif text-xs font-bold ${isCurrent ? "text-primary" : "text-muted-foreground"}`}
+                                >
                                   {config.label}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground hidden sm:block">
@@ -268,7 +291,10 @@ function TrackPage() {
 
         <div className="mt-6 rounded-2xl border border-border/80 bg-card/60 p-5 text-center text-xs text-muted-foreground">
           Want in-room concierge chat and your digital key?{" "}
-          <Link to="/checkin" className="font-bold text-primary underline underline-offset-4 hover:text-accent">
+          <Link
+            to="/checkin"
+            className="font-bold text-primary underline underline-offset-4 hover:text-accent"
+          >
             Sign in to your room →
           </Link>
         </div>

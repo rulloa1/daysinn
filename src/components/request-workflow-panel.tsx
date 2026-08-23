@@ -134,10 +134,7 @@ export function RequestWorkflowPanel({
               <li className="text-cream/45">No notes yet.</li>
             ) : (
               notes.map((note) => (
-                <li
-                  key={note.id}
-                  className="border border-cream/10 bg-cream/[0.03] px-3 py-2"
-                >
+                <li key={note.id} className="border border-cream/10 bg-cream/[0.03] px-3 py-2">
                   <p className="text-cream/45">
                     {stamp(note.created_at)}
                     {note.author_name ? ` · ${note.author_name}` : ""}
@@ -145,9 +142,7 @@ export function RequestWorkflowPanel({
                       ? ` · ${REQUEST_STATUS_LABEL[note.status_from ?? ""] ?? note.status_from ?? "—"} → ${REQUEST_STATUS_LABEL[note.status_to] ?? note.status_to}`
                       : ""}
                   </p>
-                  {note.body ? (
-                    <p className="mt-1 text-sm text-cream/85">{note.body}</p>
-                  ) : null}
+                  {note.body ? <p className="mt-1 text-sm text-cream/85">{note.body}</p> : null}
                 </li>
               ))
             )}
@@ -173,9 +168,7 @@ export function RequestWorkflowPanel({
                     {NEXT_REQUEST_ACTION[request.status] ?? "Advance"}
                   </Button>
                 ) : null}
-                {REQUEST_STATUSES.filter(
-                  (s) => s !== request.status && s !== next,
-                ).map((s) => (
+                {REQUEST_STATUSES.filter((s) => s !== request.status && s !== next).map((s) => (
                   <Button
                     key={s}
                     size="sm"

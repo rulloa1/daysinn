@@ -23,7 +23,7 @@ export default defineTool({
 
     const byStatus = (rows: Array<Record<string, unknown>>) =>
       rows.reduce<Record<string, number>>((acc, r) => {
-        const key = String(r['status'] ?? "unknown");
+        const key = String(r["status"] ?? "unknown");
         acc[key] = (acc[key] ?? 0) + 1;
         return acc;
       }, {});
@@ -33,7 +33,7 @@ export default defineTool({
       rooms: {
         total: roomRows.length,
         by_status: byStatus(roomRows),
-        do_not_disturb: roomRows.filter((r) => r['dnd'] === true).length,
+        do_not_disturb: roomRows.filter((r) => r["dnd"] === true).length,
       },
     };
 

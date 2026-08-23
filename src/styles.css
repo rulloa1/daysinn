@@ -17,7 +17,7 @@
   --font-display: "Playfair Display", "Sora", serif, system-ui;
   --font-sans: "Karla", "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display SC", "Playfair Display", Georgia, serif;
-  
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -99,17 +99,17 @@
 
   /* Soft Oceanic Secondary */
   --secondary: oklch(0.94 0.02 245);
-  --secondary-foreground: oklch(0.30 0.08 260);
+  --secondary-foreground: oklch(0.3 0.08 260);
 
   /* Muted surfaces */
   --muted: oklch(0.95 0.015 245);
-  --muted-foreground: oklch(0.50 0.04 255);
+  --muted-foreground: oklch(0.5 0.04 255);
 
   /* Warm Gold Accent / CTA */
   --accent: oklch(0.72 0.16 75);
   --accent-foreground: oklch(0.18 0.06 260);
 
-  --destructive: oklch(0.55 0.20 27);
+  --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.99 0.008 85);
 
   --border: oklch(0.89 0.025 245);
@@ -124,27 +124,27 @@
   --gold: oklch(0.72 0.16 75);
   --navy: oklch(0.35 0.14 260);
   --ocean: oklch(0.58 0.16 250);
-  --sage: oklch(0.70 0.06 145);
+  --sage: oklch(0.7 0.06 145);
 
   /* Hospitality Room Statuses */
-  --status-clean: oklch(0.70 0.17 150);
+  --status-clean: oklch(0.7 0.17 150);
   --status-dirty: oklch(0.72 0.18 65);
   --status-occupied: oklch(0.58 0.16 250);
   --status-dnd: oklch(0.62 0.19 310);
   --status-reserved: oklch(0.72 0.13 195);
-  --status-ooo: oklch(0.60 0.22 25);
+  --status-ooo: oklch(0.6 0.22 25);
 
   --chart-1: oklch(0.72 0.16 75);
   --chart-2: oklch(0.58 0.16 250);
   --chart-3: oklch(0.35 0.14 260);
-  --chart-4: oklch(0.70 0.06 145);
+  --chart-4: oklch(0.7 0.06 145);
   --chart-5: oklch(0.88 0.02 82);
 
   --sidebar: oklch(0.22 0.07 260);
   --sidebar-foreground: oklch(0.97 0.01 245);
   --sidebar-primary: oklch(0.72 0.16 75);
   --sidebar-primary-foreground: oklch(0.18 0.06 260);
-  --sidebar-accent: oklch(0.30 0.06 260);
+  --sidebar-accent: oklch(0.3 0.06 260);
   --sidebar-accent-foreground: oklch(0.97 0.01 245);
   --sidebar-border: oklch(0.32 0.04 260);
   --sidebar-ring: oklch(0.72 0.16 75);
@@ -172,11 +172,11 @@
   --accent: oklch(0.78 0.14 75);
   --accent-foreground: oklch(0.15 0.05 262);
 
-  --destructive: oklch(0.68 0.20 22);
+  --destructive: oklch(0.68 0.2 22);
   --destructive-foreground: oklch(0.98 0.008 245);
 
-  --border: oklch(0.30 0.035 260);
-  --input: oklch(0.30 0.035 260);
+  --border: oklch(0.3 0.035 260);
+  --input: oklch(0.3 0.035 260);
   --ring: oklch(0.78 0.14 75);
 
   --sidebar: oklch(0.16 0.05 262);
@@ -202,7 +202,12 @@
     letter-spacing: -0.01em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
@@ -218,10 +223,10 @@
 }
 
 .dark .glass-panel {
-  background: rgba(25, 33, 56, 0.80);
+  background: rgba(25, 33, 56, 0.8);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
@@ -230,13 +235,17 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 20px -2px rgba(30, 58, 138, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 4px 20px -2px rgba(30, 58, 138, 0.05),
+    0 2px 6px -1px rgba(0, 0, 0, 0.02);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 12px 30px -4px rgba(30, 58, 138, 0.1),
+    0 4px 10px -2px rgba(0, 0, 0, 0.04);
   border-color: rgba(161, 98, 7, 0.35);
 }
 
@@ -304,7 +313,9 @@
 
 /* Micro-interaction Spring Transitions */
 .spring-hover {
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease;
 }
 
 .spring-hover:hover {
@@ -317,7 +328,9 @@
 
 @layer base {
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }

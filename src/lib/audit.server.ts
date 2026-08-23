@@ -28,11 +28,7 @@ export async function recordAudit(event: AuditEvent): Promise<void> {
   }
 }
 
-export type ThrottleScope =
-  | "guest_sign_in"
-  | "guest_request"
-  | "guest_message"
-  | "guest_thread";
+export type ThrottleScope = "guest_sign_in" | "guest_request" | "guest_message" | "guest_thread";
 
 const LIMITS: Record<ThrottleScope, { max: number; windowMinutes: number }> = {
   guest_sign_in: { max: 8, windowMinutes: 15 },
@@ -102,4 +98,3 @@ export async function allowGuestAttempt(
     return true;
   }
 }
-

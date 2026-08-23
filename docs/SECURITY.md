@@ -7,16 +7,16 @@ stored on a profile or user record. All authorization is enforced by row-level
 security in the database and by server-function guards
 (`assertManager` / `assertStaff`), not by React UI checks.
 
-| Data | manager | staff | viewer | signed-out |
-| --- | --- | --- | --- | --- |
-| Rooms | read/write | read/write | read only | none |
-| Requests | read/write/delete | read/write | read only | create only |
-| Request notes | read/write | read/write | read only | none |
-| Room status events | read/write | read/write | read only | none |
-| Bookings | read/write | read/write | none | none |
-| Guest messages | read/write | read/write | none | none |
-| Staff members / invites | manage | limited | none | none |
-| Audit events | read | none | none | none |
+| Data                    | manager           | staff      | viewer    | signed-out  |
+| ----------------------- | ----------------- | ---------- | --------- | ----------- |
+| Rooms                   | read/write        | read/write | read only | none        |
+| Requests                | read/write/delete | read/write | read only | create only |
+| Request notes           | read/write        | read/write | read only | none        |
+| Room status events      | read/write        | read/write | read only | none        |
+| Bookings                | read/write        | read/write | none      | none        |
+| Guest messages          | read/write        | read/write | none      | none        |
+| Staff members / invites | manage            | limited    | none      | none        |
+| Audit events            | read              | none       | none      | none        |
 
 Users with no role row can read nothing. A guest who somehow obtains a
 Supabase session therefore still sees no operational data.

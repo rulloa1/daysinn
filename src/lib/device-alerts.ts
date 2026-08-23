@@ -9,9 +9,7 @@ export function pushPermission(): NotificationPermission | "unsupported" {
   return Notification.permission;
 }
 
-export async function enableDevicePush(): Promise<
-  { ok: true } | { ok: false; reason: string }
-> {
+export async function enableDevicePush(): Promise<{ ok: true } | { ok: false; reason: string }> {
   if (!pushSupported()) {
     return { ok: false, reason: "This device or browser doesn't support notifications." };
   }

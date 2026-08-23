@@ -23,8 +23,8 @@ export default defineTool({
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
 
     const rows = ((data ?? []) as Array<Record<string, unknown>>)
-      .filter((r) => (status === "all" ? true : r['status'] === status))
-      .filter((r) => (room ? String(r['room']) === room : true))
+      .filter((r) => (status === "all" ? true : r["status"] === status))
+      .filter((r) => (room ? String(r["room"]) === room : true))
       .slice(0, limit);
 
     return {

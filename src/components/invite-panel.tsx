@@ -70,15 +70,12 @@ export function InvitePanel() {
       } else {
         toast.message("Invite link ready", {
           description:
-            result.emailError ??
-            "Email isn't set up yet — copy the link and send it directly.",
+            result.emailError ?? "Email isn't set up yet — copy the link and send it directly.",
         });
       }
       await load();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't send that invite.",
-      );
+      toast.error(error instanceof Error ? error.message : "Couldn't send that invite.");
     }
     setBusy(null);
   }
@@ -100,9 +97,8 @@ export function InvitePanel() {
       </p>
       <h2 className="mt-3 font-display text-2xl">Invite staff to log in</h2>
       <p className="mt-2 max-w-2xl text-sm text-cream/60">
-        Send a login invitation by email, or copy the secure link and hand it to
-        the person directly. Links expire after 7 days; resending issues a fresh
-        one and cancels the old.
+        Send a login invitation by email, or copy the secure link and hand it to the person
+        directly. Links expire after 7 days; resending issues a fresh one and cancels the old.
       </p>
 
       <form
@@ -191,13 +187,10 @@ export function InvitePanel() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm">
-                  {invite.name}{" "}
-                  <span className="text-cream/50">· {invite.email}</span>
+                  {invite.name} <span className="text-cream/50">· {invite.email}</span>
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <Badge className="bg-cream/15 text-cream">
-                    {ROLE_LABEL[invite.role]}
-                  </Badge>
+                  <Badge className="bg-cream/15 text-cream">{ROLE_LABEL[invite.role]}</Badge>
                   <Badge
                     className={
                       invite.status === "revoked"

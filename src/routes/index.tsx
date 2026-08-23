@@ -15,13 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Menu,
   Sparkles,
@@ -48,11 +42,7 @@ import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
 import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
 import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
-import {
-  BOOKING_URL,
-  FranchiseDisclaimer,
-  FranchiseLegal,
-} from "@/components/franchise-footer";
+import { BOOKING_URL, FranchiseDisclaimer, FranchiseLegal } from "@/components/franchise-footer";
 
 const REWARDS = [
   {
@@ -73,20 +63,51 @@ const REWARDS = [
 ];
 
 const GALLERY = [
-  { src: exteriorAsset.url, alt: "Days Inn Wildwood exterior at dusk", caption: "Front Entrance & Walkway" },
-  { src: roomAsset.url, alt: "Two queen beds with coastal artwork", caption: "Two Queen Guest Room" },
-  { src: doubleAsset.url, alt: "Guest room with two beds, desk and window", caption: "Executive Room View" },
-  { src: pool1Asset.url, alt: "Outdoor pool with lounge chairs and palm trees", caption: "Outdoor Heated Pool" },
-  { src: pool2Asset.url, alt: "Pool deck beside the guest room building", caption: "Sunny Pool Deck" },
+  {
+    src: exteriorAsset.url,
+    alt: "Days Inn Wildwood exterior at dusk",
+    caption: "Front Entrance & Walkway",
+  },
+  {
+    src: roomAsset.url,
+    alt: "Two queen beds with coastal artwork",
+    caption: "Two Queen Guest Room",
+  },
+  {
+    src: doubleAsset.url,
+    alt: "Guest room with two beds, desk and window",
+    caption: "Executive Room View",
+  },
+  {
+    src: pool1Asset.url,
+    alt: "Outdoor pool with lounge chairs and palm trees",
+    caption: "Outdoor Heated Pool",
+  },
+  {
+    src: pool2Asset.url,
+    alt: "Pool deck beside the guest room building",
+    caption: "Sunny Pool Deck",
+  },
   { src: lobbyAsset.url, alt: "Front desk in the lobby", caption: "Guest Welcome Lobby" },
-  { src: breakfastAsset.url, alt: "Breakfast counter with coffee and waffle makers", caption: "Daybreak® Breakfast" },
-  { src: suiteAsset.url, alt: "Suite sitting area with sofa, desk and TV", caption: "Hospitality Suite" },
-  { src: deskAsset.url, alt: "In-room work desk with fridge, microwave and TV", caption: "Workstation & Kitchenette" },
+  {
+    src: breakfastAsset.url,
+    alt: "Breakfast counter with coffee and waffle makers",
+    caption: "Daybreak® Breakfast",
+  },
+  {
+    src: suiteAsset.url,
+    alt: "Suite sitting area with sofa, desk and TV",
+    caption: "Hospitality Suite",
+  },
+  {
+    src: deskAsset.url,
+    alt: "In-room work desk with fridge, microwave and TV",
+    caption: "Workstation & Kitchenette",
+  },
   { src: bathAsset.url, alt: "Bathroom with tub and shower", caption: "Spacious En-Suite Bath" },
 ];
 
-const MAP_URL =
-  "https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933";
+const MAP_URL = "https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933";
 
 const REQUESTS = [
   {
@@ -146,7 +167,10 @@ export const Route = createFileRoute("/")({
         content:
           "Send room requests directly to our team in under 10 minutes. Towels, housekeeping, repairs, late checkout, and local recommendations.",
       },
-      { property: "og:title", content: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services" },
+      {
+        property: "og:title",
+        content: "Days Inn® by Wyndham Wildwood I-75 — Digital Front Desk & Guest Services",
+      },
       {
         property: "og:description",
         content:
@@ -186,7 +210,9 @@ export const Route = createFileRoute("/")({
 });
 
 function GuestView() {
-  const [open, setOpen] = useState<(typeof REQUESTS)[number] | { id: string; label: string; prompt: string } | null>(null);
+  const [open, setOpen] = useState<
+    (typeof REQUESTS)[number] | { id: string; label: string; prompt: string } | null
+  >(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [room, setRoom] = useState("");
   const [roomError, setRoomError] = useState<string | null>(null);
@@ -245,7 +271,7 @@ function GuestView() {
           <div className="min-w-0">
             <BrandLockup />
           </div>
-          
+
           <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
             <a
               href={BOOKING_URL}
@@ -291,9 +317,14 @@ function GuestView() {
                   <Menu className="h-5 w-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[82vw] max-w-xs border-l border-border/80 bg-background/95 backdrop-blur-2xl">
+              <SheetContent
+                side="right"
+                className="w-[82vw] max-w-xs border-l border-border/80 bg-background/95 backdrop-blur-2xl"
+              >
                 <SheetHeader>
-                  <SheetTitle className="text-left font-serif text-lg text-foreground">Guest Navigation</SheetTitle>
+                  <SheetTitle className="text-left font-serif text-lg text-foreground">
+                    Guest Navigation
+                  </SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 flex flex-col gap-3">
                   <Link
@@ -374,9 +405,10 @@ function GuestView() {
             <h1 className="mt-3 font-serif text-3xl font-bold tracking-tight text-white md:text-5xl">
               Welcome — Make yourself at home.
             </h1>
-            
+
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-200/90 md:text-base">
-              Send an in-room request anytime. Our on-site hospitality team routes and responds in under 10 minutes.
+              Send an in-room request anytime. Our on-site hospitality team routes and responds in
+              under 10 minutes.
             </p>
           </div>
         </section>
@@ -386,7 +418,9 @@ function GuestView() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="signage text-accent font-bold">In-Room Guest Concierge</p>
-              <h2 className="font-serif text-xl font-bold text-foreground">Instant Room Services</h2>
+              <h2 className="font-serif text-xl font-bold text-foreground">
+                Instant Room Services
+              </h2>
             </div>
             <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
               <Clock className="h-3.5 w-3.5 text-accent" />
@@ -438,10 +472,11 @@ function GuestView() {
                 Need a slower morning?
               </h2>
               <p className="mt-1.5 text-sm text-slate-200/90 leading-relaxed">
-                Request a 1:00 PM late checkout so you can rest and recharge before heading out (subject to availability).
+                Request a 1:00 PM late checkout so you can rest and recharge before heading out
+                (subject to availability).
               </p>
             </div>
-            
+
             <Button
               className="spring-hover rounded-xl bg-accent px-5 py-2.5 font-bold text-accent-foreground shadow-md hover:brightness-105"
               onClick={() =>
@@ -477,12 +512,11 @@ function GuestView() {
 
           <div className="grid gap-3.5 md:grid-cols-3">
             {STOPS.map((stop) => (
-              <article
-                key={stop.title}
-                className="glass-card rounded-2xl p-5"
-              >
+              <article key={stop.title} className="glass-card rounded-2xl p-5">
                 <span className="signage text-[10px] text-muted-foreground">{stop.category}</span>
-                <h3 className="mt-1 font-serif text-base font-bold text-foreground">{stop.title}</h3>
+                <h3 className="mt-1 font-serif text-base font-bold text-foreground">
+                  {stop.title}
+                </h3>
                 <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{stop.body}</p>
               </article>
             ))}
@@ -493,7 +527,9 @@ function GuestView() {
         <section className="mt-10">
           <div className="mb-4">
             <p className="signage text-accent font-bold">Explore Our Grounds</p>
-            <h2 className="font-serif text-xl font-bold text-foreground">Property & Amenities Gallery</h2>
+            <h2 className="font-serif text-xl font-bold text-foreground">
+              Property & Amenities Gallery
+            </h2>
           </div>
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -568,14 +604,19 @@ function GuestView() {
             <p className="mt-1 font-serif text-base font-bold text-foreground group-hover:text-primary transition-colors">
               551 East SR 44
             </p>
-            <p className="text-xs text-muted-foreground">Wildwood, FL 34785 (Right off I-75 Exit 329)</p>
+            <p className="text-xs text-muted-foreground">
+              Wildwood, FL 34785 (Right off I-75 Exit 329)
+            </p>
           </a>
 
           <div>
             <p className="signage text-primary font-bold">Complimentary Wi-Fi</p>
-            <p className="mt-1 font-serif text-base font-bold text-foreground">High-Speed Guest Network</p>
+            <p className="mt-1 font-serif text-base font-bold text-foreground">
+              High-Speed Guest Network
+            </p>
             <p className="text-xs text-muted-foreground">
-              Connect to <strong className="text-foreground">DaysInn_Guest</strong> (No password needed).
+              Connect to <strong className="text-foreground">DaysInn_Guest</strong> (No password
+              needed).
             </p>
           </div>
 
@@ -594,9 +635,7 @@ function GuestView() {
         <div className="mx-auto max-w-6xl space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <BrandLockup />
-            <p className="signage text-muted-foreground">
-              Warm hospitality · Effortless service
-            </p>
+            <p className="signage text-muted-foreground">Warm hospitality · Effortless service</p>
           </div>
           <FranchiseLegal />
         </div>

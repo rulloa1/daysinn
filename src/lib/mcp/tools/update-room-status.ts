@@ -14,12 +14,17 @@ export default defineTool({
       .describe("New room status."),
     dnd: z.boolean().optional().describe("Set the do-not-disturb flag."),
   },
-  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   handler: async ({ room_number, status, dnd }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuthenticated();
     const supabase = supabaseForUser(ctx);
     const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
-    if (typeof dnd === "boolean") patch['dnd'] = dnd;
+    if (typeof dnd === "boolean") patch["dnd"] = dnd;
 
     const { data, error } = await supabase
       .from("rooms")
@@ -31,7 +36,12 @@ export default defineTool({
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     if (!data)
       return {
-        content: [{ type: "text", text: `Room ${room_number} not found, or your role does not allow updating it.` }],
+        content: [
+          {
+            type: "text",
+            text: `Room ${room_number} not found, or your role does not allow updating it.`,
+          },
+        ],
         isError: true,
       };
 

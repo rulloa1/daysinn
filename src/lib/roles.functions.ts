@@ -15,19 +15,13 @@ export const listTeam = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<TeamMember[]> => {
     await assertManager(context.supabase, context.userId);
 
-
-
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: users, error } = await supabaseAdmin.auth.admin.listUsers({
       perPage: 200,
     });
     if (error) throw error;
 
-    const { data: roleRows } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id, role");
+    const { data: roleRows } = await supabaseAdmin.from("user_roles").select("user_id, role");
 
     return users.users.map((user) => ({
       id: user.id,
@@ -56,9 +50,7 @@ export const setTeamRole = createServerFn({ method: "POST" })
       throw new Error("You can't remove your own manager access");
     }
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     const { error } = await supabaseAdmin
       .from("user_roles")
@@ -92,13 +84,8 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
       throw new Error("You can't remove your own manager access");
     }
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { error } = await supabaseAdmin
-      .from("user_roles")
-      .delete()
-      .eq("user_id", data.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     if (error) throw error;
 
     const { recordAudit } = await import("@/lib/audit.server");
@@ -115,9 +102,7 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
 export const claimFirstManager = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin
       .from("user_roles")
       .select("id", { count: "exact", head: true });
@@ -128,4 +113,3 @@ export const claimFirstManager = createServerFn({ method: "POST" })
     if (error) throw error;
     return { claimed: true };
   });
-

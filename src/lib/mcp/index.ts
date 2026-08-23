@@ -5,7 +5,7 @@ import updateRequestStatusTool from "./tools/update-request-status";
 import updateRoomStatusTool from "./tools/update-room-status";
 import propertySummaryTool from "./tools/property-summary";
 
-const projectRef = import.meta.env['VITE_SUPABASE_PROJECT_ID'] ?? "project-ref-unset";
+const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
 
 export default defineMcp({
   name: "daysinn",

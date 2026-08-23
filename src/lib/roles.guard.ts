@@ -1,7 +1,6 @@
-export async function assertManager(
-  supabase: any,
-  userId: string,
-): Promise<void> {
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export async function assertManager(supabase: SupabaseClient, userId: string): Promise<void> {
   const { data } = await supabase
     .from("user_roles")
     .select("role")
@@ -11,10 +10,7 @@ export async function assertManager(
   if (!data) throw new Error("Forbidden");
 }
 
-export async function assertStaff(
-  supabase: any,
-  userId: string,
-): Promise<void> {
+export async function assertStaff(supabase: SupabaseClient, userId: string): Promise<void> {
   const { data } = await supabase
     .from("user_roles")
     .select("role")

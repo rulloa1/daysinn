@@ -159,11 +159,12 @@ function GuidePage() {
           Wildwood, Florida
         </p>
         <h1 className="mt-2 max-w-2xl font-display text-4xl leading-[1.05] md:text-5xl">
-          Your <em className="text-amber">local guide</em> — food, springs and the fast way out of town.
+          Your <em className="text-amber">local guide</em> — food, springs and the fast way out of
+          town.
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-          Everything below is a short hop from 551 FL-44. Drive times are approximate;
-          the front desk is happy to call ahead for you.
+          Everything below is a short hop from 551 FL-44. Drive times are approximate; the front
+          desk is happy to call ahead for you.
         </p>
 
         <Section
@@ -184,7 +185,10 @@ function GuidePage() {
 
         <p className="mt-12 text-sm text-muted-foreground">
           Need a recommendation we haven't listed?{" "}
-          <Link to="/checkin" className="underline decoration-amber decoration-2 underline-offset-4">
+          <Link
+            to="/checkin"
+            className="underline decoration-amber decoration-2 underline-offset-4"
+          >
             Message the front desk from your room
           </Link>
           .

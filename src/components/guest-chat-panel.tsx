@@ -104,8 +104,8 @@ export function GuestChatPanel({
               <p>{message.body}</p>
               <p className="mt-1 text-[10px] uppercase tracking-wider text-cream/45">
                 {message.sender === "staff"
-                  ? message.author_name ?? "Front desk"
-                  : message.author_name ?? "Guest"}{" "}
+                  ? (message.author_name ?? "Front desk")
+                  : (message.author_name ?? "Guest")}{" "}
                 · {time(message.created_at)}
               </p>
             </div>

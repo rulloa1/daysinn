@@ -1,12 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type RoomStatusValue =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 export type StaffMember = {
   id: string;
@@ -29,10 +24,7 @@ export type RoomStatusEvent = {
 };
 
 /** A turnover = the clean cycle that ends when a dirty room is made ready. */
-export function isTurnover(
-  oldStatus: RoomStatusValue | null,
-  newStatus: RoomStatusValue,
-) {
+export function isTurnover(oldStatus: RoomStatusValue | null, newStatus: RoomStatusValue) {
   return oldStatus === "vacant_dirty" && newStatus === "vacant_clean";
 }
 
@@ -51,14 +43,9 @@ export async function logRoomStatusChange(input: {
   staff: StaffIdentity;
 }) {
   const changedAt = new Date();
-  const previous = input.previousChangedAt
-    ? new Date(input.previousChangedAt)
-    : null;
+  const previous = input.previousChangedAt ? new Date(input.previousChangedAt) : null;
   const duration = previous
-    ? Math.max(
-        0,
-        Math.round((changedAt.getTime() - previous.getTime()) / 1000),
-      )
+    ? Math.max(0, Math.round((changedAt.getTime() - previous.getTime()) / 1000))
     : null;
 
   const { data: userData } = await supabase.auth.getUser();

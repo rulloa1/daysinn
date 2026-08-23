@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type OauthNamespace = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: any; error: any }>;
-  approveAuthorization: (id: string) => Promise<{ data: any; error: any }>;
-  denyAuthorization: (id: string) => Promise<{ data: any; error: any }>;
+  getAuthorizationDetails: (id: string) => Promise<{ data: unknown; error: unknown }>;
+  approveAuthorization: (id: string) => Promise<{ data: unknown; error: unknown }>;
+  denyAuthorization: (id: string) => Promise<{ data: unknown; error: unknown }>;
 };
 
 const oauth = () => (supabase.auth as unknown as { oauth: OauthNamespace }).oauth;
@@ -16,7 +16,7 @@ const oauth = () => (supabase.auth as unknown as { oauth: OauthNamespace }).oaut
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
-    authorization_id: typeof s['authorization_id'] === "string" ? s['authorization_id'] : "",
+    authorization_id: typeof s["authorization_id"] === "string" ? s["authorization_id"] : "",
   }),
   beforeLoad: ({ search }) => {
     if (!search.authorization_id) throw new Error("Missing authorization_id");
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
 function Consent() {
   const { authorization_id } = Route.useSearch();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -42,7 +42,9 @@ function Consent() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
+    const { data } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(Boolean(session)),
+    );
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -155,7 +157,8 @@ function Consent() {
     <>
       <h1 className="text-3xl leading-tight">Connect {clientName}</h1>
       <p className="mt-3 text-sm text-cream/70">
-        This lets {clientName} read and update the hotel boards as you, with your role's permissions.
+        This lets {clientName} read and update the hotel boards as you, with your role's
+        permissions.
       </p>
       <div className="mt-6 flex gap-3">
         <Button disabled={busy} onClick={() => decide(true)} className="flex-1">

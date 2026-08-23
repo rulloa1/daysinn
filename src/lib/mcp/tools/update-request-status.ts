@@ -12,14 +12,19 @@ export default defineTool({
     status: z.enum(["new", "in_progress", "resolved"]),
     note: z.string().trim().max(500).optional().describe("Optional note recorded with the change."),
   },
-  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   handler: async ({ request_id, status, note }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuthenticated();
     const supabase = supabaseForUser(ctx);
     const now = new Date().toISOString();
     const patch: Record<string, unknown> = { status, updated_at: now };
-    if (status === "in_progress") patch['started_at'] = now;
-    if (status === "resolved") patch['resolved_at'] = now;
+    if (status === "in_progress") patch["started_at"] = now;
+    if (status === "resolved") patch["resolved_at"] = now;
 
     const { data, error } = await supabase
       .from("requests")
@@ -31,7 +36,9 @@ export default defineTool({
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     if (!data)
       return {
-        content: [{ type: "text", text: "Request not found, or your role does not allow updating it." }],
+        content: [
+          { type: "text", text: "Request not found, or your role does not allow updating it." },
+        ],
         isError: true,
       };
 

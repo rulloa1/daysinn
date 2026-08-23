@@ -73,29 +73,25 @@ export const listStaffInvites = createServerFn({ method: "POST" })
 
 export const sendStaffInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { name: string; email: string; role?: AppRole; inviteId?: string }) => {
-      if (typeof input?.name !== "string" || !input.name.trim()) {
-        throw new Error("A name is required");
-      }
-      const role = input.role ?? "staff";
-      if (!["manager", "staff", "viewer"].includes(role)) {
-        throw new Error("Unknown role");
-      }
-      return {
-        name: input.name.trim(),
-        email: normalizeEmail(input.email),
-        role: role as AppRole,
-        inviteId: input.inviteId ?? null,
-      };
-    },
-  )
+  .inputValidator((input: { name: string; email: string; role?: AppRole; inviteId?: string }) => {
+    if (typeof input?.name !== "string" || !input.name.trim()) {
+      throw new Error("A name is required");
+    }
+    const role = input.role ?? "staff";
+    if (!["manager", "staff", "viewer"].includes(role)) {
+      throw new Error("Unknown role");
+    }
+    return {
+      name: input.name.trim(),
+      email: normalizeEmail(input.email),
+      role: role as AppRole,
+      inviteId: input.inviteId ?? null,
+    };
+  })
   .handler(async ({ data, context }) => {
     await assertManager(context.supabase, context.userId);
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.lovable.app";
     const redirectTo = `${origin}/staff`;
@@ -104,20 +100,20 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
     const { data: userList } = await supabaseAdmin.auth.admin.listUsers({
       perPage: 200,
     });
-    let userId = userList?.users.find(
-      (u) => (u.email ?? "").toLowerCase() === data.email,
-    )?.id;
+    let userId = userList?.users.find((u) => (u.email ?? "").toLowerCase() === data.email)?.id;
 
     let emailSent = false;
     let emailError: string | null = null;
     let link: string | null = null;
 
     if (!userId) {
-      const { data: invited, error } =
-        await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+      const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        data.email,
+        {
           redirectTo,
           data: { full_name: data.name },
-        });
+        },
+      );
       if (error) {
         emailError = error.message;
       } else {
@@ -127,26 +123,18 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
     }
 
     if (userId) {
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).neq("role", data.role);
       await supabaseAdmin
         .from("user_roles")
-        .delete()
-        .eq("user_id", userId)
-        .neq("role", data.role);
-      await supabaseAdmin
-        .from("user_roles")
-        .upsert(
-          { user_id: userId, role: data.role },
-          { onConflict: "user_id,role" },
-        );
+        .upsert({ user_id: userId, role: data.role }, { onConflict: "user_id,role" });
     }
 
     // Always produce a shareable link so invites work without email.
-    const { data: linkData, error: linkError } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: userId ? "magiclink" : "invite",
-        email: data.email,
-        options: { redirectTo },
-      });
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: userId ? "magiclink" : "invite",
+      email: data.email,
+      options: { redirectTo },
+    });
     if (linkError) {
       if (!emailSent) emailError = emailError ?? linkError.message;
     } else {
@@ -179,9 +167,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
     }
 
     const token = makeToken();
-    const expiresAt = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const existing = data.inviteId
       ? await supabaseAdmin

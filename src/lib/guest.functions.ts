@@ -71,9 +71,8 @@ const GENERIC_DENIAL =
 export const guestSignIn = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => signInSchema.parse(input))
   .handler(async ({ data }) => {
-    const { allowGuestAttempt, recordGuestAttempt, recordAudit } = await import(
-      "@/lib/audit.server",
-    );
+    const { allowGuestAttempt, recordGuestAttempt, recordAudit } =
+      await import("@/lib/audit.server");
 
     if (!(await allowGuestAttempt("guest_sign_in", data.room))) {
       return {
@@ -94,9 +93,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
     }
 
     // Access dies at checkout, even if the session cookie says otherwise.
-    const checkoutMs = guest.checkOut
-      ? new Date(`${guest.checkOut}T23:59:59Z`).getTime()
-      : null;
+    const checkoutMs = guest.checkOut ? new Date(`${guest.checkOut}T23:59:59Z`).getTime() : null;
     if (checkoutMs !== null && checkoutMs < Date.now()) {
       await recordGuestAttempt("guest_sign_in", data.room, false);
       return { ok: false as const, error: GENERIC_DENIAL };
@@ -140,7 +137,6 @@ export const guestRequests = createServerFn({ method: "POST" })
     return { ok: true as const, requests: rows ?? [] };
   });
 
-
 /**
  * Staff-only: revokes every outstanding code for the room and mints a new
  * short-lived one. Rotating on demand means printed or shared codes die.
@@ -164,9 +160,7 @@ export const rotateRoomQr = createServerFn({ method: "POST" })
       .is("revoked_at", null);
 
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
-    const expiresAt = new Date(
-      Date.now() + QR_TTL_MINUTES * 60 * 1000,
-    ).toISOString();
+    const expiresAt = new Date(Date.now() + QR_TTL_MINUTES * 60 * 1000).toISOString();
 
     const { error } = await supabaseAdmin.from("room_qr_tokens").insert({
       room: data.room,

@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-lockup";
-import {
-  completePasswordReset,
-  MIN_PASSWORD_LENGTH,
-} from "@/lib/password-policy.functions";
+import { completePasswordReset, MIN_PASSWORD_LENGTH } from "@/lib/password-policy.functions";
 
 /**
  * Blocks the staff portal until an account flagged for a forced reset
@@ -78,9 +75,8 @@ export function PasswordResetGate({ children }: { children: ReactNode }) {
         <BrandLockup tone="cream" />
         <h1 className="mt-8 text-3xl">Set a new password</h1>
         <p className="mt-2 text-sm text-cream/60">
-          Before the pilot goes live, every team account needs a fresh, strong
-          password. Minimum {MIN_PASSWORD_LENGTH} characters, and passwords
-          found in known breaches are rejected.
+          Before the pilot goes live, every team account needs a fresh, strong password. Minimum{" "}
+          {MIN_PASSWORD_LENGTH} characters, and passwords found in known breaches are rejected.
         </p>
         <form onSubmit={submit} className="mt-8 space-y-4">
           <div className="space-y-2">

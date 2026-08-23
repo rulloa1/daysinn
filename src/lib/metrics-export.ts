@@ -70,9 +70,7 @@ export async function fetchMetricsData(days: ExportRange) {
       .order("changed_at", { ascending: false }),
     supabase
       .from("requests")
-      .select(
-        "id, room, type, status, created_at, resolved_at, resolved_by_name, response_seconds",
-      )
+      .select("id, room, type, status, created_at, resolved_at, resolved_by_name, response_seconds")
       .not("resolved_at", "is", null)
       .gte("resolved_at", since)
       .order("resolved_at", { ascending: false }),
@@ -154,9 +152,7 @@ export function buildSummaryCsv(events: EventRow[], resolved: ResolvedRow[]) {
     .map((day) => {
       const turnovers = events.filter(
         (event) =>
-          event.is_turnover &&
-          dayKey(event.changed_at) === day &&
-          event.duration_seconds != null,
+          event.is_turnover && dayKey(event.changed_at) === day && event.duration_seconds != null,
       );
       const responses = resolved.filter(
         (request) =>
@@ -164,12 +160,8 @@ export function buildSummaryCsv(events: EventRow[], resolved: ResolvedRow[]) {
           dayKey(request.resolved_at) === day &&
           request.response_seconds != null,
       );
-      const avgTurnover = average(
-        turnovers.map((event) => event.duration_seconds as number),
-      );
-      const avgResponse = average(
-        responses.map((request) => request.response_seconds as number),
-      );
+      const avgTurnover = average(turnovers.map((event) => event.duration_seconds as number));
+      const avgResponse = average(responses.map((request) => request.response_seconds as number));
 
       return [
         day,

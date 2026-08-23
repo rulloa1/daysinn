@@ -22,8 +22,6 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
 import { Menu } from "lucide-react";
 
-
-
 type RequestRow = {
   id: string;
   room: string;
@@ -63,7 +61,6 @@ function timeAgo(iso: string) {
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.round(hrs / 24)}d ago`;
 }
-
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
@@ -297,7 +294,6 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
   );
 }
 
-
 function Dashboard({
   demo = false,
   present = false,
@@ -319,9 +315,6 @@ function Dashboard({
   const [menuOpen, setMenuOpen] = useState(false);
   const { staff } = useStaffIdentity();
 
-
-
-
   useEffect(() => {
     if (demo) return;
     let active = true;
@@ -329,9 +322,11 @@ function Dashboard({
       const rpc = supabase.rpc as unknown as (
         fn: string,
         args?: Record<string, unknown>,
-      ) => any;
+      ) => ReturnType<typeof supabase.rpc>;
       const { data, error } = await rpc("requests_board")
-        .select("id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name")
+        .select(
+          "id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name",
+        )
         .order("created_at", { ascending: false });
       if (!active) return;
       if (error) {
@@ -344,11 +339,7 @@ function Dashboard({
 
     const channel = supabase
       .channel("requests-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "requests" },
-        () => load(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => load())
       .subscribe();
 
     return () => {
@@ -377,17 +368,13 @@ function Dashboard({
       return;
     }
     if (demo) {
-      setRows((prev) =>
-        prev.map((row) => (row.id === id ? { ...row, status } : row)),
-      );
+      setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status } : row)));
       return;
     }
     const previous = rows;
     const row = previous.find((r) => r.id === id);
     if (!row) return;
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r)),
-    );
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     const { error } = await advanceRequest(row, status, staff ?? null);
     if (error) {
       setRows(previous);
@@ -411,7 +398,6 @@ function Dashboard({
     setClaiming(false);
   }
 
-
   async function signOut() {
     await supabase.auth.signOut();
   }
@@ -427,9 +413,7 @@ function Dashboard({
               <span aria-hidden className="h-3 w-[3px] bg-amber" />
               {demo ? "Demo shift" : "Live shift"}
             </p>
-            <h1 className="mt-1 truncate font-display text-2xl leading-none">
-              Request queue
-            </h1>
+            <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
           </div>
         </div>
 
@@ -483,7 +467,10 @@ function Dashboard({
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream">
+            <SheetContent
+              side="right"
+              className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
+            >
               <SheetHeader>
                 <SheetTitle className="text-left text-cream">Menu</SheetTitle>
               </SheetHeader>
@@ -541,8 +528,8 @@ function Dashboard({
         <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
           <p className="signage text-amber">Demo view</p>
           <p className="mt-2 max-w-2xl text-sm text-cream/70">
-            Sample requests for presentation only — nothing here is real guest
-            data, and status changes are not saved.
+            Sample requests for presentation only — nothing here is real guest data, and status
+            changes are not saved.
           </p>
         </div>
       ) : null}
@@ -552,8 +539,8 @@ function Dashboard({
           <div>
             <p className="signage text-amber">View-only access</p>
             <p className="mt-2 text-sm text-cream/70">
-              You can watch the queue, but a manager must grant you staff access
-              before you can triage requests.
+              You can watch the queue, but a manager must grant you staff access before you can
+              triage requests.
             </p>
           </div>
           <Button
@@ -566,8 +553,6 @@ function Dashboard({
           </Button>
         </div>
       ) : null}
-
-
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         {STATUSES.map((status) => {
@@ -585,23 +570,16 @@ function Dashboard({
               }`}
             >
               <p className="signage flex items-center gap-2 text-cream/60">
-                <span
-                  aria-hidden
-                  className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`}
-                />
+                <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
                 {STATUS_LABEL[status]}
               </p>
-              <p className="font-display text-3xl leading-none tabular-nums">
-                {counts[status]}
-              </p>
+              <p className="font-display text-3xl leading-none tabular-nums">{counts[status]}</p>
             </button>
           );
         })}
       </div>
 
-      <div
-        className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4"
-      >
+      <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
         <span className="signage mr-1 text-cream/40">Filter</span>
         {["all", ...STATUSES].map((option) => (
           <Button
@@ -618,18 +596,13 @@ function Dashboard({
             {option === "all" ? "All" : STATUS_LABEL[option]}
           </Button>
         ))}
-        <span className="ml-auto text-xs text-cream/40">
-          {visible.length} shown
-        </span>
+        <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
       </div>
-
 
       {visible.length === 0 ? (
         <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
           <p className="font-display text-2xl">Queue is clear</p>
-          <p className="mt-2 text-sm text-cream/60">
-            New guest requests land here automatically.
-          </p>
+          <p className="mt-2 text-sm text-cream/60">New guest requests land here automatically.</p>
         </div>
       ) : (
         <ul className="mt-6 space-y-2">
@@ -650,9 +623,7 @@ function Dashboard({
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-3">
-                      <span className="font-display text-2xl tabular-nums">
-                        {row.room}
-                      </span>
+                      <span className="font-display text-2xl tabular-nums">{row.room}</span>
                       <span className="text-base text-cream">{row.type}</span>
                       <Badge
                         className={
@@ -673,15 +644,11 @@ function Dashboard({
                       </span>
                     </p>
                     {row.details ? (
-                      <p className="mt-2 max-w-2xl text-sm text-cream/85">
-                        {row.details}
-                      </p>
+                      <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
                     ) : null}
                   </div>
                   {canTriage ? (
-                    <div
-                      className="flex flex-wrap items-center gap-2"
-                    >
+                    <div className="flex flex-wrap items-center gap-2">
                       {next ? (
                         <Button
                           size="sm"
@@ -708,18 +675,13 @@ function Dashboard({
                   )}
                 </div>
                 {demo ? null : (
-                  <RequestWorkflowPanel
-                    request={row}
-                    canEdit={canTriage}
-                    staff={staff ?? null}
-                  />
+                  <RequestWorkflowPanel request={row} canEdit={canTriage} staff={staff ?? null} />
                 )}
               </li>
             );
           })}
         </ul>
       )}
-
 
       {isManager ? (
         <div>
@@ -728,6 +690,5 @@ function Dashboard({
         </div>
       ) : null}
     </div>
-
   );
 }

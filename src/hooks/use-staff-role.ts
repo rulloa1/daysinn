@@ -15,10 +15,7 @@ export function useStaffRole() {
       setLoading(false);
       return;
     }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid);
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
     setLoading(false);
   }, []);

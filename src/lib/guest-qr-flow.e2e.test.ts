@@ -24,16 +24,8 @@ let serverUp = false;
 let room = "";
 let lastName = "";
 
-async function signIn(data: {
-  room: string;
-  lastName: string;
-  token?: string;
-}) {
-  const { body } = await callServerFn<{ result?: SignInResult }>(
-    FILE,
-    SIGN_IN,
-    data,
-  );
+async function signIn(data: { room: string; lastName: string; token?: string }) {
+  const { body } = await callServerFn<{ result?: SignInResult }>(FILE, SIGN_IN, data);
   return (body?.result ?? body) as SignInResult;
 }
 
@@ -71,7 +63,7 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
     const first = await signIn({ room, lastName, token });
     expect(first.ok).toBe(true);
 
-    expect((await tokenRow(token))?.['used_at']).not.toBeNull();
+    expect((await tokenRow(token))?.["used_at"]).not.toBeNull();
   });
 
   it("rejects re-using the same code (single-use)", async () => {
@@ -104,9 +96,7 @@ describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
   });
 
   it("rejects an unknown code", async () => {
-    expect((await signIn({ room, lastName, token: randomToken() })).ok).toBe(
-      false,
-    );
+    expect((await signIn({ room, lastName, token: randomToken() })).ok).toBe(false);
   });
 
   it("rejects a valid code with the wrong last name", async () => {

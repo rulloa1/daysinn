@@ -33,11 +33,7 @@ export function QrCode({
   }, [value, size]);
 
   return (
-    <div
-      className={className}
-      style={{ width: size, height: size }}
-      aria-label={alt}
-    >
+    <div className={className} style={{ width: size, height: size }} aria-label={alt}>
       {src ? (
         <img
           src={src}

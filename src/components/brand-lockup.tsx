@@ -10,19 +10,11 @@ export function BrandLockup({
 }) {
   return (
     <span className={cn("flex items-center gap-3", className)}>
-      <img
-        src={logoAsset.url}
-        alt="Days Inn"
-        width={112}
-        height={56}
-        className="h-8 w-auto"
-      />
+      <img src={logoAsset.url} alt="Days Inn" width={112} height={56} className="h-8 w-auto" />
       <span
         className={cn(
           "hidden border-l pl-3 leading-tight sm:block",
-          tone === "cream"
-            ? "border-cream/25 text-cream"
-            : "border-border text-ink",
+          tone === "cream" ? "border-cream/25 text-cream" : "border-border text-ink",
         )}
       >
         <span className="signage block">Guest Hub</span>

@@ -15,8 +15,8 @@ import { FranchiseLegal } from "@/components/franchise-footer";
 
 export const Route = createFileRoute("/checkin")({
   validateSearch: (search: Record<string, unknown>): { room?: string; t?: string } => ({
-    ...(typeof search['room'] === "string" ? { room: search['room'] } : {}),
-    ...(typeof search['t'] === "string" ? { t: search['t'] } : {}),
+    ...(typeof search["room"] === "string" ? { room: search["room"] } : {}),
+    ...(typeof search["t"] === "string" ? { t: search["t"] } : {}),
   }),
   head: () => ({
     meta: [
@@ -26,7 +26,10 @@ export const Route = createFileRoute("/checkin")({
         content:
           "Sign in with your room number and last name or scan your mobile QR key to access in-room requests directly on your smartphone.",
       },
-      { property: "og:title", content: "Digital Room Sign-In — Days Inn® by Wyndham Wildwood I-75" },
+      {
+        property: "og:title",
+        content: "Digital Room Sign-In — Days Inn® by Wyndham Wildwood I-75",
+      },
       {
         property: "og:description",
         content:
@@ -107,11 +110,10 @@ function CheckInPage() {
       {/* Main Content Area */}
       <main className="mx-auto my-auto w-full max-w-4xl px-6 py-10 md:px-8">
         <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-stretch">
-          
           {/* Keycard Form Card */}
           <section className="glass-card relative flex flex-col justify-between overflow-hidden rounded-3xl p-7 md:p-9">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-accent via-amber to-primary" />
-            
+
             <div>
               <div className="flex items-center gap-2">
                 <span className="grid h-7 w-7 place-items-center rounded-lg bg-accent/20 text-accent font-bold text-xs">
@@ -121,11 +123,16 @@ function CheckInPage() {
               </div>
 
               <h1 className="mt-3 font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                Sign in to <span className="text-primary underline decoration-accent/60 underline-offset-4">your room</span>.
+                Sign in to{" "}
+                <span className="text-primary underline decoration-accent/60 underline-offset-4">
+                  your room
+                </span>
+                .
               </h1>
-              
+
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Enter your room number and the registered last name from your key packet to unlock mobile concierge & instant requests.
+                Enter your room number and the registered last name from your key packet to unlock
+                mobile concierge & instant requests.
               </p>
 
               <form onSubmit={submit} className="mt-6 space-y-4">
@@ -185,11 +192,11 @@ function CheckInPage() {
             <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
               <QrIcon className="h-3.5 w-3.5" /> Mobile QR Scanner
             </span>
-            
+
             <h2 className="mt-3 font-serif text-xl font-bold text-foreground">
               Instant Phone Sign-In
             </h2>
-            
+
             <p className="mt-1.5 max-w-xs text-xs text-muted-foreground leading-relaxed">
               Scan with your smartphone camera to open your in-room services directly on mobile.
             </p>
@@ -200,13 +207,14 @@ function CheckInPage() {
 
             <p className="text-[11px] text-muted-foreground">
               {roomParam ? (
-                <span>Auto-configured for <strong>Room {roomParam}</strong></span>
+                <span>
+                  Auto-configured for <strong>Room {roomParam}</strong>
+                </span>
               ) : (
                 <span>QR codes on key jackets link directly to your assigned room.</span>
               )}
             </p>
           </section>
-
         </div>
       </main>
 

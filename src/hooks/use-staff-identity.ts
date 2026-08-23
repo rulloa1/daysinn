@@ -45,17 +45,12 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
           .eq("active", true)
           .eq("department", "housekeeping")
           .order("name"),
-        supabase
-          .from("rooms")
-          .select("assigned_staff_id")
-          .not("assigned_staff_id", "is", null),
+        supabase.from("rooms").select("assigned_staff_id").not("assigned_staff_id", "is", null),
       ]);
 
       const assignedIds = [
         ...new Set(
-          (assignedRooms ?? [])
-            .map((r) => r.assigned_staff_id)
-            .filter((id): id is string => !!id),
+          (assignedRooms ?? []).map((r) => r.assigned_staff_id).filter((id): id is string => !!id),
         ),
       ];
 
@@ -91,12 +86,15 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
     void refresh();
   }, [refresh]);
 
-  const select = useCallback((next: StaffIdentity) => {
-    setStaff(next);
-    if (typeof window === "undefined") return;
-    if (next) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    else window.localStorage.removeItem(STORAGE_KEY);
-  }, [STORAGE_KEY]);
+  const select = useCallback(
+    (next: StaffIdentity) => {
+      setStaff(next);
+      if (typeof window === "undefined") return;
+      if (next) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      else window.localStorage.removeItem(STORAGE_KEY);
+    },
+    [STORAGE_KEY],
+  );
 
   const addMember = useCallback(
     async (name: string) => {

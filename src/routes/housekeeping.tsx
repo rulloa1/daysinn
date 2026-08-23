@@ -32,12 +32,7 @@ import {
 } from "@/components/ui/dialog";
 
 type RoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 type IssueRow = {
   id: string;
@@ -125,8 +120,7 @@ export const Route = createFileRoute("/housekeeping")({
       { property: "og:title", content: "Housekeeping Board — Days Inn Hub" },
       {
         property: "og:description",
-        content:
-          "Live room status for housekeeping, sorted by what needs cleaning first.",
+        content: "Live room status for housekeeping, sorted by what needs cleaning first.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -149,9 +143,7 @@ function HousekeepingPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, next) =>
-      setSession(next),
-    );
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
     supabase.auth.getSession().then(({ data: { session: current } }) => {
       setSession(current);
       setReady(true);
@@ -200,12 +192,7 @@ function Housekeeping({ presenting }: { presenting: boolean }) {
   });
 
   if (!staff && presenting) {
-    return (
-      <HousekeepingBoard
-        staff={PRESENTER_IDENTITY}
-        onSignOut={() => select(null)}
-      />
-    );
+    return <HousekeepingBoard staff={PRESENTER_IDENTITY} onSignOut={() => select(null)} />;
   }
 
   if (!staff) {
@@ -237,9 +224,7 @@ function HousekeeperLogin({
     const res = await verify({ data: { memberId, pin } });
     setBusy(false);
     if (!res.ok) {
-      toast.error(
-        res.reason === "bad_pin" ? "That PIN doesn't match." : "Housekeeper not found.",
-      );
+      toast.error(res.reason === "bad_pin" ? "That PIN doesn't match." : "Housekeeper not found.");
       return;
     }
     onSelect({ id: res.id, name: res.name });
@@ -362,9 +347,7 @@ function HousekeepingBoard({
 
   useEffect(() => {
     setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
-    setPushOn(
-      localStorage.getItem(PUSH_KEY) === "on" && pushPermission() === "granted",
-    );
+    setPushOn(localStorage.getItem(PUSH_KEY) === "on" && pushPermission() === "granted");
   }, []);
 
   useEffect(() => {
@@ -374,7 +357,6 @@ function HousekeepingBoard({
   useEffect(() => {
     pushRef.current = pushOn;
   }, [pushOn]);
-
 
   useEffect(() => {
     let active = true;
@@ -409,53 +391,45 @@ function HousekeepingBoard({
         { event: "*", schema: "public", table: "requests" },
         () => void load(),
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "rooms" },
-        (payload) => {
-          if (alertsRef.current && payload.eventType === "UPDATE") {
-            const next = payload.new as Partial<RoomRow>;
-            const prev = (payload.old ?? {}) as Partial<RoomRow>;
-            const emit = (
-              level: "warning" | "info",
-              title: string,
-              description?: string,
-            ) => {
-              toast[level](title, description ? { description } : undefined);
-              if (pushRef.current) {
-                sendDevicePush(title, description ?? "", `room-${next.number}`);
-              }
-            };
-            if (next.dnd && !prev.dnd) {
-              emit(
-                "warning",
-                `Room ${next.number} is now Do Not Disturb`,
-                "Skip this room until the flag clears.",
-              );
+      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, (payload) => {
+        if (alertsRef.current && payload.eventType === "UPDATE") {
+          const next = payload.new as Partial<RoomRow>;
+          const prev = (payload.old ?? {}) as Partial<RoomRow>;
+          const emit = (level: "warning" | "info", title: string, description?: string) => {
+            toast[level](title, description ? { description } : undefined);
+            if (pushRef.current) {
+              sendDevicePush(title, description ?? "", `room-${next.number}`);
             }
-            if (next.extended_stay && !prev.extended_stay) {
-              emit(
-                "info",
-                `Room ${next.number} is staying over`,
-                next.check_out
-                  ? `New checkout ${next.check_out}`
-                  : "Service as a stayover, not a checkout.",
-              );
-            } else if (
-              next.extended_stay &&
-              prev.extended_stay &&
-              next.check_out !== prev.check_out
-            ) {
-              emit(
-                "info",
-                `Room ${next.number} stayover updated`,
-                next.check_out ? `New checkout ${next.check_out}` : undefined,
-              );
-            }
+          };
+          if (next.dnd && !prev.dnd) {
+            emit(
+              "warning",
+              `Room ${next.number} is now Do Not Disturb`,
+              "Skip this room until the flag clears.",
+            );
           }
-          void load();
-        },
-      )
+          if (next.extended_stay && !prev.extended_stay) {
+            emit(
+              "info",
+              `Room ${next.number} is staying over`,
+              next.check_out
+                ? `New checkout ${next.check_out}`
+                : "Service as a stayover, not a checkout.",
+            );
+          } else if (
+            next.extended_stay &&
+            prev.extended_stay &&
+            next.check_out !== prev.check_out
+          ) {
+            emit(
+              "info",
+              `Room ${next.number} stayover updated`,
+              next.check_out ? `New checkout ${next.check_out}` : undefined,
+            );
+          }
+        }
+        void load();
+      })
       .subscribe();
 
     return () => {
@@ -468,9 +442,7 @@ function HousekeepingBoard({
     setAlertsOn((v) => {
       const next = !v;
       localStorage.setItem(ALERTS_KEY, next ? "on" : "off");
-      toast[next ? "success" : "message"](
-        next ? "Live alerts on" : "Live alerts off",
-      );
+      toast[next ? "success" : "message"](next ? "Live alerts on" : "Live alerts off");
       return next;
     });
   }
@@ -516,8 +488,6 @@ function HousekeepingBoard({
       "hk-test",
     );
   }
-
-
 
   const floors = useMemo(() => {
     const base =
@@ -585,11 +555,8 @@ function HousekeepingBoard({
       toast.error("Couldn't update the assignment.");
       return;
     }
-    toast.success(
-      toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`,
-    );
+    toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
   }
-
 
   async function markClean(room: RoomRow) {
     if (!canTriage) {
@@ -637,13 +604,22 @@ function HousekeepingBoard({
             </p>
             <h1 className="mt-2 truncate text-2xl sm:text-4xl">Rooms to turn</h1>
             <nav className="mt-3 flex flex-wrap gap-4">
-              <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+              <Link
+                to="/staff"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
                 Staff queue
               </Link>
-              <Link to="/front-desk" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+              <Link
+                to="/front-desk"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
                 Front desk
               </Link>
-              <Link to="/" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
+              <Link
+                to="/"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
                 Guest view
               </Link>
             </nav>
@@ -743,7 +719,6 @@ function HousekeepingBoard({
         </div>
       </div>
 
-
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
       ) : floors.length === 0 ? (
@@ -754,7 +729,6 @@ function HousekeepingBoard({
           </p>
         </div>
       ) : (
-
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
             <p className="signage flex items-center gap-2 text-cream/50">
@@ -778,7 +752,10 @@ function HousekeepingBoard({
                 >
                   <span className="flex items-center justify-between">
                     <span className="text-xl">{room.number}</span>
-                    <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`} />
+                    <span
+                      aria-hidden
+                      className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
+                    />
                   </span>
                   <span className={`signage mt-2 block ${STATUS_TEXT[room.status]}`}>
                     {STATUS_LABEL[room.status]}
@@ -851,7 +828,10 @@ function HousekeepingBoard({
               </DialogHeader>
 
               <p className={`signage ${STATUS_TEXT[active.status]}`}>
-                <span aria-hidden className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[active.status]}`} />
+                <span
+                  aria-hidden
+                  className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[active.status]}`}
+                />
                 {STATUS_LABEL[active.status]}
               </p>
 
@@ -888,9 +868,7 @@ function HousekeepingBoard({
               <div className="border border-cream/15 bg-cream/[0.03] px-3 py-3">
                 <p className="signage text-cream/45">Assigned to</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
-                  <p className="text-sm text-cream/85">
-                    {active.assigned_name ?? "Unassigned"}
-                  </p>
+                  <p className="text-sm text-cream/85">{active.assigned_name ?? "Unassigned"}</p>
                   {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
                     <button
                       type="button"
@@ -918,19 +896,12 @@ function HousekeepingBoard({
                           className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
                         >
                           <p className="text-sm text-cream">
-                            {issue.type} ·{" "}
-                            {REQUEST_STATUS_LABEL[issue.status] ?? issue.status}
+                            {issue.type} · {REQUEST_STATUS_LABEL[issue.status] ?? issue.status}
                           </p>
                           {issue.details ? (
-                            <p className="mt-1 text-xs text-cream/65">
-                              {issue.details}
-                            </p>
+                            <p className="mt-1 text-xs text-cream/65">{issue.details}</p>
                           ) : null}
-                          <RequestWorkflowPanel
-                            request={issue}
-                            canEdit={canTriage}
-                            staff={staff}
-                          />
+                          <RequestWorkflowPanel request={issue} canEdit={canTriage} staff={staff} />
                         </li>
                       ))}
                   </ul>
@@ -969,12 +940,7 @@ function HousekeepingBoard({
         </DialogContent>
       </Dialog>
 
-      <IssueDialog
-        room={issueRoom}
-        staff={staff}
-        onClose={() => setIssueRoom(null)}
-      />
-
+      <IssueDialog room={issueRoom} staff={staff} onClose={() => setIssueRoom(null)} />
     </div>
   );
 }

@@ -19,8 +19,7 @@ export const Route = createFileRoute("/roles")({
       { property: "og:title", content: "Role management — Days Inn Wildwood" },
       {
         property: "og:description",
-        content:
-          "Grant or revoke manager access for the Days Inn Wildwood staff portal.",
+        content: "Grant or revoke manager access for the Days Inn Wildwood staff portal.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -66,9 +65,8 @@ function RolesPage() {
 
         <h1 className="mt-10 font-display text-3xl">Role management</h1>
         <p className="mt-2 max-w-2xl text-sm text-cream/60">
-          Move people between manager and non-manager access. Managers can
-          change roles and invite staff; staff can triage the queue; viewers can
-          only watch.
+          Move people between manager and non-manager access. Managers can change roles and invite
+          staff; staff can triage the queue; viewers can only watch.
         </p>
 
         {!ready || role.loading ? (
