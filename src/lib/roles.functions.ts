@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertManager } from "./roles.guard";
 
-export type AppRole = "manager" | "staff" | "viewer";
+export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
 export type TeamMember = {
   id: string;
@@ -38,7 +38,7 @@ export const setTeamRole = createServerFn({ method: "POST" })
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
     }
-    if (!["manager", "staff", "viewer"].includes(input.role)) {
+    if (!["manager", "staff", "viewer", "housekeeper"].includes(input.role)) {
       throw new Error("Unknown role");
     }
     return input;

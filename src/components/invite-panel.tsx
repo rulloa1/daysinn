@@ -18,6 +18,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
   manager: "Manager",
   staff: "Staff",
   viewer: "Viewer",
+  housekeeper: "Housekeeper",
 };
 
 function when(value: string | null) {
@@ -151,6 +152,7 @@ export function InvitePanel() {
             className="mt-1 block h-9 border border-cream/20 bg-ink/40 px-2 text-sm text-cream"
           >
             <option value="staff">Staff</option>
+            <option value="housekeeper">Housekeeper</option>
             <option value="manager">Manager</option>
             <option value="viewer">Viewer</option>
           </select>

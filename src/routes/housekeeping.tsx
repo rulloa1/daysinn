@@ -23,7 +23,9 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
-import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+import { ShiftClock } from "@/components/shift-clock";
+import { MySchedule } from "@/components/my-schedule";
+import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 
 import {
   Dialog,
@@ -62,6 +64,9 @@ type RoomRow = {
   updated_at: string;
   assigned_staff_id: string | null;
   assigned_name: string | null;
+  hk_stage: string | null;
+  priority: string | null;
+  linen_change: boolean | null;
 };
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
@@ -99,6 +104,20 @@ const STATUS_TEXT: Record<RoomStatus, string> = {
   reserved: "text-status-reserved",
   out_of_order: "text-status-ooo",
 };
+
+/** One-tap cleaning states a housekeeper can set on their own rooms. */
+const QUICK_STATUS: { status: RoomStatus; label: string; className: string }[] = [
+  { status: "vacant_clean", label: "Clean", className: "bg-status-clean text-ink" },
+  { status: "vacant_dirty", label: "Dirty", className: "bg-status-dirty text-ink" },
+  { status: "occupied_dnd", label: "DND", className: "bg-status-dnd text-ink" },
+  {
+    status: "out_of_order",
+    label: "Out of order",
+    className: "border border-status-ooo/70 text-status-ooo",
+  },
+];
+
+
 
 /** Housekeeping priority: what needs a cart first. */
 const PRIORITY: RoomStatus[] = [
@@ -334,7 +353,8 @@ function HousekeepingBoard({
   staff: NonNullable<StaffIdentity>;
   onSignOut: () => void;
 }) {
-  const [rooms, setRooms] = useState<RoomRow[]>([]);
+  const [allRooms, setAllRooms] = useState<RoomRow[]>([]);
+  const [supervisor, setSupervisor] = useState(false);
   const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -348,6 +368,33 @@ function HousekeepingBoard({
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
   const { canTriage, loading: roleLoading } = useStaffRole();
+
+  useEffect(() => {
+    let active = true;
+    async function loadSupervisor() {
+      if (!staff.id) return;
+      const { data } = await supabase
+        .from("staff_members")
+        .select("is_supervisor")
+        .eq("id", staff.id)
+        .maybeSingle();
+      if (active) setSupervisor(Boolean(data?.is_supervisor));
+    }
+    void loadSupervisor();
+    return () => {
+      active = false;
+    };
+  }, [staff.id]);
+
+  // Regular housekeepers only see their own rooms plus anything unassigned.
+  // Supervisors see the full board and who is cleaning what.
+  const rooms = useMemo(
+    () =>
+      supervisor
+        ? allRooms
+        : allRooms.filter((r) => !r.assigned_staff_id || r.assigned_staff_id === staff.id),
+    [allRooms, supervisor, staff.id],
+  );
 
   useEffect(() => {
     setAlertsOn(localStorage.getItem(ALERTS_KEY) === "on");
@@ -369,12 +416,12 @@ function HousekeepingBoard({
       const { data, error } = await supabase
         .from("rooms")
         .select(
-          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name",
+          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change",
         )
         .order("number");
       if (!active) return;
       if (error) toast.error("Couldn't load rooms.");
-      setRooms((data ?? []) as RoomRow[]);
+      setAllRooms((data ?? []) as RoomRow[]);
       setLoading(false);
 
       const { data: issues } = await supabase
@@ -541,8 +588,8 @@ function HousekeepingBoard({
           assigned_at: new Date().toISOString(),
         }
       : { assigned_staff_id: null, assigned_name: null, assigned_at: null };
-    const previous = rooms;
-    setRooms((prev) =>
+    const previous = allRooms;
+    setAllRooms((prev) =>
       prev.map((r) =>
         r.id === room.id
           ? {
@@ -555,32 +602,64 @@ function HousekeepingBoard({
     );
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
     if (error) {
-      setRooms(previous);
+      setAllRooms(previous);
       toast.error("Couldn't update the assignment.");
       return;
     }
     toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
   }
 
-  async function markClean(room: RoomRow) {
+  /** Mark the transient cleaning stage (In Progress / Inspected). */
+  async function setStage(room: RoomRow, stage: string | null) {
     if (!canTriage) {
       toast.error("A manager needs to grant you staff access first.");
       return;
     }
-    const previous = rooms;
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === room.id
-          ? { ...r, status: "vacant_clean", updated_at: new Date().toISOString() }
-          : r,
-      ),
+    const previous = allRooms;
+    setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, hk_stage: stage } : r)));
+    const { error } = await supabase.from("rooms").update({ hk_stage: stage }).eq("id", room.id);
+    if (error) {
+      setAllRooms(previous);
+      toast.error("Couldn't update that room.");
+      return;
+    }
+    toast.success(
+      stage === null
+        ? `Room ${room.number} stage cleared`
+        : `Room ${room.number} · ${stage === "in_progress" ? "In progress" : "Inspected"}`,
+    );
+  }
+
+  /** Toggle the linen-change flag for a room. */
+  async function toggleLinen(room: RoomRow) {
+    if (!canTriage) return;
+    const next = !room.linen_change;
+    setAllRooms((prev) =>
+      prev.map((r) => (r.id === room.id ? { ...r, linen_change: next } : r)),
     );
     const { error } = await supabase
       .from("rooms")
-      .update({ status: "vacant_clean" })
+      .update({ linen_change: next })
       .eq("id", room.id);
+    if (error) toast.error("Couldn't update the linen flag.");
+  }
+
+  /** Quick status change from the housekeeping board. */
+  async function setStatus(room: RoomRow, next: RoomStatus) {
+    if (!canTriage) {
+      toast.error("A manager needs to grant you staff access first.");
+      return;
+    }
+    if (room.status === next) return;
+    const previous = allRooms;
+    setAllRooms((prev) =>
+      prev.map((r) =>
+        r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
+      ),
+    );
+    const { error } = await supabase.from("rooms").update({ status: next }).eq("id", room.id);
     if (error) {
-      setRooms(previous);
+      setAllRooms(previous);
       toast.error("Couldn't update that room.");
       return;
     }
@@ -588,13 +667,18 @@ function HousekeepingBoard({
       roomId: room.id,
       roomNumber: room.number,
       oldStatus: room.status,
-      newStatus: "vacant_clean",
+      newStatus: next,
       previousChangedAt: room.updated_at,
       staff,
     });
     if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
-    else toast.success(`Room ${room.number} clean · ${staff.name}`);
+    else toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
   }
+
+  async function markClean(room: RoomRow) {
+    await setStatus(room, "vacant_clean");
+  }
+
 
   return (
     <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
@@ -638,8 +722,6 @@ function HousekeepingBoard({
         </div>
       </header>
 
-      <PwaInstallPrompt className="mt-4" />
-
       {!roleLoading && !canTriage ? (
         <div className="mt-4 border border-amber/50 bg-amber/10 p-4">
           <p className="signage text-amber">View-only access</p>
@@ -648,6 +730,15 @@ function HousekeepingBoard({
           </p>
         </div>
       ) : null}
+
+      {staff.id ? (
+        <>
+          <ShiftClock staff={{ id: staff.id, name: staff.name }} />
+          <MySchedule staff={{ id: staff.id, name: staff.name }} supervisor={supervisor} />
+        </>
+      ) : null}
+
+      <MaintenanceTicketsPanel reporter={staff.name} reporterStaffId={staff.id ?? null} />
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />
@@ -729,9 +820,7 @@ function HousekeepingBoard({
               type="button"
               onClick={() => setViewMode("grid")}
               className={`signage px-3 py-2 transition-colors duration-200 ${
-                viewMode === "grid"
-                  ? "bg-amber font-bold text-ink"
-                  : "text-cream/60 hover:text-cream"
+                viewMode === "grid" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
               }`}
             >
               Grid list
@@ -740,9 +829,7 @@ function HousekeepingBoard({
               type="button"
               onClick={() => setViewMode("map")}
               className={`signage px-3 py-2 transition-colors duration-200 ${
-                viewMode === "map"
-                  ? "bg-amber font-bold text-ink"
-                  : "text-cream/60 hover:text-cream"
+                viewMode === "map" ? "bg-amber font-bold text-ink" : "text-cream/60 hover:text-cream"
               }`}
             >
               Property map
@@ -756,9 +843,7 @@ function HousekeepingBoard({
       ) : viewMode === "map" ? (
         <div className="mt-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="signage text-cream/60">
-              Interactive Property Blueprint ({rooms.length} rooms)
-            </p>
+            <p className="signage text-cream/60">Interactive Property Blueprint ({rooms.length} rooms)</p>
             <div className="flex gap-1.5">
               {(["both", 1, 2] as const).map((f) => (
                 <button
@@ -776,7 +861,11 @@ function HousekeepingBoard({
               ))}
             </div>
           </div>
-          <FloorPlan floor={mapFloor} rooms={rooms} onSelect={(roomId) => setActiveId(roomId)} />
+          <FloorPlan
+            floor={mapFloor}
+            rooms={rooms}
+            onSelect={(roomId) => setActiveId(roomId)}
+          />
         </div>
       ) : floors.length === 0 ? (
         <div className="mt-8 border border-cream/15 bg-cream/[0.03] p-6 text-center">
@@ -788,12 +877,17 @@ function HousekeepingBoard({
       ) : (
         floors.map(({ floor, rooms: list }) => (
           <section key={floor} className="mt-8">
-            <p className="signage flex items-center gap-2 text-cream/50">
-              <span aria-hidden className="h-3 w-[3px] bg-cream/30" />
-              Floor {floor} · {list.length} rooms
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {list.map((room) => (
+            <div className="sticky top-0 z-10 -mx-1 flex items-center gap-3 bg-ink/90 px-1 py-2 backdrop-blur">
+              <span aria-hidden className="h-3 w-[3px] bg-amber" />
+              <p className="signage text-cream/70">Floor {floor}</p>
+              <span className="h-px flex-1 bg-cream/10" />
+              <span className="signage text-[0.65rem] text-cream/40">{list.length} rooms</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+              {list.map((room) => {
+                const mine = room.assigned_staff_id === staff.id;
+                const actionable = !room.assigned_staff_id || mine;
+                return (
                 <div
                   key={room.id}
                   role="button"
@@ -805,19 +899,20 @@ function HousekeepingBoard({
                       setActiveId(room.id);
                     }
                   }}
-                  className={`cursor-pointer border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
+                  className={`group relative flex h-full cursor-pointer flex-col overflow-hidden border p-3 pl-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                 >
-                  <span className="flex items-center justify-between">
-                    <span className="text-xl">{room.number}</span>
-                    <span
-                      aria-hidden
-                      className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
-                    />
+                  <span
+                    aria-hidden
+                    className={`absolute inset-y-0 left-0 w-[3px] ${STATUS_DOT[room.status]} rounded-none`}
+                  />
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="text-2xl leading-none tracking-tight">{room.number}</span>
+                    <span className={`signage text-right text-[0.6rem] leading-tight ${STATUS_TEXT[room.status]}`}>
+                      {STATUS_LABEL[room.status]}
+                    </span>
                   </span>
-                  <span className={`signage mt-2 block ${STATUS_TEXT[room.status]}`}>
-                    {STATUS_LABEL[room.status]}
-                  </span>
-                  <span className="mt-2 flex flex-wrap gap-1">
+
+                  <span className="mt-2.5 flex min-h-[1.25rem] flex-wrap gap-1">
                     {room.dnd ? (
                       <span className="signage flex items-center gap-1 bg-status-dnd px-1.5 py-0.5 text-[0.6rem] text-ink">
                         <span aria-hidden>⛔</span> DND
@@ -831,46 +926,55 @@ function HousekeepingBoard({
                     {room.assigned_name ? (
                       <span
                         className={`signage px-1.5 py-0.5 text-[0.6rem] ${
-                          room.assigned_staff_id === staff.id
-                            ? "bg-cream text-ink"
-                            : "border border-cream/30 text-cream/60"
+                          mine ? "bg-cream text-ink" : "border border-cream/25 text-cream/55"
                         }`}
                       >
-                        {room.assigned_staff_id === staff.id ? "Mine" : room.assigned_name}
+                        {mine ? "Mine" : room.assigned_name}
                       </span>
                     ) : null}
                   </span>
-                  {room.status === "vacant_dirty" ? (
-                    <span className="mt-3 block space-y-1.5">
-                      {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void setAssignment(room, room.assigned_staff_id !== staff.id);
-                          }}
-                          className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
-                        >
-                          {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
-                        </button>
-                      ) : null}
+
+                  {actionable ? (
+                    <span className="mt-auto block pt-3">
+                      <span className="grid grid-cols-2 gap-1">
+                        {QUICK_STATUS.map((option) => (
+                          <button
+                            key={option.status}
+                            type="button"
+                            disabled={!canTriage || room.status === option.status}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void setStatus(room, option.status);
+                            }}
+                            className={`signage px-1.5 py-2 text-center text-[0.6rem] transition-opacity disabled:opacity-25 ${option.className}`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </span>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void markClean(room);
+                          void setAssignment(room, !mine);
                         }}
-                        className="signage block w-full bg-status-clean px-2 py-3 text-center text-[0.7rem] text-ink"
+                        className={`signage mt-1 block w-full px-2 py-2 text-center text-[0.6rem] transition-colors ${
+                          mine
+                            ? "border border-cream/25 text-cream/60 hover:text-cream"
+                            : "border border-amber/60 text-amber hover:bg-amber hover:text-ink"
+                        }`}
                       >
-                        Mark clean
+                        {mine ? "Release" : "Claim room"}
                       </button>
                     </span>
                   ) : null}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))
+
       )}
 
       <Dialog open={!!active} onOpenChange={(open) => !open && setActiveId(null)}>
@@ -965,22 +1069,58 @@ function HousekeepingBoard({
                 </div>
               ) : null}
 
-              {active.status === "vacant_dirty" ? (
-                <Button
-                  disabled={!canTriage}
-                  onClick={() => {
-                    void markClean(active);
-                    setActiveId(null);
-                  }}
-                  className="h-12 w-full bg-status-clean text-base text-ink hover:bg-status-clean/90"
-                >
-                  Mark clean
-                </Button>
+              {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
+                <div>
+                  <p className="signage text-cream/45">Update cleaning state</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {QUICK_STATUS.map((option) => (
+                      <Button
+                        key={option.status}
+                        disabled={!canTriage || active.status === option.status}
+                        onClick={() => {
+                          void setStatus(active, option.status);
+                          if (option.status === "vacant_clean") setActiveId(null);
+                        }}
+                        className={`h-12 text-base hover:opacity-90 ${option.className}`}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="signage mt-4 text-cream/45">Stage</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {[
+                      { value: null, label: "None" },
+                      { value: "in_progress", label: "In progress" },
+                      { value: "inspected", label: "Inspected" },
+                    ].map((stage) => (
+                      <Button
+                        key={stage.label}
+                        variant="outline"
+                        disabled={!canTriage || (active.hk_stage ?? null) === stage.value}
+                        onClick={() => void setStage(active, stage.value)}
+                        className="h-11 border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
+                      >
+                        {stage.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <label className="mt-4 flex items-center gap-2 text-sm text-cream/75">
+                    <input
+                      type="checkbox"
+                      disabled={!canTriage}
+                      checked={Boolean(active.linen_change)}
+                      onChange={() => void toggleLinen(active)}
+                    />
+                    Linen change needed
+                  </label>
+                </div>
               ) : (
                 <p className="text-xs text-cream/45">
-                  Read-only — front desk owns status changes for this room.
+                  Read-only — this room belongs to {active.assigned_name}.
                 </p>
               )}
+
 
               <Button
                 variant="outline"
