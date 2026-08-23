@@ -89,6 +89,10 @@ function timeAgo(iso: string) {
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
+  validateSearch: z.object({
+    demo: z.coerce.boolean().default(false),
+    present: z.coerce.boolean().default(false),
+  }),
   head: () => ({
     meta: [
       { title: "Staff Dashboard — Days Inn Hub" },
