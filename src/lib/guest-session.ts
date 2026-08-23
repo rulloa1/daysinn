@@ -7,7 +7,7 @@ export type GuestSession = {
   expiresAt: string;
 };
 
-const KEY = "rodeway.guest.session";
+const KEY = "daysinn.guest.session";
 
 export function readGuestSession(): GuestSession | null {
   if (typeof window === "undefined") return null;

@@ -137,7 +137,7 @@ function CheckInPage() {
             </Button>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">
-            Trouble signing in? Call the front desk at (352) 793-5010.
+            Trouble signing in? Call the front desk at (352) 748-7766.
           </p>
         </section>
 

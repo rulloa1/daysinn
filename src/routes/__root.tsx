@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "@type": "Organization",
             name: "Days Inn Hub",
             url: "https://daysinn.lovable.app",
-            telephone: "+1-352-793-5010",
+            telephone: "+1-352-748-7766",
           },
         }),
       },
