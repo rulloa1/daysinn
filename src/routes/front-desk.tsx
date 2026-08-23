@@ -10,6 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { useStaffIdentity } from "@/hooks/use-staff-identity";
+import {
+  average,
+  formatDuration,
+  logRoomStatusChange,
+  startOfToday,
+  type RoomStatusEvent,
+  type StaffIdentity,
+} from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
 import {
   Dialog,
@@ -200,15 +209,17 @@ function Board() {
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
+  const [events, setEvents] = useState<RoomStatusEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { canTriage, loading: roleLoading } = useStaffRole();
+  const { members, staff, select, addMember } = useStaffIdentity();
   const day = today();
 
   useEffect(() => {
     let active = true;
 
     async function load() {
-      const [roomRes, reqRes, bookRes] = await Promise.all([
+      const [roomRes, reqRes, bookRes, eventRes] = await Promise.all([
         supabase
           .from("rooms")
           .select(
@@ -224,12 +235,20 @@ function Board() {
           .from("bookings")
           .select("id, guest_name, room, phone, check_in, check_out, notes")
           .order("check_in"),
+        supabase
+          .from("room_status_events")
+          .select(
+            "id, room_number, old_status, new_status, staff_name, duration_seconds, is_turnover, changed_at",
+          )
+          .order("changed_at", { ascending: false })
+          .limit(500),
       ]);
       if (!active) return;
       if (roomRes.error) toast.error("Couldn't load the room board.");
       setRooms((roomRes.data ?? []) as RoomRow[]);
       setRequests((reqRes.data ?? []) as RequestRow[]);
       setBookings((bookRes.data ?? []) as BookingRow[]);
+      setEvents((eventRes.data ?? []) as RoomStatusEvent[]);
       setLoading(false);
     }
 
@@ -240,6 +259,7 @@ function Board() {
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () => void load())
       .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => void load())
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "room_status_events" }, () => void load())
       .subscribe();
 
     return () => {
@@ -298,6 +318,43 @@ function Board() {
     return map;
   }, [requests]);
 
+  const dayStart = startOfToday();
+
+  const avgTurnover = useMemo(
+    () =>
+      average(
+        events
+          .filter(
+            (e) =>
+              e.is_turnover &&
+              e.duration_seconds != null &&
+              e.changed_at >= dayStart,
+          )
+          .map((e) => e.duration_seconds as number),
+      ),
+    [events, dayStart],
+  );
+
+  const avgResponse = useMemo(
+    () =>
+      average(
+        resolvedToday
+          .filter((r) => r.response_seconds != null)
+          .map((r) => r.response_seconds as number),
+      ),
+    [resolvedToday],
+  );
+
+  const eventsByRoom = useMemo(() => {
+    const map = new Map<string, RoomStatusEvent[]>();
+    for (const event of events) {
+      const list = map.get(event.room_number) ?? [];
+      list.push(event);
+      map.set(event.room_number, list);
+    }
+    return map;
+  }, [events]);
+
   const activeRoom = rooms.find((r) => r.id === activeRoomId) ?? null;
 
   async function saveRoom(
@@ -325,7 +382,24 @@ function Board() {
       toast.error("Couldn't update that room.");
       return;
     }
-    toast.success(`Room ${room.number} updated`);
+
+    if (patch.status && patch.status !== room.status) {
+      const logged = await logRoomStatusChange({
+        roomId: room.id,
+        roomNumber: room.number,
+        oldStatus: room.status,
+        newStatus: patch.status,
+        previousChangedAt: room.updated_at,
+        staff,
+      });
+      if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
+    }
+
+    toast.success(
+      staff
+        ? `Room ${room.number} updated by ${staff.name}`
+        : `Room ${room.number} updated`,
+    );
   }
 
   return (
@@ -339,7 +413,8 @@ function Board() {
           </p>
           <h1 className="mt-3 text-4xl">Front desk board</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <StaffPicker members={members} staff={staff} onSelect={select} onAdd={addMember} />
           <Link to="/staff" className="signage text-cream/60 transition-colors duration-200 hover:text-amber">
             Request queue
           </Link>
@@ -362,11 +437,13 @@ function Board() {
         </div>
       ) : null}
 
-      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Stat label="Occupancy" value={`${occupancy}%`} />
         <Stat label="Arrivals today" value={arrivals.length} />
         <Stat label="Departures today" value={departures.length} />
         <Stat label="Open requests" value={requests.length} />
+        <Stat label="Avg turnover today" value={formatDuration(avgTurnover)} />
+        <Stat label="Avg response today" value={formatDuration(avgResponse)} />
       </section>
 
       <section className="mt-4 grid gap-3 grid-cols-2 lg:grid-cols-6">
@@ -506,6 +583,8 @@ function Board() {
         room={activeRoom}
         canEdit={canTriage}
         requests={activeRoom ? (requestsByRoom.get(activeRoom.number) ?? []) : []}
+        history={activeRoom ? (eventsByRoom.get(activeRoom.number) ?? []) : []}
+        staff={staff}
         onClose={() => setActiveRoomId(null)}
         onSave={saveRoom}
         onQr={(room) => {
@@ -515,6 +594,73 @@ function Board() {
       />
 
       <RoomQrDialog room={qrRoom} onClose={() => setQrRoom(null)} />
+    </div>
+  );
+}
+
+function StaffPicker({
+  members,
+  staff,
+  onSelect,
+  onAdd,
+}: {
+  members: { id: string; name: string }[];
+  staff: StaffIdentity;
+  onSelect: (next: StaffIdentity) => void;
+  onAdd: (name: string) => Promise<unknown>;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="signage text-cream/45">On desk</span>
+      <select
+        aria-label="Staff member on desk"
+        value={staff?.id ?? ""}
+        onChange={(e) => {
+          const match = members.find((m) => m.id === e.target.value);
+          onSelect(match ? { id: match.id, name: match.name } : null);
+        }}
+        className="border border-cream/25 bg-cream/[0.04] px-2 py-1 text-sm text-cream"
+      >
+        <option value="">Not set</option>
+        {members.map((m) => (
+          <option key={m.id} value={m.id} className="text-ink">
+            {m.name}
+          </option>
+        ))}
+      </select>
+      {adding ? (
+        <span className="flex items-center gap-2">
+          <Input
+            value={name}
+            autoFocus
+            placeholder="Name"
+            onChange={(e) => setName(e.target.value)}
+            className="h-8 w-32 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
+          />
+          <Button
+            size="sm"
+            className="bg-amber text-ink hover:bg-amber/90"
+            onClick={async () => {
+              await onAdd(name);
+              setName("");
+              setAdding(false);
+            }}
+          >
+            Save
+          </Button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="signage text-cream/50 transition-colors duration-200 hover:text-amber"
+        >
+          + Add
+        </button>
+      )}
     </div>
   );
 }
@@ -535,6 +681,8 @@ function RoomPanel({
   room,
   canEdit,
   requests,
+  history,
+  staff,
   onClose,
   onSave,
   onQr,
@@ -542,6 +690,8 @@ function RoomPanel({
   room: RoomRow | null;
   canEdit: boolean;
   requests: RequestRow[];
+  history: RoomStatusEvent[];
+  staff: StaffIdentity;
   onClose: () => void;
   onSave: (
     room: RoomRow,
@@ -552,6 +702,7 @@ function RoomPanel({
   const [guest, setGuest] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
@@ -569,6 +720,13 @@ function RoomPanel({
                 {room.bed_type} · Floor {room.floor} · updated {stamp(room.updated_at)}
               </DialogDescription>
             </DialogHeader>
+
+            {!staff ? (
+              <p className="border border-amber/45 bg-amber/10 px-3 py-2 text-xs text-cream/75">
+                Pick who is on the desk at the top of the board so changes are
+                attributed to you.
+              </p>
+            ) : null}
 
             <div>
               <p className="signage text-cream/55">Status</p>
@@ -623,6 +781,43 @@ function RoomPanel({
                 </ul>
               </div>
             ) : null}
+
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowHistory((v) => !v)}
+                className="signage text-cream/60 underline-offset-4 transition-colors duration-200 hover:text-amber hover:underline"
+              >
+                {showHistory ? "Hide room history" : "Room history"} ({history.length})
+              </button>
+              {showHistory ? (
+                <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1 text-xs">
+                  {history.length === 0 ? (
+                    <li className="text-cream/45">No status changes logged yet.</li>
+                  ) : (
+                    history.slice(0, 12).map((event) => (
+                      <li
+                        key={event.id}
+                        className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
+                      >
+                        <p className="text-cream/85">
+                          {event.old_status
+                            ? STATUS_LABEL[event.old_status as RoomStatus]
+                            : "—"}{" "}
+                          → {STATUS_LABEL[event.new_status as RoomStatus]}
+                        </p>
+                        <p className="mt-1 text-cream/50">
+                          {event.staff_name ?? "Unattributed"} · {stamp(event.changed_at)}
+                          {event.is_turnover && event.duration_seconds != null
+                            ? ` · turnover ${formatDuration(event.duration_seconds)}`
+                            : ""}
+                        </p>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              ) : null}
+            </div>
 
             <div className="flex flex-wrap gap-2">
               <Button
