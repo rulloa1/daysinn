@@ -805,6 +805,23 @@ function GuestView() {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="mt-10">
+          <div className="mb-4">
+            <p className="signage text-accent font-bold">Before You Book</p>
+            <h2 className="font-serif text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+          </div>
+          <div className="grid gap-3.5 md:grid-cols-2">
+            {FAQS.map((item) => (
+              <article key={item.q} className="glass-card rounded-2xl p-5">
+                <h3 className="font-serif text-base font-bold text-foreground">{item.q}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.a}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+
         {/* Wyndham Rewards Perks */}
         <section className="relative mt-10 rounded-3xl border border-slate-800 bg-[#0f172a] p-7 text-white shadow-xl md:p-9">
           <div className="flex flex-wrap items-start justify-between gap-4">
