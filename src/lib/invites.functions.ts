@@ -143,7 +143,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
     // Always produce a shareable link so invites work without email.
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
-        type: userId && emailSent ? "magiclink" : userId ? "magiclink" : "invite",
+        type: userId ? "magiclink" : "invite",
         email: data.email,
         options: { redirectTo },
       });
