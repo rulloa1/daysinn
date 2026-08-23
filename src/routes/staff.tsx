@@ -454,32 +454,36 @@ function Dashboard({
           >
             Walkthrough
           </button>
-          <Link
-            to="/front-desk"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Front desk
-          </Link>
-          <Link
-            to="/housekeeping"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Housekeeping
-          </Link>
-          <Link
-            to="/"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Guest view
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-            onClick={demo ? onExitDemo : signOut}
-          >
-            {demo ? "Exit demo" : "Sign out"}
-          </Button>
+          {!present ? (
+            <>
+              <Link
+                to="/front-desk"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Front desk
+              </Link>
+              <Link
+                to="/housekeeping"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Housekeeping
+              </Link>
+              <Link
+                to="/"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Guest view
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                onClick={demo ? onExitDemo : signOut}
+              >
+                {demo ? "Exit demo" : "Sign out"}
+              </Button>
+            </>
+          ) : null}
         </div>
       </header>
 
