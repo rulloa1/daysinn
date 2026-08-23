@@ -333,6 +333,7 @@ function Dashboard({
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
   const [tourOpen, setTourOpen] = useState(present);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { staff } = useStaffIdentity();
 
   useEffect(() => {
