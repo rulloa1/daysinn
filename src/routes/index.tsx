@@ -158,6 +158,77 @@ const STOPS = [
   },
 ];
 
+const ROOM_TYPES = [
+  {
+    name: "One King Bed",
+    sleeps: "Sleeps 2",
+    beds: "1 king bed · 300 sq ft",
+    body: "Work desk, mini fridge, microwave, flat-screen TV and free Wi-Fi.",
+    image: deskAsset.url,
+    alt: "King room with work desk, fridge and microwave",
+  },
+  {
+    name: "Two Queen Beds",
+    sleeps: "Sleeps 4",
+    beds: "2 queen beds · 330 sq ft",
+    body: "Our most popular room for families and road-trip crews heading down I-75.",
+    image: roomAsset.url,
+    alt: "Guest room with two queen beds",
+  },
+  {
+    name: "Hospitality Suite",
+    sleeps: "Sleeps 4",
+    beds: "1 king bed + sofa · sitting area",
+    body: "Extra living space with sofa, desk and second TV for longer stays.",
+    image: suiteAsset.url,
+    alt: "Suite sitting area with sofa, desk and TV",
+  },
+];
+
+const AMENITIES = [
+  "Free Daybreak® hot breakfast",
+  "Outdoor heated pool",
+  "Free high-speed Wi-Fi",
+  "Free parking — RV & truck friendly",
+  "Pet-friendly rooms (fees apply)",
+  "Micro-fridge in every room",
+  "Guest laundry access",
+  "Right off I-75 Exit 329",
+];
+
+const POLICIES = [
+  { label: "Check-in", value: "3:00 PM" },
+  { label: "Check-out", value: "11:00 AM" },
+  { label: "Cancellation", value: "Free until 4:00 PM day of arrival on most rates" },
+  { label: "Pets", value: "Welcome in select rooms — additional fee at check-in" },
+  { label: "Smoking", value: "Non-smoking property" },
+  { label: "Age to check in", value: "21+ with valid photo ID and credit card" },
+];
+
+const FAQS = [
+  {
+    q: "How far is the hotel from I-75?",
+    a: "We're less than a minute from I-75 Exit 329 at 551 East SR 44, Wildwood — an easy stop between Ocala and Orlando and about 10 minutes from The Villages.",
+  },
+  {
+    q: "Is breakfast included?",
+    a: "Yes. Complimentary Daybreak® breakfast is served every morning in the lobby, with coffee available throughout the day.",
+  },
+  {
+    q: "Do you allow pets?",
+    a: "Pets are welcome in select rooms. A pet fee is collected at check-in — please tell the front desk when you book so we can assign the right room.",
+  },
+  {
+    q: "Is there parking for trucks and RVs?",
+    a: "Free on-site parking is available, including oversized spaces for trucks and RVs on a first-come basis.",
+  },
+  {
+    q: "What is the best rate?",
+    a: "Booking direct through Wyndham gets you member rates and Wyndham Rewards® points on qualifying stays.",
+  },
+];
+
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
