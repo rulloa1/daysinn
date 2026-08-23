@@ -730,6 +730,37 @@ function RoomPanel({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [pin, setPin] = useState<string | null>(null);
+  const [keyBusy, setKeyBusy] = useState(false);
+  const mintKey = useServerFn(issueDoorPin);
+  const revokeKey = useServerFn(clearDoorPin);
+
+  async function issueKey(number: string) {
+    setKeyBusy(true);
+    try {
+      const result = await mintKey({ data: { room: number } });
+      setPin(result.pin);
+      toast.success(`Room key issued for ${number}.`);
+    } catch {
+      toast.error("Could not issue a room key.");
+    } finally {
+      setKeyBusy(false);
+    }
+  }
+
+  async function clearKey(number: string) {
+    setKeyBusy(true);
+    try {
+      await revokeKey({ data: { room: number } });
+      setPin(null);
+      toast.success(`Room key cleared for ${number}.`);
+    } catch {
+      toast.error("Could not clear the room key.");
+    } finally {
+      setKeyBusy(false);
+    }
+  }
+
 
   useEffect(() => {
     setGuest(room?.guest_name ?? "");
