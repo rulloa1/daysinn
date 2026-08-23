@@ -1,13 +1,18 @@
 /**
- * Physical layout of Days Inn Wildwood (551 FL-44), transcribed from the aerial
- * photo of the property: one L-shaped, two-story building wrapping a courtyard
- * that holds the pool, with parking on the north (highway) and west sides.
+ * Physical layout of Days Inn Wildwood (551 FL-44), transcribed from the
+ * property's hand-drawn floor plan.
  *
- * Floor 1: 101 (corner), 103-121 odd (west wing, parking side),
- *          152-166 even (west wing, courtyard side),
- *          127-147 odd (north wing, highway side),
- *          128-144 even (north wing, courtyard side).
- * Floor 2 mirrors floor 1 with +100.
+ * Two buildings:
+ *  - Front block (runs north/south along the guest parking): lobby /
+ *    registration at the north end with second-floor rooms 200-209 above it,
+ *    then paired room rows — odd numbers on the parking side, even numbers on
+ *    the courtyard side — broken up by breezeways/stairs, with facility,
+ *    laundry and storage at the south end.
+ *  - Rear block (east, behind the parking strip): a long two-row building,
+ *    even numbers 136-162 facing the pool/parking, odd numbers 137-163 facing
+ *    the rear truck parking, with stairs at each end.
+ *
+ * Every floor-1 room has a floor-2 twin at +100 (plus 265 at the far east end).
  */
 
 export type FloorKey = 1 | 2;
@@ -21,50 +26,83 @@ const range = (start: number, end: number, step = 2) => {
   return out;
 };
 
-/** Corner unit at the elbow of the L (nearest the lobby/registration entrance). */
-export const CORNER_ROOM = 101;
+/** Second-floor rooms sitting above the lobby / office block (no floor-1 twin). */
+export const LOBBY_UPSTAIRS_WEST = [201, 203, 205, 207, 209];
+export const LOBBY_UPSTAIRS_EAST = [200, 202, 204, 206, 208];
 
-/** North wing, outer row: faces FL-44 and the truck parking. */
-export const NORTH_OUTER = range(127, 147);
-/** North wing, inner row: faces the courtyard and pool. */
-export const NORTH_INNER = range(128, 144);
+/** Single room beside the security office, above the 110 stack. */
+export const FRONT_SOLO = 108;
 
-/** West wing, outer column: faces the guest parking lot. */
-export const WEST_OUTER = range(103, 121);
-/** West wing, inner column: faces the courtyard and pool. */
-export const WEST_INNER = range(152, 166);
+/** Front block, north section (between the lobby and the first breezeway). */
+export const FRONT_ROWS_NORTH: [number, number][] = [
+  [111, 110],
+  [113, 112],
+  [115, 114],
+  [117, 116],
+];
 
-export function northWing(floor: FloorKey) {
+/** Front block, south section (between the two breezeways). */
+export const FRONT_ROWS_SOUTH: [number, number][] = [
+  [119, 118],
+  [121, 120],
+  [123, 122],
+  [125, 124],
+  [127, 126],
+  [129, 128],
+  [131, 130],
+  [133, 132],
+  [135, 134],
+];
+
+/** Rear block, north row (faces the parking strip and pool). */
+export const REAR_ROW_NORTH = range(136, 162);
+/** Rear block, south row (faces the rear truck parking). */
+export const REAR_ROW_SOUTH = range(137, 163);
+
+/** Extra second-floor room at the far east end of the rear block. */
+export const EXTRA_UPSTAIRS = "265";
+
+export function frontRows(floor: FloorKey) {
   return {
-    outer: NORTH_OUTER.map((n) => lift(n, floor)),
-    inner: NORTH_INNER.map((n) => lift(n, floor)),
+    solo: lift(FRONT_SOLO, floor),
+    north: FRONT_ROWS_NORTH.map(([odd, even]) => [lift(odd, floor), lift(even, floor)] as const),
+    south: FRONT_ROWS_SOUTH.map(([odd, even]) => [lift(odd, floor), lift(even, floor)] as const),
   };
 }
 
-export function westWingColumns(floor: FloorKey) {
+export function rearRows(floor: FloorKey) {
   return {
-    outer: WEST_OUTER.map((n) => lift(n, floor)),
-    inner: WEST_INNER.map((n) => lift(n, floor)),
+    north: REAR_ROW_NORTH.map((n) => lift(n, floor)),
+    south: REAR_ROW_SOUTH.map((n) => lift(n, floor)),
   };
-}
-
-export function cornerRoom(floor: FloorKey) {
-  return lift(CORNER_ROOM, floor);
 }
 
 /** Every room number on a floor, in walking order. */
 export function floorRooms(floor: FloorKey): string[] {
-  const north = northWing(floor);
-  const west = westWingColumns(floor);
-  return [cornerRoom(floor), ...north.outer, ...north.inner, ...west.outer, ...west.inner];
+  const front = frontRows(floor);
+  const rear = rearRows(floor);
+  const lobby = floor === 2 ? [...LOBBY_UPSTAIRS_WEST, ...LOBBY_UPSTAIRS_EAST].map(String) : [];
+  const rows = [...front.north, ...front.south].flatMap(([odd, even]) => [odd, even]);
+  return [
+    ...lobby,
+    front.solo,
+    ...rows,
+    ...rear.north,
+    ...rear.south,
+    ...(floor === 2 ? [EXTRA_UPSTAIRS] : []),
+  ];
 }
 
 export const ALL_ROOM_NUMBERS = [...floorRooms(1), ...floorRooms(2)];
 
-/** Back-of-house spaces along the ground floor of the north wing. */
+/** Back-of-house spaces in the front block. */
 export const SERVICE_SPACES = [
+  "GM Office",
+  "Kitchen",
   "Lobby / Registration",
   "Breakfast",
-  "Laundry",
+  "Security",
   "Facility",
+  "Guest Laundry",
+  "Laundry & Storage",
 ] as const;
