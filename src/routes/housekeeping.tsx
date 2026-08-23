@@ -797,6 +797,27 @@ function HousekeepingBoard({
                 </div>
               </dl>
 
+              <div className="border border-cream/15 bg-cream/[0.03] px-3 py-3">
+                <p className="signage text-cream/45">Assigned to</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-sm text-cream/85">
+                    {active.assigned_name ?? "Unassigned"}
+                  </p>
+                  {!active.assigned_staff_id || active.assigned_staff_id === staff.id ? (
+                    <button
+                      type="button"
+                      disabled={!canTriage}
+                      onClick={() =>
+                        void setAssignment(active, active.assigned_staff_id !== staff.id)
+                      }
+                      className="signage border border-cream/25 px-3 py-2 text-cream/70 transition-colors duration-200 hover:text-amber disabled:opacity-40"
+                    >
+                      {active.assigned_staff_id === staff.id ? "Release" : "Assign to me"}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
               {active.status === "vacant_dirty" ? (
                 <Button
                   disabled={!canTriage}
@@ -813,10 +834,28 @@ function HousekeepingBoard({
                   Read-only — front desk owns status changes for this room.
                 </p>
               )}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIssueRoom(active);
+                  setActiveId(null);
+                }}
+                className="h-12 w-full border-amber/60 bg-transparent text-base text-amber hover:bg-amber/10 hover:text-amber"
+              >
+                Report an issue
+              </Button>
             </>
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <IssueDialog
+        room={issueRoom}
+        staff={staff}
+        onClose={() => setIssueRoom(null)}
+      />
+
     </div>
   );
 }
