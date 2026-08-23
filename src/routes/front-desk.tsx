@@ -51,7 +51,9 @@ type RoomRow = {
   check_in: string | null;
   check_out: string | null;
   notes: string | null;
+  door_pin?: string | null;
   updated_at: string;
+
 };
 
 type RequestRow = {
