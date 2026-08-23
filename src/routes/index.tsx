@@ -312,13 +312,26 @@ function GuestView() {
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
-  const [today, setToday] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("2");
 
   useEffect(() => {
-    setToday(
-      new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
-    );
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 86400000);
+    setCheckIn(today.toISOString().slice(0, 10));
+    setCheckOut(tomorrow.toISOString().slice(0, 10));
   }, []);
+
+  function checkAvailability(event: React.FormEvent) {
+    event.preventDefault();
+    const url = new URL(BOOKING_URL);
+    if (checkIn) url.searchParams.set("checkInDate", checkIn);
+    if (checkOut) url.searchParams.set("checkOutDate", checkOut);
+    if (guests) url.searchParams.set("adults", guests);
+    window.open(url.toString(), "_blank", "noopener");
+  }
+
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
