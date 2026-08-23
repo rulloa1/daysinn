@@ -23,6 +23,24 @@ type Shift = {
   notes: string | null;
 };
 
+type Room = {
+  id: string;
+  number: string;
+  floor: number;
+  status: string;
+};
+
+type ShiftRoom = {
+  id: string;
+  schedule_id: string;
+  staff_member_id: string;
+  staff_name: string;
+  work_date: string;
+  room_id: string | null;
+  room_number: string;
+};
+
+
 function isoDate(offsetDays = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -49,6 +67,10 @@ function timeLabel(value: string) {
 export function ScheduleBoard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [shiftRooms, setShiftRooms] = useState<ShiftRoom[]>([]);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
+  const [onlyDirty, setOnlyDirty] = useState(false);
   const [weekStart, setWeekStart] = useState(() => isoDate(0));
   const [memberId, setMemberId] = useState("");
   const [date, setDate] = useState(() => isoDate(0));
@@ -68,7 +90,7 @@ export function ScheduleBoard() {
   );
 
   const load = useCallback(async () => {
-    const [staffRes, shiftRes] = await Promise.all([
+    const [staffRes, shiftRes, roomRes, assignRes] = await Promise.all([
       supabase
         .from("staff_members")
         .select("id, name, department, is_supervisor")
@@ -81,17 +103,86 @@ export function ScheduleBoard() {
         .lte("work_date", days[6]!)
         .order("work_date")
         .order("start_time"),
+      supabase.from("rooms").select("id, number, floor, status").order("number"),
+      supabase
+        .from("shift_room_assignments")
+        .select("id, schedule_id, staff_member_id, staff_name, work_date, room_id, room_number")
+        .gte("work_date", days[0]!)
+        .lte("work_date", days[6]!)
+        .order("room_number"),
     ]);
     if (staffRes.data) {
       setMembers(staffRes.data as Member[]);
       setMemberId((prev) => prev || (staffRes.data[0]?.id ?? ""));
     }
     if (shiftRes.data) setShifts(shiftRes.data as Shift[]);
+    if (roomRes.data) setRooms(roomRes.data as Room[]);
+    if (assignRes.data) setShiftRooms(assignRes.data as ShiftRoom[]);
   }, [days]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const activeShift = shifts.find((s) => s.id === activeShiftId) ?? null;
+  const activeRooms = shiftRooms.filter((r) => r.schedule_id === activeShiftId);
+  const activeRoomNumbers = new Set(activeRooms.map((r) => r.room_number));
+
+  async function toggleRoom(room: Room) {
+    if (!activeShift) return;
+    const existing = activeRooms.find((r) => r.room_number === room.number);
+    if (existing) {
+      const { error } = await supabase.from("shift_room_assignments").delete().eq("id", existing.id);
+      if (error) {
+        toast.error("Couldn't remove that room.");
+        return;
+      }
+      setShiftRooms((prev) => prev.filter((r) => r.id !== existing.id));
+      return;
+    }
+    const { data, error } = await supabase
+      .from("shift_room_assignments")
+      .insert({
+        schedule_id: activeShift.id,
+        staff_member_id: activeShift.staff_member_id,
+        staff_name: activeShift.staff_name,
+        work_date: activeShift.work_date,
+        room_id: room.id,
+        room_number: room.number,
+      })
+      .select("id, schedule_id, staff_member_id, staff_name, work_date, room_id, room_number")
+      .single();
+    if (error || !data) {
+      toast.error("Couldn't assign that room.");
+      return;
+    }
+    setShiftRooms((prev) => [...prev, data as ShiftRoom]);
+  }
+
+  /** Push a shift's room list onto the live housekeeping board. */
+  async function pushToBoard() {
+    if (!activeShift || activeRooms.length === 0) {
+      toast.error("Assign at least one room to this shift first.");
+      return;
+    }
+    setBusy(true);
+    const ids = activeRooms.map((r) => r.room_id).filter((id): id is string => Boolean(id));
+    const { error } = await supabase
+      .from("rooms")
+      .update({
+        assigned_staff_id: activeShift.staff_member_id,
+        assigned_name: activeShift.staff_name,
+        assigned_at: new Date().toISOString(),
+      })
+      .in("id", ids);
+    setBusy(false);
+    if (error) {
+      toast.error("Couldn't push the assignment to the board.");
+      return;
+    }
+    toast.success(`${ids.length} room(s) sent to ${activeShift.staff_name}'s board.`);
+  }
+
 
   async function addShift() {
     const person = members.find((m) => m.id === memberId);
@@ -243,30 +334,113 @@ export function ScheduleBoard() {
                 <p className="mt-2 text-xs text-cream/40">No shifts</p>
               ) : (
                 <ul className="mt-2 space-y-2">
-                  {list.map((shift) => (
-                    <li key={shift.id} className="border border-cream/15 bg-cream/[0.04] p-2">
-                      <p className="text-sm">{shift.staff_name}</p>
-                      <p className="text-xs text-cream/60">
-                        {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}
-                      </p>
-                      {shift.notes ? (
-                        <p className="mt-1 text-[11px] text-cream/50">{shift.notes}</p>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => void removeShift(shift.id)}
-                        className="mt-1 text-[11px] uppercase tracking-wide text-clay hover:text-cream"
+                  {list.map((shift) => {
+                    const count = shiftRooms.filter((r) => r.schedule_id === shift.id).length;
+                    const active = shift.id === activeShiftId;
+                    return (
+                      <li
+                        key={shift.id}
+                        className={`border p-2 transition ${
+                          active
+                            ? "border-amber bg-amber/15"
+                            : "border-cream/15 bg-cream/[0.04]"
+                        }`}
                       >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={() => setActiveShiftId(active ? null : shift.id)}
+                          className="w-full text-left"
+                        >
+                          <p className="text-sm">{shift.staff_name}</p>
+                          <p className="text-xs text-cream/60">
+                            {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}
+                          </p>
+                          <p className="mt-1 text-[11px] uppercase tracking-wide text-amber">
+                            {count} room{count === 1 ? "" : "s"} · {active ? "editing" : "assign"}
+                          </p>
+                        </button>
+                        {shift.notes ? (
+                          <p className="mt-1 text-[11px] text-cream/50">{shift.notes}</p>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => void removeShift(shift.id)}
+                          className="mt-1 text-[11px] uppercase tracking-wide text-clay hover:text-cream"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
           );
         })}
       </div>
+
+      <div className="mt-6 border border-cream/15 bg-ink/40 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="font-display text-lg">Rooms for this shift</h3>
+          {activeShift ? (
+            <Badge className="bg-amber/20 text-[11px] text-cream">
+              {activeShift.staff_name} · {dayLabel(activeShift.work_date)} ·{" "}
+              {timeLabel(activeShift.start_time)}–{timeLabel(activeShift.end_time)}
+            </Badge>
+          ) : null}
+          <label className="ml-auto flex items-center gap-2 text-xs text-cream/60">
+            <input
+              type="checkbox"
+              checked={onlyDirty}
+              onChange={(event) => setOnlyDirty(event.target.checked)}
+            />
+            Dirty rooms only
+          </label>
+          <Button
+            disabled={busy || !activeShift || activeRooms.length === 0}
+            onClick={() => void pushToBoard()}
+            className="h-9 bg-amber text-ink hover:bg-amber/90"
+          >
+            Send to housekeeping board
+          </Button>
+        </div>
+
+        {!activeShift ? (
+          <p className="mt-3 text-sm text-cream/55">
+            Pick a shift above to give that housekeeper specific rooms for that date and time.
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-cream/60">
+              {activeRooms.length === 0
+                ? "No rooms on this shift yet."
+                : `Assigned: ${activeRooms.map((r) => r.room_number).join(", ")}`}
+            </p>
+            <div className="mt-3 flex max-h-64 flex-wrap gap-2 overflow-y-auto">
+              {rooms
+                .filter((room) => (onlyDirty ? room.status === "vacant_dirty" : true))
+                .map((room) => {
+                  const picked = activeRoomNumbers.has(room.number);
+                  return (
+                    <button
+                      key={room.id}
+                      type="button"
+                      onClick={() => void toggleRoom(room)}
+                      className={`border px-3 py-1.5 text-sm transition ${
+                        picked
+                          ? "border-amber bg-amber/25 text-cream"
+                          : "border-cream/20 bg-ink/60 text-cream/70 hover:border-cream/40"
+                      }`}
+                    >
+                      {room.number}
+                    </button>
+                  );
+                })}
+            </div>
+          </>
+        )}
+      </div>
+
 
       <div className="mt-8">
         <h3 className="font-display text-lg">Supervisor access</h3>
