@@ -153,6 +153,7 @@ const DEMO_ROWS: RequestRow[] = [
 
 function StaffPage() {
   const { demo: demoParam, present: presentParam } = useSearch({ from: "/staff" });
+  const navigate = useNavigate({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [demo, setDemo] = useState(demoParam || presentParam);
@@ -181,8 +182,13 @@ function StaffPage() {
     );
   }
 
+  const exitDemo = () => {
+    setDemo(false);
+    void navigate({ to: "/staff", search: {} });
+  };
+
   if (session) return <Dashboard />;
-  if (demo) return <Dashboard demo present={present} onExitDemo={() => setDemo(false)} />;
+  if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} />;
   return <SignIn onDemo={() => setDemo(true)} />;
 }
 
