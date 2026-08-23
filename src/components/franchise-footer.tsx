@@ -1,5 +1,5 @@
 export const BOOKING_URL =
-  "https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood/overview";
+  "https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview";
 
 export function FranchiseDisclaimer({ className }: { className?: string }) {
   return (
