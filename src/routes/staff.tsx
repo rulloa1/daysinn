@@ -290,9 +290,11 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
 
 function Dashboard({
   demo = false,
+  present = false,
   onExitDemo,
 }: {
   demo?: boolean;
+  present?: boolean;
   onExitDemo?: () => void;
 }) {
   const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
@@ -304,7 +306,7 @@ function Dashboard({
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
-  const [tourOpen, setTourOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(present);
   const { staff } = useStaffIdentity();
 
   useEffect(() => {
