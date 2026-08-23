@@ -53,6 +53,50 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_messages: {
+        Row: {
+          author_name: string | null
+          author_staff_id: string | null
+          body: string
+          created_at: string
+          id: string
+          read_by_guest: boolean
+          read_by_staff: boolean
+          room: string
+          sender: string
+        }
+        Insert: {
+          author_name?: string | null
+          author_staff_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          read_by_guest?: boolean
+          read_by_staff?: boolean
+          room: string
+          sender?: string
+        }
+        Update: {
+          author_name?: string | null
+          author_staff_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          read_by_guest?: boolean
+          read_by_staff?: boolean
+          room?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_messages_author_staff_id_fkey"
+            columns: ["author_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -320,6 +364,8 @@ export type Database = {
           check_out: string | null
           created_at: string
           dnd: boolean
+          door_pin: string | null
+          door_pin_set_at: string | null
           extended_stay: boolean
           floor: number
           guest_name: string | null
@@ -339,6 +385,8 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           dnd?: boolean
+          door_pin?: string | null
+          door_pin_set_at?: string | null
           extended_stay?: boolean
           floor?: number
           guest_name?: string | null
@@ -358,6 +406,8 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           dnd?: boolean
+          door_pin?: string | null
+          door_pin_set_at?: string | null
           extended_stay?: boolean
           floor?: number
           guest_name?: string | null
