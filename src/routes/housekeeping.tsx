@@ -765,7 +765,7 @@ function HousekeepingBoard({
       )}
 
       <Dialog open={!!active} onOpenChange={(open) => !open && setActiveId(null)}>
-        <DialogContent className="border-cream/20 bg-ink text-cream">
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-cream/20 bg-ink text-cream">
           {active ? (
             <>
               <DialogHeader>
@@ -934,7 +934,7 @@ function IssueDialog({
 
   return (
     <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="border-cream/20 bg-ink text-cream">
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-cream/20 bg-ink text-cream">
         {room ? (
           <>
             <DialogHeader>
