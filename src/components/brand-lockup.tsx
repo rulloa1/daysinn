@@ -1,4 +1,4 @@
-import logoAsset from "@/assets/rodeway-inn-logo.png.asset.json";
+import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export function BrandLockup({
