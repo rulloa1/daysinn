@@ -874,32 +874,37 @@ function HousekeepingBoard({
                       </span>
                     ) : null}
                   </span>
-                  {room.status === "vacant_dirty" ? (
+                  {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
                     <span className="mt-3 block space-y-1.5">
-                      {!room.assigned_staff_id || room.assigned_staff_id === staff.id ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void setAssignment(room, room.assigned_staff_id !== staff.id);
-                          }}
-                          className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
-                        >
-                          {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
-                        </button>
-                      ) : null}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void markClean(room);
+                          void setAssignment(room, room.assigned_staff_id !== staff.id);
                         }}
-                        className="signage block w-full bg-status-clean px-2 py-3 text-center text-[0.7rem] text-ink"
+                        className="signage block w-full border border-cream/25 px-2 py-2.5 text-center text-[0.65rem] text-cream/70"
                       >
-                        Mark clean
+                        {room.assigned_staff_id === staff.id ? "Release" : "Claim"}
                       </button>
+                      <span className="grid grid-cols-2 gap-1.5">
+                        {QUICK_STATUS.map((option) => (
+                          <button
+                            key={option.status}
+                            type="button"
+                            disabled={!canTriage || room.status === option.status}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void setStatus(room, option.status);
+                            }}
+                            className={`signage px-2 py-2.5 text-center text-[0.65rem] disabled:opacity-35 ${option.className}`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </span>
                     </span>
                   ) : null}
+
                 </div>
               ))}
             </div>
