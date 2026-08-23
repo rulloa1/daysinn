@@ -5,10 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+type OAuthDetails = {
+  redirect_url?: string;
+  redirect_to?: string;
+  client?: { name?: string; icon_uri?: string };
+  scopes?: string[];
+  [key: string]: unknown;
+};
+
+type OAuthError = {
+  message: string;
+};
+
 type OauthNamespace = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: unknown; error: unknown }>;
-  approveAuthorization: (id: string) => Promise<{ data: unknown; error: unknown }>;
-  denyAuthorization: (id: string) => Promise<{ data: unknown; error: unknown }>;
+  getAuthorizationDetails: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: OAuthError | null }>;
+  approveAuthorization: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: OAuthError | null }>;
+  denyAuthorization: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: OAuthError | null }>;
 };
 
 const oauth = () => (supabase.auth as unknown as { oauth: OauthNamespace }).oauth;
@@ -34,7 +52,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
 function Consent() {
   const { authorization_id } = Route.useSearch();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
-  const [details, setDetails] = useState<Record<string, unknown> | null>(null);
+  const [details, setDetails] = useState<OAuthDetails | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
