@@ -177,3 +177,11 @@ export async function cleanupRoomTokens(room: string) {
     prefer: "return=minimal",
   });
 }
+
+/** Clears throttle history so a test run starts with a full attempt budget. */
+export async function resetGuestAttempts(room: string): Promise<void> {
+  await db(`guest_auth_attempts?identifier=eq.${encodeURIComponent(room.toLowerCase())}`, {
+    method: "DELETE",
+    prefer: "return=minimal",
+  });
+}

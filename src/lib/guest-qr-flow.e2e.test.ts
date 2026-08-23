@@ -8,6 +8,7 @@ import {
   issueToken,
   warmApp,
   randomToken,
+  resetGuestAttempts,
   tokenRow,
 } from "./e2e-harness";
 
@@ -47,11 +48,15 @@ beforeAll(async () => {
   if (occupied) {
     room = occupied.number;
     lastName = occupied.guest_name.trim().split(/\s+/).pop() ?? "";
+    await resetGuestAttempts(room);
   }
 });
 
 afterAll(async () => {
-  if (room) await cleanupRoomTokens(room);
+  if (room) {
+    await cleanupRoomTokens(room);
+    await resetGuestAttempts(room);
+  }
 });
 
 describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
