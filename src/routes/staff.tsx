@@ -167,7 +167,12 @@ function StaffPage() {
     void navigate({ to: "/staff", search: {} });
   };
 
-  if (session) return <Dashboard />;
+  if (session)
+    return (
+      <PasswordResetGate>
+        <Dashboard />
+      </PasswordResetGate>
+    );
   if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} />;
   return <SignIn onDemo={() => setDemo(true)} />;
 }
