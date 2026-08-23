@@ -213,10 +213,10 @@ function TrackPage() {
                                   {isPast ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
                                 </div>
                                 <span className={`mt-2 font-serif text-xs font-bold ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
-                                  {config.label}
+                                  {config?.label}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground hidden sm:block">
-                                  {config.description}
+                                  {config?.description}
                                 </span>
                               </div>
                             );
