@@ -1,12 +1,5 @@
 import { useMemo } from "react";
-import {
-  frontRows,
-  rearRows,
-  LOBBY_UPSTAIRS_WEST,
-  LOBBY_UPSTAIRS_EAST,
-  EXTRA_UPSTAIRS,
-  type FloorKey,
-} from "@/lib/property-layout";
+import { cornerRoom, northWing, westWing, type FloorKey } from "@/lib/property-layout";
 import { Waves, MapPin } from "lucide-react";
 
 type RoomStatus =
@@ -43,6 +36,11 @@ type Props = {
   onSelect: (roomId: string) => void;
 };
 
+/**
+ * Color-coded map of the property, laid out like the aerial photo: an
+ * L-shaped block with the north wing across the top, the west wing down the
+ * left, and the pool courtyard in the middle.
+ */
 export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Props) {
   const byNumber = useMemo(() => {
     const map = new Map<string, MapRoom>();
@@ -52,9 +50,9 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
 
   const both = floor === "both";
   const layoutFloor: FloorKey = both ? 1 : floor;
-  const front = frontRows(layoutFloor);
-  const rear = rearRows(layoutFloor);
-  const showLobbyRooms = both || floor === 2;
+  const north = northWing(layoutFloor);
+  const west = westWing(layoutFloor);
+  const corner = cornerRoom(layoutFloor);
 
   function Slot({ number }: { number: string }) {
     const room = byNumber.get(number);
@@ -129,76 +127,67 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
     </div>
   );
 
+  const columns = `repeat(${north.length}, minmax(0, 1fr))`;
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white shadow-2xl">
-      <div className="min-w-[900px] space-y-3">
+      <div className="min-w-[1000px] space-y-3">
         <ZoneLabel
-          label="Truck parking · FL-44 highway frontage"
+          label="Rear parking · FL-44 highway frontage"
           className="border-amber-500/20 bg-slate-900/90 text-amber-300"
         />
 
+        {/* NORTH WING — back row faces the rear parking, front row faces the courtyard */}
         <div className="flex items-stretch gap-3">
-          <ZoneLabel label="Parking" className="w-9 [writing-mode:vertical-rl]" />
-
-          {/* FRONT BLOCK — lobby at the north end, rooms running south */}
-          <div className="w-[300px] shrink-0 space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Front block
-              </span>
-              <span className="flex items-center gap-1 text-[10px] font-semibold text-rose-400">
+          <div className="w-[150px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-2">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span>Lobby</span>
+              <span className="flex items-center gap-1 text-rose-400">
                 <MapPin className="h-3 w-3" /> You are here
               </span>
             </div>
-
-            <Strip label="Breezeway // Stairs" />
-
-            {/* Lobby / office block with the 200-level rooms above it */}
-            <div className="grid grid-cols-[1fr_1fr_64px] gap-1">
-              <div className="col-span-2 space-y-1">
-                <div className="grid grid-cols-2 gap-1">
-                  <Space label="GM Office" />
-                  <Space label="Kitchen" />
-                </div>
-                <Space label="Lobby / Registration" className="py-3" />
-                <Space label="Breakfast" />
-                <div className="grid grid-cols-2 gap-1">
-                  <Space label="Security" />
-                  <Tile number={front.solo} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                {showLobbyRooms
-                  ? LOBBY_UPSTAIRS_EAST.map((n) => <Slot key={n} number={String(n)} />)
-                  : LOBBY_UPSTAIRS_EAST.map((n) => (
-                      <Space key={n} label="—" className="opacity-40" />
-                    ))}
-              </div>
+            <Space label="Lobby / Registration" className="py-3" />
+            <div className="grid grid-cols-2 gap-1">
+              <Space label="GM Office" />
+              <Space label="Kitchen" />
             </div>
+            <Tile number={corner} />
+          </div>
 
-            {/* Room rows: odd on the parking side, even on the courtyard side */}
-            <div className="space-y-1">
-              {front.north.map(([odd, even]) => (
-                <div key={odd} className="grid grid-cols-2 gap-1">
-                  <Tile number={odd} />
-                  <Tile number={even} />
-                </div>
+          <div className="flex-1 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+            <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span>North wing</span>
+              <span className="text-slate-500">Stairs at both ends</span>
+            </div>
+            <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
+              {north.map(([back]) => (
+                <Tile key={back} number={back} />
               ))}
             </div>
-
-            <Strip label="Breezeway // Stairs" />
-
-            <div className="space-y-1">
-              {front.south.map(([odd, even]) => (
-                <div key={odd} className="grid grid-cols-2 gap-1">
-                  <Tile number={odd} />
-                  <Tile number={even} />
-                </div>
+            <Strip label="Interior corridor / breezeway" />
+            <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
+              {north.map(([, front]) => (
+                <Tile key={front} number={front} />
               ))}
             </div>
+          </div>
+        </div>
 
-            <Strip label="Breezeway" />
+        {/* WEST WING + COURTYARD */}
+        <div className="flex items-stretch gap-3">
+          <ZoneLabel label="Guest parking" className="w-9 [writing-mode:vertical-rl]" />
 
+          <div className="w-[220px] shrink-0 space-y-1 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+            <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              West wing
+            </div>
+            {west.map(([outer, inner]) => (
+              <div key={outer} className="grid grid-cols-2 gap-1">
+                <Tile number={outer} />
+                <Tile number={inner} />
+              </div>
+            ))}
+            <Strip label="Stairs" />
             <div className="grid grid-cols-2 gap-1">
               <Space label="Facility" />
               <Space label="Guest Laundry" />
@@ -206,92 +195,19 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
             <Space label="Laundry & Storage" />
           </div>
 
-          {/* EAST SIDE — upstairs lobby rooms, pool courtyard, parking, rear block */}
-          <div className="flex flex-1 flex-col gap-3">
-            <div className="flex gap-3">
-              <div className="w-16 shrink-0 space-y-1">
-                <div className="text-[9px] font-black uppercase tracking-wider text-slate-500">
-                  Upstairs
-                </div>
-                {showLobbyRooms
-                  ? LOBBY_UPSTAIRS_WEST.map((n) => <Slot key={n} number={String(n)} />)
-                  : LOBBY_UPSTAIRS_WEST.map((n) => (
-                      <Space key={n} label="—" className="opacity-40" />
-                    ))}
-              </div>
-              <div className="flex flex-1 flex-col gap-2 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
-                <div className="grid h-32 place-items-center rounded-xl border border-cyan-500/30 bg-cyan-500/10">
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-cyan-300">
-                    <Waves className="h-4 w-4" /> Swim pool
-                  </div>
-                </div>
-                <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-emerald-700/40 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-600/80">
-                  Lawn / Courtyard
-                </div>
+          <div className="flex flex-1 flex-col gap-2 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
+            <div className="grid h-36 place-items-center rounded-xl border border-cyan-500/30 bg-cyan-500/10">
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-cyan-300">
+                <Waves className="h-4 w-4" /> Swim pool
               </div>
             </div>
-
-            <ZoneLabel label="Parking" />
-
-            {/* REAR BLOCK */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-              <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                <span>Rear block</span>
-                <span className="text-slate-500">Stairs at both ends</span>
-              </div>
-              <div className="flex items-stretch gap-2">
-                <Strip label="Stairs" className="w-7 [writing-mode:vertical-rl] py-2" />
-                <div className="flex-1 space-y-2">
-                  <div
-                    className="grid gap-1"
-                    style={{
-                      gridTemplateColumns: `repeat(${rear.north.length}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {rear.north.map((num) => (
-                      <Tile key={num} number={num} />
-                    ))}
-                  </div>
-                  <div
-                    className="grid gap-1"
-                    style={{
-                      gridTemplateColumns: `repeat(${rear.south.length}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {rear.south.map((num) => (
-                      <Tile key={num} number={num} />
-                    ))}
-                  </div>
-                </div>
-                {showLobbyRooms ? (
-                  <div className="w-12 shrink-0 self-end">
-                    <Slot number={EXTRA_UPSTAIRS} />
-                  </div>
-                ) : null}
-              </div>
+            <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-emerald-700/40 py-6 text-[10px] font-black uppercase tracking-widest text-emerald-600/80">
+              Lawn / Courtyard
             </div>
           </div>
         </div>
 
-        <ZoneLabel label="Truck parking · rear yard" />
-
-        <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-          {(
-            [
-              ["vacant_clean", "Vacant clean"],
-              ["vacant_dirty", "Vacant dirty"],
-              ["occupied", "Occupied"],
-              ["occupied_dnd", "DND"],
-              ["reserved", "Reserved"],
-              ["out_of_order", "Out of order"],
-            ] as [RoomStatus, string][]
-          ).map(([status, label]) => (
-            <span key={status} className="flex items-center gap-1.5">
-              <span className={`h-3 w-3 rounded border ${TILE[status]}`} />
-              {label}
-            </span>
-          ))}
-        </div>
+        <ZoneLabel label="Overflow parking" />
       </div>
     </div>
   );
