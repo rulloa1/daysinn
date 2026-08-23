@@ -576,6 +576,20 @@ function HousekeepingBoard({
         >
           {alertsOn ? "Live alerts on · DND & stayovers" : "Turn on live alerts"}
         </button>
+        {pushSupported() ? (
+          <button
+            type="button"
+            onClick={() => void togglePush()}
+            aria-pressed={pushOn}
+            className={`signage border px-4 py-3 transition-colors duration-200 ${
+              pushOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+            }`}
+          >
+            {pushOn
+              ? "Device notifications on · works in background"
+              : "Turn on device notifications"}
+          </button>
+        ) : null}
       </div>
 
       {loading ? (
