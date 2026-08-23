@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { GuestChatPanel } from "@/components/guest-chat-panel";
+import { clearDoorPin, issueDoorPin } from "@/lib/guest-hub.functions";
+
 import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
