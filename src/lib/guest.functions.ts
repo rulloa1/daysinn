@@ -71,7 +71,9 @@ const GENERIC_DENIAL =
 export const guestSignIn = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => signInSchema.parse(input))
   .handler(async ({ data }) => {
-    const { allowGuestAttempt, recordAudit } = await import("@/lib/audit.server");
+    const { allowGuestAttempt, recordGuestAttempt, recordAudit } = await import(
+      "@/lib/audit.server",
+    );
 
     if (!(await allowGuestAttempt("guest_sign_in", data.room))) {
       return {
@@ -81,11 +83,13 @@ export const guestSignIn = createServerFn({ method: "POST" })
     }
 
     if (data.token && !(await consumeToken(data.room, data.token))) {
+      await recordGuestAttempt("guest_sign_in", data.room, false);
       return { ok: false as const, error: GENERIC_DENIAL };
     }
 
     const guest = await verify(data);
     if (!guest) {
+      await recordGuestAttempt("guest_sign_in", data.room, false);
       return { ok: false as const, error: GENERIC_DENIAL };
     }
 
@@ -94,6 +98,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
       ? new Date(`${guest.checkOut}T23:59:59Z`).getTime()
       : null;
     if (checkoutMs !== null && checkoutMs < Date.now()) {
+      await recordGuestAttempt("guest_sign_in", data.room, false);
       return { ok: false as const, error: GENERIC_DENIAL };
     }
 
@@ -102,7 +107,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
       checkoutMs === null ? sessionMs : Math.min(sessionMs, checkoutMs),
     ).toISOString();
 
-    await allowGuestAttempt("guest_sign_in", data.room, true);
+    await recordGuestAttempt("guest_sign_in", data.room, true);
     await recordAudit({
       entity: "guest_session",
       action: "sign_in",
