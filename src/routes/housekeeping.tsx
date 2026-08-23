@@ -566,21 +566,21 @@ function HousekeepingBoard({
   }
 
   return (
-    <div className="min-h-screen bg-ink px-4 pb-16 pt-6 text-cream sm:px-6">
-      <header className="border-b border-cream/15 pb-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+    <div className="min-h-screen bg-ink px-3 pb-24 pt-4 text-cream sm:px-6 sm:pb-16 sm:pt-6">
+      <header className="border-b border-cream/15 pb-4 sm:pb-5">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             <BrandLockup tone="cream" />
-            <p className="signage mt-5 flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              Housekeeping · {staff.name}
+            <p className="signage mt-4 flex items-center gap-2 text-cream/60 sm:mt-5">
+              <span aria-hidden className="h-3 w-[3px] shrink-0 bg-amber" />
+              <span className="truncate">Housekeeping · {staff.name}</span>
             </p>
-            <h1 className="mt-2 text-3xl sm:text-4xl">Rooms to turn</h1>
+            <h1 className="mt-2 truncate text-2xl sm:text-4xl">Rooms to turn</h1>
           </div>
           <button
             type="button"
             onClick={onSignOut}
-            className="signage shrink-0 text-cream/50 transition-colors duration-200 hover:text-amber"
+            className="signage shrink-0 border border-cream/20 px-3 py-2 text-cream/60 transition-colors duration-200 hover:text-amber"
           >
             End shift
           </button>
@@ -588,7 +588,7 @@ function HousekeepingBoard({
       </header>
 
       {!roleLoading && !canTriage ? (
-        <div className="mt-5 border border-amber/50 bg-amber/10 p-4">
+        <div className="mt-4 border border-amber/50 bg-amber/10 p-4">
           <p className="signage text-amber">View-only access</p>
           <p className="mt-2 text-sm text-cream/70">
             A manager must grant staff access before you can mark rooms clean.
@@ -596,7 +596,7 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />
         <Stat label="My rooms left" value={mineLeft} />
         <Stat label="Do not disturb" value={dnd} />
@@ -617,53 +617,61 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        {(
-          [
-            ["all", "All rooms"],
-            ["dirty", "Dirty only"],
-            ["mine", `My rooms (${mine.length})`],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            aria-pressed={filter === key}
-            className={`signage border px-4 py-3 transition-colors duration-200 ${
-              filter === key
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-cream/20 text-cream/60"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={toggleAlerts}
-          aria-pressed={alertsOn}
-          className={`signage border px-4 py-3 transition-colors duration-200 ${
-            alertsOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
-          }`}
-        >
-          {alertsOn ? "Live alerts on · DND & stayovers" : "Turn on live alerts"}
-        </button>
-        {pushSupported() ? (
+      <div className="sticky top-0 z-20 -mx-3 mt-4 bg-ink/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <Input
+          value={query}
+          inputMode="numeric"
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Find a room number…"
+          className="h-12 border-cream/20 bg-cream/[0.04] text-base text-cream placeholder:text-cream/35"
+        />
+        <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          {(
+            [
+              ["all", "All rooms"],
+              ["dirty", "Dirty only"],
+              ["mine", `My rooms (${mine.length})`],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              aria-pressed={filter === key}
+              className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
+                filter === key
+                  ? "border-amber bg-amber/15 text-amber"
+                  : "border-cream/20 text-cream/60"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
           <button
             type="button"
-            onClick={() => void togglePush()}
-            aria-pressed={pushOn}
-            className={`signage border px-4 py-3 transition-colors duration-200 ${
-              pushOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+            onClick={toggleAlerts}
+            aria-pressed={alertsOn}
+            className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
+              alertsOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
             }`}
           >
-            {pushOn
-              ? "Device notifications on · works in background"
-              : "Turn on device notifications"}
+            {alertsOn ? "Alerts on" : "Alerts off"}
           </button>
-        ) : null}
+          {pushSupported() ? (
+            <button
+              type="button"
+              onClick={() => void togglePush()}
+              aria-pressed={pushOn}
+              className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
+                pushOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+              }`}
+            >
+              {pushOn ? "Phone alerts on" : "Phone alerts off"}
+            </button>
+          ) : null}
+        </div>
       </div>
+
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
