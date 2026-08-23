@@ -158,6 +158,7 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+  --ocean: oklch(0.6 0.11 245);
 }
 
 @layer base {
@@ -174,7 +175,7 @@
 
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: -0.015em;
   }
 }
