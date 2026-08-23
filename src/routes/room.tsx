@@ -88,6 +88,36 @@ function RoomHub() {
       }),
   });
 
+  const thread = useQuery({
+    queryKey: ["guest-thread", session?.room, session?.lastName],
+    enabled: Boolean(session),
+    refetchInterval: 8000,
+    queryFn: async () =>
+      fetchThread({
+        data: { room: session!.room, lastName: session!.lastName },
+      }),
+  });
+
+  const messages = thread.data?.messages ?? [];
+
+  async function sendChat(event: React.FormEvent) {
+    event.preventDefault();
+    const body = chatDraft.trim();
+    if (!body || !session) return;
+    setChatSending(true);
+    const result = await sendMessage({
+      data: { room: session.room, lastName: session.lastName, body },
+    });
+    setChatSending(false);
+    if (!result.ok) {
+      toast.error(result.error ?? "Message didn't send.");
+      return;
+    }
+    setChatDraft("");
+    void thread.refetch();
+  }
+
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!open || !session) return;
