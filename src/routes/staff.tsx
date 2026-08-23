@@ -152,9 +152,15 @@ const DEMO_ROWS: RequestRow[] = [
 ];
 
 function StaffPage() {
+  const { demo: demoParam, present: presentParam } = useSearch({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [demo, setDemo] = useState(false);
+  const [demo, setDemo] = useState(demoParam || presentParam);
+  const present = demo && presentParam;
+
+  useEffect(() => {
+    setDemo(demoParam || presentParam);
+  }, [demoParam, presentParam]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -176,7 +182,7 @@ function StaffPage() {
   }
 
   if (session) return <Dashboard />;
-  if (demo) return <Dashboard demo onExitDemo={() => setDemo(false)} />;
+  if (demo) return <Dashboard demo present={present} onExitDemo={() => setDemo(false)} />;
   return <SignIn onDemo={() => setDemo(true)} />;
 }
 
