@@ -25,6 +25,7 @@ import {
   type StaffIdentity,
 } from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
+import { FloorPlan } from "@/components/floor-plan";
 import { MetricsExportButton } from "@/components/metrics-export-button";
 import {
   Dialog,
@@ -209,6 +210,8 @@ function Board() {
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
+  const [view, setView] = useState<"map" | "list">("map");
+  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">("both");
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
@@ -224,7 +227,7 @@ function Board() {
     let active = true;
 
     async function load() {
-      const rpc = supabase.rpc as unknown as (
+      const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
       ) => ReturnType<typeof supabase.rpc>;
@@ -335,6 +338,12 @@ function Board() {
     }
     return map;
   }, [requests]);
+
+  const openCountByRoom = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const [room, list] of requestsByRoom) map.set(room, list.length);
+    return map;
+  }, [requestsByRoom]);
 
   const dayStart = startOfToday();
 
@@ -502,11 +511,59 @@ function Board() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <section>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {(["map", "list"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setView(mode)}
+                aria-pressed={view === mode}
+                className={`signage border px-4 py-2 transition-colors duration-200 ${
+                  view === mode
+                    ? "border-amber bg-amber/15 text-amber"
+                    : "border-cream/20 text-cream/55 hover:text-cream"
+                }`}
+              >
+                {mode === "map" ? "Property map" : "Room list"}
+              </button>
+            ))}
+            {view === "map" ? (
+              <div className="ml-auto flex items-center gap-2">
+                {(["both", 1, 2] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setMapFloor(f)}
+                    aria-pressed={mapFloor === f}
+                    className={`signage border px-4 py-2 transition-colors duration-200 ${
+                      mapFloor === f
+                        ? "border-amber bg-amber/15 text-amber"
+                        : "border-cream/20 text-cream/55 hover:text-cream"
+                    }`}
+                  >
+                    {f === "both" ? "All rooms" : `Floor ${f}`}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {!loading && view === "map" ? (
+            <FloorPlan
+              floor={mapFloor}
+              rooms={mapFloor === "both" ? rooms : rooms.filter((r) => r.floor === mapFloor)}
+              openRequests={openCountByRoom}
+              dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
+              onSelect={setActiveRoomId}
+            />
+          ) : null}
+
           {loading ? (
             <p className="text-sm text-cream/50">Loading the board…</p>
-          ) : byFloor.length === 0 ? (
-            <p className="text-sm text-cream/50">No rooms match this filter.</p>
-          ) : (
+          ) : view === "list" ? (
+            byFloor.length === 0 ? (
+              <p className="text-sm text-cream/50">No rooms match this filter.</p>
+            ) : (
             byFloor.map(([floor, list]) => (
               <div key={floor} className="mb-8">
                 <p className="signage text-cream/50">
@@ -546,7 +603,8 @@ function Board() {
                 </div>
               </div>
             ))
-          )}
+            )
+          ) : null}
         </section>
 
         <aside className="space-y-8">
