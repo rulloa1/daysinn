@@ -164,6 +164,7 @@ export const Route = createFileRoute("/")({
 
 function GuestView() {
   const [open, setOpen] = useState<(typeof REQUESTS)[number] | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [room, setRoom] = useState("");
   const [roomError, setRoomError] = useState<string | null>(null);
   const [name, setName] = useState("");
