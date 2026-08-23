@@ -23,6 +23,7 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
+import { ShiftClock } from "@/components/shift-clock";
 
 import {
   Dialog,
@@ -645,6 +646,8 @@ function HousekeepingBoard({
           </p>
         </div>
       ) : null}
+
+      <ShiftClock staff={staff} />
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />

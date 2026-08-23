@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertManager } from "./roles.guard";
 
-export type AppRole = "manager" | "staff" | "viewer";
+export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
 export type StaffInvite = {
   id: string;
