@@ -352,7 +352,7 @@ function HousekeepingBoard({
       const { data, error } = await supabase
         .from("rooms")
         .select(
-          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at",
+          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name",
         )
         .order("number");
       if (!active) return;
