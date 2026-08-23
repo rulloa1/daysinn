@@ -210,6 +210,14 @@ function GuestView() {
       <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:px-10">
         <BrandLockup />
         <div className="flex items-center gap-3">
+          <a
+            href={BOOKING_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-amber px-4 py-2 text-xs font-bold text-ink shadow-sm transition-colors duration-200 hover:bg-ink hover:text-cream"
+          >
+            Book now
+          </a>
           <Link
             to="/checkin"
             search={{}}
