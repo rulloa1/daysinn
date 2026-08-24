@@ -182,11 +182,6 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
     }
   }
 
-  const preferencesText = (p: GuestProfile["preferences"]) =>
-    Object.entries(p)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join("\n");
-
   return (
     <section className="mt-10 border border-cream/15 bg-cream/[0.04] p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
