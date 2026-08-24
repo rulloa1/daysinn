@@ -6,6 +6,23 @@ import type { Database } from "@/integrations/supabase/types";
 
 type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
 type RequestRow = Database["public"]["Tables"]["requests"]["Row"];
+type SerializableValue = string | number | boolean | null;
+type SerializableRecord = Record<string, SerializableValue>;
+
+function toSerializable(records: unknown[]): SerializableRecord[] {
+  return records.map((r) => {
+    const out: SerializableRecord = {};
+    if (r && typeof r === "object") {
+      for (const [k, v] of Object.entries(r)) {
+        out[k] =
+          v === null || typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+            ? (v as SerializableValue)
+            : String(v);
+      }
+    }
+    return out;
+  });
+}
 
 export const listRooms = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -21,9 +38,9 @@ export const listRooms = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase.rpc("rooms_board");
     if (error) throw new Error(error.message);
-    const rooms = ((rows ?? []) as Array<Record<string, unknown>>)
+    const rooms = toSerializable(rows ?? [])
       .filter((r) => (data.status ? r["status"] === data.status : true))
-      .filter((r) => (data.floor != null ? r["floor"] === data.floor : true))
+      .filter((r) => (data.floor != null ? Number(r["floor"]) === data.floor : true))
       .slice(0, data.limit);
     return { count: rooms.length, rooms };
   });
@@ -42,7 +59,7 @@ export const listRequests = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase.rpc("requests_board");
     if (error) throw new Error(error.message);
-    const requests = ((rows ?? []) as Array<Record<string, unknown>>)
+    const requests = toSerializable(rows ?? [])
       .filter((r) => (data.status === "all" ? true : r["status"] === data.status))
       .filter((r) => (data.room ? String(r["room"]) === data.room : true))
       .slice(0, data.limit);
@@ -73,7 +90,7 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
     if (!room) throw new Error(`Room ${data.room_number} not found or access denied.`);
-    return { room };
+    return { room: toSerializable([room])[0] };
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
@@ -113,7 +130,7 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
       });
     }
 
-    return { request };
+    return { request: toSerializable([request])[0] };
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
@@ -126,8 +143,8 @@ export const getPropertySummary = createServerFn({ method: "GET" })
     const { data: requests, error: reqError } = await context.supabase.rpc("requests_board");
     if (reqError) throw new Error(reqError.message);
 
-    const roomRows = (rooms ?? []) as Array<Record<string, unknown>>;
-    const reqRows = (requests ?? []) as Array<Record<string, unknown>>;
+    const roomRows = toSerializable(rooms ?? []);
+    const reqRows = toSerializable(requests ?? []);
 
     const total = roomRows.length;
     const occupied = roomRows.filter((r) => r["status"] === "occupied" || r["status"] === "occupied_dnd").length;
@@ -140,7 +157,7 @@ export const getPropertySummary = createServerFn({ method: "GET" })
     const avgResponse = average(
       reqRows
         .filter((r) => r["status"] === "done" && r["response_seconds"] != null)
-        .map((r) => r["response_seconds"] as number),
+        .map((r) => Number(r["response_seconds"])),
     );
 
     return {
