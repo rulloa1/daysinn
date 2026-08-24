@@ -15,7 +15,12 @@ import {
   YAxis,
   Cell,
 } from "recharts";
-import { getOccupancyTrend, getRequestVolume, getRoomStatusBreakdown, getTurnaroundByHousekeeper } from "@/lib/analytics.functions";
+import {
+  getOccupancyTrend,
+  getRequestVolume,
+  getRoomStatusBreakdown,
+  getTurnaroundByHousekeeper,
+} from "@/lib/analytics.functions";
 import { formatDuration } from "@/lib/ops";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,8 +45,12 @@ export function AnalyticsDashboard() {
   const [days, setDays] = useState(14);
   const [occupancy, setOccupancy] = useState<{ date: string; occupancy: number }[]>([]);
   const [status, setStatus] = useState<{ status: string; count: number }[]>([]);
-  const [turnaround, setTurnaround] = useState<{ name: string; avgSeconds: number; count: number }[]>([]);
-  const [requests, setRequests] = useState<{ type: string; count: number; resolved: number; avgResponseSeconds: number | null }[]>([]);
+  const [turnaround, setTurnaround] = useState<
+    { name: string; avgSeconds: number; count: number }[]
+  >([]);
+  const [requests, setRequests] = useState<
+    { type: string; count: number; resolved: number; avgResponseSeconds: number | null }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -132,10 +141,24 @@ export function AnalyticsDashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={occupancy}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 12 }} angle={-30} textAnchor="end" height={50} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: "#94a3b8", fontSize: 12 }}
+                      angle={-30}
+                      textAnchor="end"
+                      height={50}
+                    />
                     <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} unit="%" domain={[0, 100]} />
-                    <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
-                    <Line type="monotone" dataKey="occupancy" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="occupancy"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -145,18 +168,30 @@ export function AnalyticsDashboard() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-cream/10 bg-cream/[0.04]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-cream/80">Room status breakdown</CardTitle>
+                <CardTitle className="text-sm font-medium text-cream/80">
+                  Room status breakdown
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-56 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={statusData} dataKey="count" nameKey="label" cx="50%" cy="50%" outerRadius={80} label>
+                      <Pie
+                        data={statusData}
+                        dataKey="count"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label
+                      >
                         {statusData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }}
+                      />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -182,18 +217,24 @@ export function AnalyticsDashboard() {
                 </div>
                 <div className="flex justify-between border-b border-cream/10 pb-2">
                   <span className="text-cream/60">Clean & vacant</span>
-                  <span className="text-cream">{status.find((s) => s.status === "vacant_clean")?.count ?? 0}</span>
+                  <span className="text-cream">
+                    {status.find((s) => s.status === "vacant_clean")?.count ?? 0}
+                  </span>
                 </div>
                 <div className="flex justify-between border-b border-cream/10 pb-2">
                   <span className="text-cream/60">Open requests</span>
-                  <span className="text-cream">{requests.reduce((a, r) => a + r.count - r.resolved, 0)}</span>
+                  <span className="text-cream">
+                    {requests.reduce((a, r) => a + r.count - r.resolved, 0)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-cream/60">Avg turnover</span>
                   <span className="text-cream">
                     {formatDuration(
                       turnaround.length > 0
-                        ? Math.round(turnaround.reduce((a, t) => a + t.avgSeconds, 0) / turnaround.length)
+                        ? Math.round(
+                            turnaround.reduce((a, t) => a + t.avgSeconds, 0) / turnaround.length,
+                          )
                         : null,
                     )}
                   </span>
@@ -206,15 +247,26 @@ export function AnalyticsDashboard() {
         <TabsContent value="housekeeping" className="space-y-4">
           <Card className="border-cream/10 bg-cream/[0.04]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-cream/80">Turnaround time by housekeeper</CardTitle>
+              <CardTitle className="text-sm font-medium text-cream/80">
+                Turnaround time by housekeeper
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={turnaround} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis type="number" tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => formatDuration(v)} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12 }} width={100} />
+                    <XAxis
+                      type="number"
+                      tick={{ fill: "#94a3b8", fontSize: 12 }}
+                      tickFormatter={(v) => formatDuration(v)}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fill: "#94a3b8", fontSize: 12 }}
+                      width={100}
+                    />
                     <Tooltip
                       contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }}
                       formatter={(value: number) => [formatDuration(value), "Average"]}
@@ -230,7 +282,9 @@ export function AnalyticsDashboard() {
         <TabsContent value="requests" className="space-y-4">
           <Card className="border-cream/10 bg-cream/[0.04]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-cream/80">Request volume by category</CardTitle>
+              <CardTitle className="text-sm font-medium text-cream/80">
+                Request volume by category
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-72 w-full">
@@ -239,7 +293,9 @@ export function AnalyticsDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis dataKey="type" tick={{ fill: "#94a3b8", fontSize: 12 }} />
                     <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} />
-                    <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }}
+                    />
                     <Legend />
                     <Bar dataKey="count" name="Total" fill="#3b82f6" />
                     <Bar dataKey="resolved" name="Resolved" fill="#10b981" />

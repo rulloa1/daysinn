@@ -41,7 +41,9 @@ function parsePreferences(value: unknown): PreferencesMap {
   return {};
 }
 
-function toJsonPreferences(value: PreferencesMap): Record<string, string | number | boolean | null> {
+function toJsonPreferences(
+  value: PreferencesMap,
+): Record<string, string | number | boolean | null> {
   const out: Record<string, string | number | boolean | null> = {};
   for (const [k, v] of Object.entries(value)) {
     out[k] = v;
@@ -153,7 +155,9 @@ export const createGuestProfile = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: z.string().trim().max(30).optional().or(z.literal("")),
-        preferences: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+        preferences: z
+          .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .default({}),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
       .parse(input ?? {}),
@@ -185,7 +189,9 @@ export const updateGuestProfile = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: z.string().trim().max(30).optional().or(z.literal("")),
-        preferences: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+        preferences: z
+          .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .default({}),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
       .parse(input ?? {}),
@@ -217,7 +223,11 @@ export const addGuestStay = createServerFn({ method: "POST" })
         guest_profile_id: z.string().uuid(),
         room_number: z.string().trim().min(1).max(10),
         check_in: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
+        check_out: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .or(z.literal("")),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
       .parse(input ?? {}),
@@ -248,7 +258,11 @@ export const updateGuestStay = createServerFn({ method: "POST" })
         id: z.string().uuid(),
         room_number: z.string().trim().min(1).max(10),
         check_in: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
+        check_out: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .or(z.literal("")),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
       .parse(input ?? {}),

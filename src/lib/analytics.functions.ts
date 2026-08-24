@@ -16,7 +16,9 @@ function dateKey(iso: string) {
 
 export const getOccupancyTrend = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input))
+  .inputValidator((input) =>
+    z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const since = startOfDay(-data.days + 1);
     const { data: bookings, error } = await context.supabase
@@ -64,7 +66,9 @@ export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
 
 export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input))
+  .inputValidator((input) =>
+    z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const since = startOfDay(-data.days + 1);
     const { data: events, error } = await context.supabase
@@ -77,7 +81,10 @@ export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const buckets: Record<string, number[]> = {};
-    for (const e of (events ?? []) as Array<{ staff_name: string | null; duration_seconds: number | null }>) {
+    for (const e of (events ?? []) as Array<{
+      staff_name: string | null;
+      duration_seconds: number | null;
+    }>) {
       const name = e.staff_name ?? "Unknown";
       if (e.duration_seconds == null) continue;
       (buckets[name] ??= []).push(e.duration_seconds);
@@ -94,7 +101,9 @@ export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
 
 export const getRequestVolume = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input))
+  .inputValidator((input) =>
+    z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const since = startOfDay(-data.days + 1);
     const { data: requests, error } = await context.supabase

@@ -53,7 +53,10 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("LOVABLE_API_KEY is not configured.");
 
-    const messages: AssistantMessage[] = [{ role: "system", content: SYSTEM_PROMPT }, ...data.messages];
+    const messages: AssistantMessage[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...data.messages,
+    ];
 
     const res = await fetch(LOVABLE_AI_URL, {
       method: "POST",
@@ -76,7 +79,9 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
     }
 
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = json.choices?.[0]?.message?.content?.trim() ?? '{"reply": "I\'m not sure how to help with that."}';
+    const content =
+      json.choices?.[0]?.message?.content?.trim() ??
+      '{"reply": "I\'m not sure how to help with that."}';
 
     let parsed: AssistantResponse;
     try {

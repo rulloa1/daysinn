@@ -39,8 +39,26 @@ const DEMO_PROFILES: ProfileWithStays[] = [
       updated_at: new Date(Date.now() - 90 * 86400000).toISOString(),
     },
     stays: [
-      { id: "demo-stay-1", guest_profile_id: "demo-guest-1", room_number: "214", check_in: "2026-08-20", check_out: "2026-08-22", notes: "Anniversary weekend", created_at: "", updated_at: "" },
-      { id: "demo-stay-2", guest_profile_id: "demo-guest-1", room_number: "118", check_in: "2025-11-03", check_out: "2025-11-05", notes: "", created_at: "", updated_at: "" },
+      {
+        id: "demo-stay-1",
+        guest_profile_id: "demo-guest-1",
+        room_number: "214",
+        check_in: "2026-08-20",
+        check_out: "2026-08-22",
+        notes: "Anniversary weekend",
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "demo-stay-2",
+        guest_profile_id: "demo-guest-1",
+        room_number: "118",
+        check_in: "2025-11-03",
+        check_out: "2025-11-05",
+        notes: "",
+        created_at: "",
+        updated_at: "",
+      },
     ],
   },
   {
@@ -55,7 +73,16 @@ const DEMO_PROFILES: ProfileWithStays[] = [
       updated_at: new Date(Date.now() - 180 * 86400000).toISOString(),
     },
     stays: [
-      { id: "demo-stay-3", guest_profile_id: "demo-guest-2", room_number: "118", check_in: "2026-08-18", check_out: "2026-08-21", notes: "Maintenance call on AC", created_at: "", updated_at: "" },
+      {
+        id: "demo-stay-3",
+        guest_profile_id: "demo-guest-2",
+        room_number: "118",
+        check_in: "2026-08-18",
+        check_out: "2026-08-21",
+        notes: "Maintenance call on AC",
+        created_at: "",
+        updated_at: "",
+      },
     ],
   },
 ];
@@ -173,7 +200,9 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
         await updateStay({ data: { id, room_number, check_in, check_out, notes } });
         toast.success("Stay updated.");
       } else {
-        await createStay({ data: { guest_profile_id: guestProfileId, room_number, check_in, check_out, notes } });
+        await createStay({
+          data: { guest_profile_id: guestProfileId, room_number, check_in, check_out, notes },
+        });
         toast.success("Stay added.");
       }
       await load();
@@ -187,7 +216,9 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl">Guest CRM</h2>
-          <p className="mt-1 text-sm text-cream/60">Stay history, preferences, and contact notes.</p>
+          <p className="mt-1 text-sm text-cream/60">
+            Stay history, preferences, and contact notes.
+          </p>
         </div>
         {canEdit ? (
           <Dialog>
@@ -236,22 +267,32 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                     <User className="h-4 w-4 text-amber" />
                     <span className="font-display text-xl">{profile.name}</span>
                     {stays.length > 0 ? (
-                      <Badge className="bg-cream/15 text-cream">{stays.length} stay{stays.length === 1 ? "" : "s"}</Badge>
+                      <Badge className="bg-cream/15 text-cream">
+                        {stays.length} stay{stays.length === 1 ? "" : "s"}
+                      </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-cream/25 text-cream/60">No stays</Badge>
+                      <Badge variant="outline" className="border-cream/25 text-cream/60">
+                        No stays
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-cream/60">
                     {profile.email ? <span>{profile.email}</span> : null}
                     {profile.phone ? <span>{profile.phone}</span> : null}
-                    {profile.notes ? <span className="max-w-md truncate">{profile.notes}</span> : null}
+                    {profile.notes ? (
+                      <span className="max-w-md truncate">{profile.notes}</span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {canEdit ? (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button size="sm" variant="outline" className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                        >
                           Edit
                         </Button>
                       </DialogTrigger>
@@ -272,7 +313,11 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                     className="text-cream/60 hover:text-cream"
                     onClick={() => toggle(profile.id)}
                   >
-                    {expanded[profile.id] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {expanded[profile.id] ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
                     <span className="sr-only">Toggle stays</span>
                   </Button>
                 </div>
@@ -283,7 +328,10 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                   {Object.keys(profile.preferences).length > 0 ? (
                     <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {Object.entries(profile.preferences).map(([k, v]) => (
-                        <div key={k} className="rounded border border-cream/10 bg-cream/[0.03] px-3 py-2">
+                        <div
+                          key={k}
+                          className="rounded border border-cream/10 bg-cream/[0.03] px-3 py-2"
+                        >
                           <p className="text-xs uppercase tracking-wide text-cream/40">{k}</p>
                           <p className="text-sm text-cream">{String(v)}</p>
                         </div>
@@ -299,7 +347,11 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                     {canEdit ? (
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                          >
                             <Plus className="mr-1 h-3 w-3" />
                             Add stay
                           </Button>
@@ -320,20 +372,37 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                     <ul className="mt-3 space-y-2">
                       {stays
                         .slice()
-                        .sort((a, b) => new Date(b.check_in).getTime() - new Date(a.check_in).getTime())
+                        .sort(
+                          (a, b) => new Date(b.check_in).getTime() - new Date(a.check_in).getTime(),
+                        )
                         .map((stay) => (
-                          <li key={stay.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-cream/10 bg-cream/[0.03] px-3 py-2">
+                          <li
+                            key={stay.id}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded border border-cream/10 bg-cream/[0.03] px-3 py-2"
+                          >
                             <div className="flex items-center gap-3 text-sm">
                               <BedDouble className="h-4 w-4 text-cream/40" />
-                              <span className="font-display text-lg tabular-nums">{stay.room_number}</span>
+                              <span className="font-display text-lg tabular-nums">
+                                {stay.room_number}
+                              </span>
                               <span className="text-cream/60">{stay.check_in}</span>
-                              {stay.check_out ? <span className="text-cream/40">→ {stay.check_out}</span> : <span className="text-cream/40">→ present</span>}
-                              {stay.notes ? <span className="text-cream/70">· {stay.notes}</span> : null}
+                              {stay.check_out ? (
+                                <span className="text-cream/40">→ {stay.check_out}</span>
+                              ) : (
+                                <span className="text-cream/40">→ present</span>
+                              )}
+                              {stay.notes ? (
+                                <span className="text-cream/70">· {stay.notes}</span>
+                              ) : null}
                             </div>
                             {canEdit ? (
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" className="text-cream/60 hover:text-cream">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-cream/60 hover:text-cream"
+                                  >
                                     Edit
                                   </Button>
                                 </DialogTrigger>
@@ -341,7 +410,10 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
                                   <DialogHeader>
                                     <DialogTitle className="text-cream">Edit stay</DialogTitle>
                                   </DialogHeader>
-                                  <StayForm stay={stay} onSubmit={(form) => saveStay(form, profile.id, stay.id)} />
+                                  <StayForm
+                                    stay={stay}
+                                    onSubmit={(form) => saveStay(form, profile.id, stay.id)}
+                                  />
                                 </DialogContent>
                               </Dialog>
                             ) : null}
@@ -379,16 +451,33 @@ function ProfileForm({
       <input type="hidden" name="open" value={String(open)} readOnly />
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" defaultValue={profile?.name} required className="border-cream/15 bg-cream/[0.04] text-cream" />
+        <Input
+          id="name"
+          name="name"
+          defaultValue={profile?.name}
+          required
+          className="border-cream/15 bg-cream/[0.04] text-cream"
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" defaultValue={profile?.email ?? ""} className="border-cream/15 bg-cream/[0.04] text-cream" />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            defaultValue={profile?.email ?? ""}
+            className="border-cream/15 bg-cream/[0.04] text-cream"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" name="phone" defaultValue={profile?.phone ?? ""} className="border-cream/15 bg-cream/[0.04] text-cream" />
+          <Input
+            id="phone"
+            name="phone"
+            defaultValue={profile?.phone ?? ""}
+            className="border-cream/15 bg-cream/[0.04] text-cream"
+          />
         </div>
       </div>
       <div className="space-y-2">
@@ -396,7 +485,13 @@ function ProfileForm({
         <textarea
           id="preferences"
           name="preferences"
-          defaultValue={profile ? Object.entries(profile.preferences).map(([k, v]) => `${k}: ${v}`).join("\n") : ""}
+          defaultValue={
+            profile
+              ? Object.entries(profile.preferences)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join("\n")
+              : ""
+          }
           rows={3}
           className="w-full rounded-md border border-cream/15 bg-cream/[0.04] p-3 text-sm text-cream placeholder:text-cream/40"
         />
@@ -418,13 +513,7 @@ function ProfileForm({
   );
 }
 
-function StayForm({
-  stay,
-  onSubmit,
-}: {
-  stay?: GuestStay;
-  onSubmit: (form: FormData) => void;
-}) {
+function StayForm({ stay, onSubmit }: { stay?: GuestStay; onSubmit: (form: FormData) => void }) {
   return (
     <form
       onSubmit={(e) => {
@@ -435,16 +524,35 @@ function StayForm({
     >
       <div className="space-y-2">
         <Label htmlFor="room_number">Room number</Label>
-        <Input id="room_number" name="room_number" defaultValue={stay?.room_number} required className="border-cream/15 bg-cream/[0.04] text-cream" />
+        <Input
+          id="room_number"
+          name="room_number"
+          defaultValue={stay?.room_number}
+          required
+          className="border-cream/15 bg-cream/[0.04] text-cream"
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="check_in">Check-in</Label>
-          <Input id="check_in" name="check_in" type="date" defaultValue={stay?.check_in} required className="border-cream/15 bg-cream/[0.04] text-cream" />
+          <Input
+            id="check_in"
+            name="check_in"
+            type="date"
+            defaultValue={stay?.check_in}
+            required
+            className="border-cream/15 bg-cream/[0.04] text-cream"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="check_out">Check-out</Label>
-          <Input id="check_out" name="check_out" type="date" defaultValue={stay?.check_out ?? ""} className="border-cream/15 bg-cream/[0.04] text-cream" />
+          <Input
+            id="check_out"
+            name="check_out"
+            type="date"
+            defaultValue={stay?.check_out ?? ""}
+            className="border-cream/15 bg-cream/[0.04] text-cream"
+          />
         </div>
       </div>
       <div className="space-y-2">

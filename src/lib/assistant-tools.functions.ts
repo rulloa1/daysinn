@@ -72,13 +72,24 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
     z
       .object({
         room_number: z.string().trim().min(1).max(10),
-        status: z.enum(["clean", "dirty", "in_progress", "inspected", "out_of_order", "occupied", "vacant"]),
+        status: z.enum([
+          "clean",
+          "dirty",
+          "in_progress",
+          "inspected",
+          "out_of_order",
+          "occupied",
+          "vacant",
+        ]),
         dnd: z.boolean().optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Partial<RoomRow> = { status: data.status as RoomRow["status"], updated_at: new Date().toISOString() };
+    const patch: Partial<RoomRow> = {
+      status: data.status as RoomRow["status"],
+      updated_at: new Date().toISOString(),
+    };
     if (typeof data.dnd === "boolean") patch["dnd"] = data.dnd;
 
     const { data: room, error } = await context.supabase
@@ -106,7 +117,10 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const now = new Date().toISOString();
-    const patch: Partial<RequestRow> = { status: data.status as RequestRow["status"], updated_at: now };
+    const patch: Partial<RequestRow> = {
+      status: data.status as RequestRow["status"],
+      updated_at: now,
+    };
     if (data.status === "in_progress") patch["started_at"] = now;
     if (data.status === "done") patch["resolved_at"] = now;
 
@@ -147,7 +161,9 @@ export const getPropertySummary = createServerFn({ method: "GET" })
     const reqRows = toSerializable(requests ?? []);
 
     const total = roomRows.length;
-    const occupied = roomRows.filter((r) => r["status"] === "occupied" || r["status"] === "occupied_dnd").length;
+    const occupied = roomRows.filter(
+      (r) => r["status"] === "occupied" || r["status"] === "occupied_dnd",
+    ).length;
     const clean = roomRows.filter((r) => r["status"] === "vacant_clean").length;
     const dirty = roomRows.filter((r) => r["status"] === "vacant_dirty").length;
     const ooo = roomRows.filter((r) => r["status"] === "out_of_order").length;

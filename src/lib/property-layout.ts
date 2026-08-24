@@ -8,8 +8,7 @@
 
 export type FloorKey = 1 | 2;
 
-export const lift = (base: number | string, floor: FloorKey) =>
-  String(floor === 2 ? Number(base) + 100 : Number(base));
+const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
   { kind: "rooms"; left: string; right: string } | { kind: "divider"; label: string };
