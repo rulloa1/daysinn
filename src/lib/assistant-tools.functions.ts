@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { average } from "@/lib/ops";
+import type { Database } from "@/integrations/supabase/types";
+
+type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
+type RequestRow = Database["public"]["Tables"]["requests"]["Row"];
 
 export const listRooms = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -17,11 +21,11 @@ export const listRooms = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase.rpc("rooms_board");
     if (error) throw new Error(error.message);
-    const filtered = ((rows ?? []) as Array<Record<string, unknown>>)
+    const rooms = ((rows ?? []) as Array<Record<string, unknown>>)
       .filter((r) => (data.status ? r["status"] === data.status : true))
       .filter((r) => (data.floor != null ? r["floor"] === data.floor : true))
       .slice(0, data.limit);
-    return { count: filtered.length, rooms: filtered };
+    return { count: rooms.length, rooms };
   });
 
 export const listRequests = createServerFn({ method: "GET" })
@@ -38,11 +42,11 @@ export const listRequests = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase.rpc("requests_board");
     if (error) throw new Error(error.message);
-    const filtered = ((rows ?? []) as Array<Record<string, unknown>>)
+    const requests = ((rows ?? []) as Array<Record<string, unknown>>)
       .filter((r) => (data.status === "all" ? true : r["status"] === data.status))
       .filter((r) => (data.room ? String(r["room"]) === data.room : true))
       .slice(0, data.limit);
-    return { count: filtered.length, requests: filtered };
+    return { count: requests.length, requests };
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
@@ -57,7 +61,7 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status, updated_at: new Date().toISOString() };
+    const patch: Partial<RoomRow> = { status: data.status as RoomRow["status"], updated_at: new Date().toISOString() };
     if (typeof data.dnd === "boolean") patch["dnd"] = data.dnd;
 
     const { data: room, error } = await context.supabase
@@ -85,7 +89,7 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const now = new Date().toISOString();
-    const patch: Record<string, unknown> = { status: data.status, updated_at: now };
+    const patch: Partial<RequestRow> = { status: data.status as RequestRow["status"], updated_at: now };
     if (data.status === "in_progress") patch["started_at"] = now;
     if (data.status === "done") patch["resolved_at"] = now;
 
