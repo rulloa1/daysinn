@@ -314,6 +314,7 @@ function Dashboard({
   const roleLoading = demo ? false : role.loading;
   const isManager = demo ? false : role.isManager;
   const canTriage = demo ? true : role.canTriage;
+  const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
