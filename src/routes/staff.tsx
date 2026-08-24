@@ -694,6 +694,8 @@ function Dashboard({
         </ul>
       )}
 
+      <GuestCrmPanel canEdit={canEditCrm} />
+
       {isManager ? (
         <div>
           <ScheduleBoard />
