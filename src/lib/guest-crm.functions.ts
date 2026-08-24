@@ -165,7 +165,7 @@ export const createGuestProfile = createServerFn({ method: "POST" })
         name: data.name,
         email: data.email || null,
         phone: data.phone || null,
-        preferences: data.preferences,
+        preferences: toJsonPreferences(data.preferences),
         notes: data.notes || null,
       })
       .select()
