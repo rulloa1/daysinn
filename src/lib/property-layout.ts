@@ -1,49 +1,46 @@
 /**
- * Physical layout of Days Inn Wildwood (551 FL-44), transcribed from the
- * aerial photo of the property with the room numbers marked on it.
+ * Physical layout of Days Inn Wildwood (551 FL-44), transcribed directly from
+ * the property architectural blueprint and sketch.
  *
- * The building is one L-shaped two-storey block:
- *  - North wing (runs east/west along the top of the site): the back row of
- *    rooms faces the rear parking, the front row faces the pool courtyard.
- *  - West wing (runs north/south along the guest parking): the outer row
- *    faces the parking lot, the inner row faces the pool courtyard.
- *  - The lobby / registration corner sits where the two wings meet, with
- *    room 101 (201 upstairs) beside it.
- *
- * Every floor-1 room has a floor-2 twin at +100.
+ * Floor 1 rooms: 108, 110-135 (West Wing), 136-163 (South Wing).
+ * Floor 2 rooms: 200-209 (Top/Lobby), 210-235 (West Wing), 236-265 (South Wing).
  */
 
 export type FloorKey = 1 | 2;
 
-const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
+export const lift = (base: number | string, floor: FloorKey) =>
+  String(floor === 2 ? Number(base) + 100 : Number(base));
 
 export type WingRow =
   { kind: "rooms"; left: string; right: string } | { kind: "divider"; label: string };
 
-/** North wing: [back row (rear parking side), front row (courtyard side)]. */
-export const NORTH_WING_PAIRS: [number, number][] = Array.from(
-  { length: 13 },
-  (_, i) => [127 + i * 2, 128 + i * 2] as [number, number],
-);
-
-/** West wing: [outer row (parking side), inner row (courtyard side)]. */
-export const WEST_WING_PAIRS: [number, number][] = Array.from(
-  { length: 10 },
-  (_, i) => [103 + i * 2, 154 + i * 2] as [number, number],
-);
-
-export function northWing(floor: FloorKey) {
-  return NORTH_WING_PAIRS.map(([back, front]) => [lift(back, floor), lift(front, floor)] as const);
+/** West wing: two rooms per row (odd numbers inside/courtyard, even numbers outside/parking). */
+export function westWing(floor: FloorKey): WingRow[] {
+  const rows: WingRow[] = [];
+  // Upper section: 111-117 (odd, inside) & 110-116 (even, outside)
+  for (let odd = 111; odd <= 117; odd += 2) {
+    rows.push({ kind: "rooms", left: lift(odd, floor), right: lift(odd - 1, floor) });
+  }
+  rows.push({ kind: "divider", label: "Breezeway // Stairs" });
+  // Lower section: 119-135 (odd, inside) & 118-134 (even, outside)
+  for (let odd = 119; odd <= 135; odd += 2) {
+    rows.push({ kind: "rooms", left: lift(odd, floor), right: lift(odd - 1, floor) });
+  }
+  rows.push({ kind: "divider", label: "Breezeway" });
+  return rows;
 }
 
-export function westWing(floor: FloorKey) {
-  return WEST_WING_PAIRS.map(([outer, inner]) => [lift(outer, floor), lift(inner, floor)] as const);
-}
+/** South building: long double-loaded corridor (top row evens facing courtyard, bottom row odds facing outer parking). */
+export function southBuilding(floor: FloorKey): { top: string[]; bottom: string[] } {
+  const top: string[] = [];
+  for (let n = 136; n <= 162; n += 2) top.push(lift(n, floor));
 
-export const CORNER_ROOM = 101;
+  const bottom: string[] = [];
+  for (let n = 137; n <= 161; n += 2) bottom.push(lift(n, floor));
+  bottom.push(lift(163, floor));
+  if (floor === 2) bottom.push("265");
 
-export function cornerRoom(floor: FloorKey) {
-  return lift(CORNER_ROOM, floor);
+  return { top, bottom };
 }
 
 export type StripCell =
@@ -69,7 +66,13 @@ export function frontBlock(floor: FloorKey): {
   };
 }
 
-/** Back-of-house spaces at the lobby corner and the end of the west wing. */
+export const CORNER_ROOM = 101;
+
+export function cornerRoom(floor: FloorKey) {
+  return lift(CORNER_ROOM, floor);
+}
+
+/** Back-of-house spaces at the bottom of the west wing. */
 export const SERVICE_SPACES = [
   "GM Office",
   "Kitchen",
@@ -77,6 +80,6 @@ export const SERVICE_SPACES = [
   "Breakfast",
   "Security",
   "Facility",
-  "Guest Laundry",
+  "GST Laundry",
   "Laundry & Storage",
 ] as const;
