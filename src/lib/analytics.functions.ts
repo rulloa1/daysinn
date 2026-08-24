@@ -104,30 +104,28 @@ export const getRequestVolume = createServerFn({ method: "GET" })
 
     if (error) throw new Error(error.message);
 
-    const byCategory: Record<string, { count: number; avgResponseSeconds: number | null; resolved: number }> = {};
+    type Accum = { count: number; resolved: number; responseSeconds: number[] };
+    const byCategory: Record<string, Accum> = {};
     for (const r of (requests ?? []) as Array<{
       type: string;
       status: string;
       created_at: string;
       response_seconds: number | null;
     }>) {
-      const bucket = byCategory[r.type] ?? { count: 0, resolved: 0, responseSeconds: [] as number[] };
+      const bucket: Accum = byCategory[r.type] ?? { count: 0, resolved: 0, responseSeconds: [] };
       bucket.count++;
       if (r.status === "done") bucket.resolved++;
-      if (r.response_seconds != null) (bucket as unknown as Record<string, unknown>).responseSeconds = [...((bucket as unknown as Record<string, unknown>).responseSeconds as number[] ?? []), r.response_seconds];
-      byCategory[r.type] = bucket as unknown as { count: number; avgResponseSeconds: number | null; resolved: number };
+      if (r.response_seconds != null) bucket.responseSeconds.push(r.response_seconds);
+      byCategory[r.type] = bucket;
     }
 
-    return Object.entries(byCategory).map(([type, b]) => {
-      const responseSeconds = (b as unknown as { responseSeconds?: number[] }).responseSeconds ?? [];
-      return {
-        type,
-        count: b.count,
-        resolved: b.resolved,
-        avgResponseSeconds:
-          responseSeconds.length > 0
-            ? Math.round(responseSeconds.reduce((a, c) => a + c, 0) / responseSeconds.length)
-            : null,
-      };
-    });
+    return Object.entries(byCategory).map(([type, b]) => ({
+      type,
+      count: b.count,
+      resolved: b.resolved,
+      avgResponseSeconds:
+        b.responseSeconds.length > 0
+          ? Math.round(b.responseSeconds.reduce((a, c) => a + c, 0) / b.responseSeconds.length)
+          : null,
+    }));
   });
