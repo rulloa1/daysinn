@@ -576,6 +576,8 @@ function Board() {
             />
           ) : null}
 
+          {!loading && view === "analytics" ? <AnalyticsDashboard /> : null}
+
           {loading ? (
             <p className="text-sm text-cream/50">Loading the board…</p>
           ) : view === "list" ? (
