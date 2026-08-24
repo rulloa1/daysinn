@@ -7,7 +7,7 @@ export type GuestProfile = {
   name: string;
   email: string | null;
   phone: string | null;
-  preferences: Record<string, unknown>;
+  preferences: Record<string, string | number | boolean | null>;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -24,34 +24,44 @@ export type GuestStay = {
   updated_at: string;
 };
 
-function parsePreferences(value: unknown): Record<string, unknown> {
-  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+function parsePreferences(value: unknown): Record<string, string | number | boolean | null> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const out: Record<string, string | number | boolean | null> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v === null || typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        out[k] = v;
+      } else {
+        out[k] = String(v);
+      }
+    }
+    return out;
+  }
   return {};
 }
 
 function toProfile(row: Record<string, unknown>): GuestProfile {
   return {
-    id: String(row.id),
-    name: String(row.name),
-    email: row.email ? String(row.email) : null,
-    phone: row.phone ? String(row.phone) : null,
-    preferences: parsePreferences(row.preferences),
-    notes: row.notes ? String(row.notes) : null,
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
+    id: String(row["id"]),
+    name: String(row["name"]),
+    email: row["email"] ? String(row["email"]) : null,
+    phone: row["phone"] ? String(row["phone"]) : null,
+    preferences: parsePreferences(row["preferences"]),
+    notes: row["notes"] ? String(row["notes"]) : null,
+    created_at: String(row["created_at"]),
+    updated_at: String(row["updated_at"]),
   };
 }
 
 function toStay(row: Record<string, unknown>): GuestStay {
   return {
-    id: String(row.id),
-    guest_profile_id: String(row.guest_profile_id),
-    room_number: String(row.room_number),
-    check_in: String(row.check_in),
-    check_out: row.check_out ? String(row.check_out) : null,
-    notes: row.notes ? String(row.notes) : null,
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
+    id: String(row["id"]),
+    guest_profile_id: String(row["guest_profile_id"]),
+    room_number: String(row["room_number"]),
+    check_in: String(row["check_in"]),
+    check_out: row["check_out"] ? String(row["check_out"]) : null,
+    notes: row["notes"] ? String(row["notes"]) : null,
+    created_at: String(row["created_at"]),
+    updated_at: String(row["updated_at"]),
   };
 }
 
@@ -78,7 +88,7 @@ export const searchGuestProfiles = createServerFn({ method: "GET" })
 
     return (rows ?? []).map((row: Record<string, unknown>) => ({
       profile: toProfile(row),
-      stays: ((row.guest_stays ?? []) as Record<string, unknown>[]).map(toStay),
+      stays: ((row["guest_stays"] ?? []) as Record<string, unknown>[]).map(toStay),
     }));
   });
 
@@ -102,7 +112,7 @@ export const listGuestProfiles = createServerFn({ method: "GET" })
 
     return (rows ?? []).map((row: Record<string, unknown>) => ({
       profile: toProfile(row),
-      stays: ((row.guest_stays ?? []) as Record<string, unknown>[]).map(toStay),
+      stays: ((row["guest_stays"] ?? []) as Record<string, unknown>[]).map(toStay),
     }));
   });
 
@@ -121,7 +131,7 @@ export const getGuestProfile = createServerFn({ method: "GET" })
 
     return {
       profile: toProfile(row),
-      stays: ((row.guest_stays ?? []) as Record<string, unknown>[]).map(toStay),
+      stays: ((row["guest_stays"] ?? []) as Record<string, unknown>[]).map(toStay),
     };
   });
 
@@ -133,10 +143,10 @@ export const createGuestProfile = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: z.string().trim().max(30).optional().or(z.literal("")),
-        preferences: z.record(z.unknown()).default({}),
+        preferences: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
-      .parse(input),
+      .parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -149,9 +159,10 @@ export const createGuestProfile = createServerFn({ method: "POST" })
         notes: data.notes || null,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Profile was not created.");
     return toProfile(row);
   });
 
@@ -164,10 +175,10 @@ export const updateGuestProfile = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: z.string().trim().max(30).optional().or(z.literal("")),
-        preferences: z.record(z.unknown()).default({}),
+        preferences: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
-      .parse(input),
+      .parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -181,9 +192,10 @@ export const updateGuestProfile = createServerFn({ method: "POST" })
       })
       .eq("id", data.id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Profile not found or access denied.");
     return toProfile(row);
   });
 
@@ -198,7 +210,7 @@ export const addGuestStay = createServerFn({ method: "POST" })
         check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
-      .parse(input),
+      .parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -211,9 +223,10 @@ export const addGuestStay = createServerFn({ method: "POST" })
         notes: data.notes || null,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Stay was not created.");
     return toStay(row);
   });
 
@@ -228,7 +241,7 @@ export const updateGuestStay = createServerFn({ method: "POST" })
         check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
-      .parse(input),
+      .parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -241,8 +254,9 @@ export const updateGuestStay = createServerFn({ method: "POST" })
       })
       .eq("id", data.id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Stay not found or access denied.");
     return toStay(row);
   });
