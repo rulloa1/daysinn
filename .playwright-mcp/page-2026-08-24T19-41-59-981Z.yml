@@ -1,0 +1,314 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - banner [ref=f2e3]:
+      - generic [ref=f2e4]:
+        - generic [ref=f2e6]:
+          - img "Days Inn" [ref=f2e7]
+          - generic [ref=f2e8]:
+            - generic [ref=f2e9]: Guest Hub
+            - generic [ref=f2e10]: Days Inn® by Wyndham
+        - generic [ref=f2e11]:
+          - link "Book direct ↗" [ref=f2e12] [cursor=pointer]:
+            - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview
+          - link "Sign in to room" [ref=f2e13] [cursor=pointer]:
+            - /url: /checkin
+          - link "Local guide" [ref=f2e14] [cursor=pointer]:
+            - /url: /guide
+          - link "Track request" [ref=f2e15] [cursor=pointer]:
+            - /url: /track
+          - link "Staff" [ref=f2e16] [cursor=pointer]:
+            - /url: /staff
+    - main [ref=f2e17]:
+      - generic [ref=f2e18]:
+        - img "Days Inn Wildwood exterior at dusk with lit walkways" [ref=f2e19]
+        - generic [ref=f2e20]:
+          - generic [ref=f2e21]:
+            - generic [ref=f2e22]: Days Inn® by Wyndham Wildwood I-75
+            - generic [ref=f2e26]: I-75 Exit 329 · Wildwood, FL
+          - heading "Rooms off I-75 with free breakfast, pool & parking." [level=1] [ref=f2e30]
+          - paragraph [ref=f2e31]: Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free Wi-Fi, and RV/truck parking — 10 minutes from The Villages.
+          - generic [ref=f2e32]:
+            - generic [ref=f2e33]:
+              - text: Check in
+              - textbox "Check in" [ref=f2e34]
+            - generic [ref=f2e35]:
+              - text: Check out
+              - textbox "Check out" [ref=f2e36]
+            - generic [ref=f2e37]:
+              - text: Guests
+              - spinbutton "Guests" [ref=f2e38]: "2"
+            - button "Check availability" [ref=f2e39] [cursor=pointer]
+          - paragraph [ref=f2e40]: Live availability from our front desk. Booking completes on the official Wyndham site with your selected dates.
+      - generic [ref=f2e41]:
+        - generic [ref=f2e42]:
+          - generic [ref=f2e43]:
+            - paragraph [ref=f2e44]: Choose Your Room
+            - heading "Rooms & Sleeping Options" [level=2] [ref=f2e45]
+          - link "See live rates" [ref=f2e46] [cursor=pointer]:
+            - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview?adults=2
+        - generic [ref=f2e49]:
+          - article [ref=f2e50]:
+            - img "King room with work desk, fridge and microwave" [ref=f2e51]
+            - generic [ref=f2e52]:
+              - generic [ref=f2e53]:
+                - heading "One King Bed" [level=3] [ref=f2e54]
+                - generic [ref=f2e55]: Sleeps 2
+              - paragraph [ref=f2e56]: 1 king bed · 300 sq ft
+              - paragraph [ref=f2e57]: Work desk, mini fridge, microwave, flat-screen TV and free Wi-Fi.
+              - link "Check rates ↗" [ref=f2e58] [cursor=pointer]:
+                - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview?adults=2&roomType=king
+          - article [ref=f2e59]:
+            - img "Guest room with two queen beds" [ref=f2e60]
+            - generic [ref=f2e61]:
+              - generic [ref=f2e62]:
+                - heading "Two Queen Beds" [level=3] [ref=f2e63]
+                - generic [ref=f2e64]: Sleeps 4
+              - paragraph [ref=f2e65]: 2 queen beds · 330 sq ft
+              - paragraph [ref=f2e66]: Our most popular room for families and road-trip crews heading down I-75.
+              - link "Check rates ↗" [ref=f2e67] [cursor=pointer]:
+                - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview?adults=2&roomType=double_queen
+          - article [ref=f2e68]:
+            - img "Suite sitting area with sofa, desk and TV" [ref=f2e69]
+            - generic [ref=f2e70]:
+              - generic [ref=f2e71]:
+                - heading "Hospitality Suite" [level=3] [ref=f2e72]
+                - generic [ref=f2e73]: Sleeps 4
+              - paragraph [ref=f2e74]: 1 king bed + sofa · sitting area
+              - paragraph [ref=f2e75]: Extra living space with sofa, desk and second TV for longer stays.
+              - link "Check rates ↗" [ref=f2e76] [cursor=pointer]:
+                - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview?adults=2&roomType=double_queen
+      - generic [ref=f2e77]:
+        - generic [ref=f2e78]:
+          - paragraph [ref=f2e79]: Included With Every Stay
+          - heading "Amenities" [level=2] [ref=f2e80]
+          - list [ref=f2e81]:
+            - listitem [ref=f2e82]: Free Daybreak® hot breakfast
+            - listitem [ref=f2e86]: Outdoor heated pool
+            - listitem [ref=f2e90]: Free high-speed Wi-Fi
+            - listitem [ref=f2e94]: Free parking — RV & truck friendly
+            - listitem [ref=f2e98]: Pet-friendly rooms (fees apply)
+            - listitem [ref=f2e102]: Micro-fridge in every room
+            - listitem [ref=f2e106]: Guest laundry access
+            - listitem [ref=f2e110]: Right off I-75 Exit 329
+        - generic [ref=f2e114]:
+          - paragraph [ref=f2e115]: Good To Know
+          - heading "Policies" [level=2] [ref=f2e116]
+          - generic [ref=f2e117]:
+            - generic [ref=f2e118]:
+              - term [ref=f2e119]: Check-in
+              - definition [ref=f2e120]: 3:00 PM
+            - generic [ref=f2e121]:
+              - term [ref=f2e122]: Check-out
+              - definition [ref=f2e123]: 11:00 AM
+            - generic [ref=f2e124]:
+              - term [ref=f2e125]: Cancellation
+              - definition [ref=f2e126]: Free until 4:00 PM day of arrival on most rates
+            - generic [ref=f2e127]:
+              - term [ref=f2e128]: Pets
+              - definition [ref=f2e129]: Welcome in select rooms — additional fee at check-in
+            - generic [ref=f2e130]:
+              - term [ref=f2e131]: Smoking
+              - definition [ref=f2e132]: Non-smoking property
+            - generic [ref=f2e133]:
+              - term [ref=f2e134]: Age to check in
+              - definition [ref=f2e135]: 21+ with valid photo ID and credit card
+      - generic [ref=f2e136]:
+        - generic [ref=f2e137]:
+          - generic [ref=f2e138]:
+            - paragraph [ref=f2e139]: Already Staying With Us?
+            - heading "In-Room Requests & Guest Tools" [level=2] [ref=f2e140]
+          - generic [ref=f2e141]: 10-min average response
+        - generic [ref=f2e145]:
+          - button "Request → Fresh Towels & Linens Bath towels, washcloths, extra pillows" [ref=f2e146]:
+            - generic [ref=f2e147]: Request →
+            - generic [ref=f2e153]:
+              - heading "Fresh Towels & Linens" [level=3] [ref=f2e154]
+              - paragraph [ref=f2e155]: Bath towels, washcloths, extra pillows
+          - button "Request → Housekeeping Refresh Room tidy, trash removal & amenities" [ref=f2e156]:
+            - generic [ref=f2e157]: Request →
+            - generic [ref=f2e163]:
+              - heading "Housekeeping Refresh" [level=3] [ref=f2e164]
+              - paragraph [ref=f2e165]: Room tidy, trash removal & amenities
+          - button "Request → Maintenance & Repairs Fast repair dispatch to your room" [ref=f2e166]:
+            - generic [ref=f2e167]: Request →
+            - generic [ref=f2e172]:
+              - heading "Maintenance & Repairs" [level=3] [ref=f2e173]
+              - paragraph [ref=f2e174]: Fast repair dispatch to your room
+          - button "Request → Front Desk Assistance Direct messaging with our front team" [ref=f2e175]:
+            - generic [ref=f2e176]: Request →
+            - generic [ref=f2e181]:
+              - heading "Front Desk Assistance" [level=3] [ref=f2e182]
+              - paragraph [ref=f2e183]: Direct messaging with our front team
+        - generic [ref=f2e184]:
+          - link "Sign in to your room" [ref=f2e185] [cursor=pointer]:
+            - /url: /checkin
+          - link "Track a request" [ref=f2e188] [cursor=pointer]:
+            - /url: /track
+          - link "Local guide" [ref=f2e189] [cursor=pointer]:
+            - /url: /guide
+          - generic [ref=f2e190]: DaysInn_Guest Wi-Fi
+      - generic [ref=f2e196]:
+        - generic [ref=f2e197]:
+          - generic [ref=f2e198]: Extended Departure
+          - heading "Need a slower morning?" [level=2] [ref=f2e202]
+          - paragraph [ref=f2e203]: Request a 1:00 PM late checkout so you can rest and recharge before heading out (subject to availability).
+        - button "Ask about late checkout ↗" [ref=f2e204] [cursor=pointer]
+      - generic [ref=f2e205]:
+        - generic [ref=f2e206]:
+          - generic [ref=f2e207]:
+            - paragraph [ref=f2e208]: Local Convenience
+            - heading "Nearby Highlights" [level=2] [ref=f2e209]
+          - link "Open property map ↗" [ref=f2e210] [cursor=pointer]:
+            - /url: https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933
+        - generic [ref=f2e214]:
+          - article [ref=f2e215]:
+            - text: Dining
+            - heading "Breakfast & Coffee" [level=3] [ref=f2e216]
+            - paragraph [ref=f2e217]: Complimentary Daybreak® breakfast in the lobby, plus local diner options nearby.
+          - article [ref=f2e218]:
+            - text: Convenience
+            - heading "Fuel & Travel Essentials" [level=3] [ref=f2e219]
+            - paragraph [ref=f2e220]: Convenient I-75 service stations, travel convenience stores, and ATM access.
+          - article [ref=f2e221]:
+            - text: Explore
+            - heading "Local Attractions & Dining" [level=3] [ref=f2e222]
+            - paragraph [ref=f2e223]: Ask our front desk for curated recommendations in Wildwood and The Villages.
+      - generic [ref=f2e224]:
+        - generic [ref=f2e225]:
+          - paragraph [ref=f2e226]: Explore Our Grounds
+          - heading "Property & Amenities Gallery" [level=2] [ref=f2e227]
+        - generic [ref=f2e228]:
+          - figure "Front Entrance & Walkway" [ref=f2e229]:
+            - img "Days Inn Wildwood exterior at dusk" [ref=f2e230]
+          - figure "Two Queen Guest Room" [ref=f2e232]:
+            - img "Two queen beds with coastal artwork" [ref=f2e233]
+          - figure "Executive Room View" [ref=f2e235]:
+            - img "Guest room with two beds, desk and window" [ref=f2e236]
+          - figure "Outdoor Heated Pool" [ref=f2e238]:
+            - img "Outdoor pool with lounge chairs and palm trees" [ref=f2e239]
+          - figure "Sunny Pool Deck" [ref=f2e241]:
+            - img "Pool deck beside the guest room building" [ref=f2e242]
+          - figure "Guest Welcome Lobby" [ref=f2e244]:
+            - img "Front desk in the lobby" [ref=f2e245]
+          - figure "Daybreak® Breakfast" [ref=f2e247]:
+            - img "Breakfast counter with coffee and waffle makers" [ref=f2e248]
+          - figure "Hospitality Suite" [ref=f2e250]:
+            - img "Suite sitting area with sofa, desk and TV" [ref=f2e251]
+          - figure "Workstation & Kitchenette" [ref=f2e253]:
+            - img "In-room work desk with fridge, microwave and TV" [ref=f2e254]
+          - figure "Spacious En-Suite Bath" [ref=f2e256]:
+            - img "Bathroom with tub and shower" [ref=f2e257]
+      - generic [ref=f2e259]:
+        - generic [ref=f2e260]:
+          - paragraph [ref=f2e261]: Before You Book
+          - heading "Frequently Asked Questions" [level=2] [ref=f2e262]
+        - generic [ref=f2e263]:
+          - article [ref=f2e264]:
+            - heading "How far is the hotel from I-75?" [level=3] [ref=f2e265]
+            - paragraph [ref=f2e266]: We're less than a minute from I-75 Exit 329 at 551 East SR 44, Wildwood — an easy stop between Ocala and Orlando and about 10 minutes from The Villages.
+          - article [ref=f2e267]:
+            - heading "Is breakfast included?" [level=3] [ref=f2e268]
+            - paragraph [ref=f2e269]: Yes. Complimentary Daybreak® breakfast is served every morning in the lobby, with coffee available throughout the day.
+          - article [ref=f2e270]:
+            - heading "Do you allow pets?" [level=3] [ref=f2e271]
+            - paragraph [ref=f2e272]: Pets are welcome in select rooms. A pet fee is collected at check-in — please tell the front desk when you book so we can assign the right room.
+          - article [ref=f2e273]:
+            - heading "Is there parking for trucks and RVs?" [level=3] [ref=f2e274]
+            - paragraph [ref=f2e275]: Free on-site parking is available, including oversized spaces for trucks and RVs on a first-come basis.
+          - article [ref=f2e276]:
+            - heading "What is the best rate?" [level=3] [ref=f2e277]
+            - paragraph [ref=f2e278]: Booking direct through Wyndham gets you member rates and Wyndham Rewards® points on qualifying stays.
+      - generic [ref=f2e279]:
+        - generic [ref=f2e280]:
+          - generic [ref=f2e281]:
+            - generic [ref=f2e282]: Wyndham Rewards® Member Benefits
+            - heading "Book direct. Earn points on every stay." [level=2] [ref=f2e286]
+          - link "Check direct rates ↗" [ref=f2e287] [cursor=pointer]:
+            - /url: https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview
+        - generic [ref=f2e288]:
+          - article [ref=f2e289]:
+            - text: Best Rate Guarantee
+            - heading "Wyndham Rewards® Member Rates" [level=3] [ref=f2e290]
+            - paragraph [ref=f2e291]: Exclusive member-only pricing when you book direct through Wyndham.
+          - article [ref=f2e292]:
+            - text: Direct Bookings
+            - heading "10 Points Per Dollar" [level=3] [ref=f2e293]
+            - paragraph [ref=f2e294]: Earn 10 points per dollar spent or 1,000 points on direct qualifying stays — whichever is more.
+          - article [ref=f2e295]:
+            - text: Complimentary
+            - heading "Free Wi-Fi & Daybreak® Breakfast" [level=3] [ref=f2e296]
+            - paragraph [ref=f2e297]: Complimentary high-speed Wi-Fi property-wide plus hot Daybreak® breakfast daily.
+        - paragraph [ref=f2e298]: Must be a Wyndham Rewards® member at booking/check-in. Benefits subject to availability and Wyndham Rewards program terms.
+      - generic [ref=f2e300]:
+        - generic [ref=f2e301]:
+          - generic [ref=f2e302]:
+            - generic [ref=f2e303]: Location & Access
+            - heading "Getting to Days Inn® Wildwood" [level=2] [ref=f2e309]
+            - generic [ref=f2e310]:
+              - strong [ref=f2e311]: Days Inn® by Wyndham Wildwood I-75
+              - text: 551 East SR 44, Wildwood, FL 34785
+            - paragraph [ref=f2e312]:
+              - text: Conveniently located directly off
+              - strong [ref=f2e313]: I-75 Exit 329
+              - text: and Florida's Turnpike. Easy access to The Villages, local dining, fuel stations, and central Florida attractions.
+          - generic [ref=f2e314]:
+            - text: Turn-by-Turn GPS Navigation
+            - paragraph [ref=f2e315]: "Open instant directions in your favorite navigation app:"
+            - generic [ref=f2e316]:
+              - link "Google Maps ↗" [ref=f2e317] [cursor=pointer]:
+                - /url: https://www.google.com/maps/dir/?api=1&destination=28.872883,-82.093933
+              - link "Apple Maps ↗" [ref=f2e320] [cursor=pointer]:
+                - /url: https://maps.apple.com/?daddr=28.872883,-82.093933&dirflg=d
+              - link "Waze ↗" [ref=f2e323] [cursor=pointer]:
+                - /url: https://waze.com/ul?ll=28.872883,-82.093933&navigate=yes
+            - paragraph [ref=f2e326]: Free on-site parking for all cars, SUVs, buses, RVs, and commercial trucks.
+        - generic [ref=f2e327]:
+          - text: On-Site Highlights
+          - heading "Property Amenities" [level=3] [ref=f2e328]
+          - generic [ref=f2e329]:
+            - generic [ref=f2e336]:
+              - generic [ref=f2e337]:
+                - heading "Outdoor Heated Swimming Pool" [level=4] [ref=f2e338]
+                - generic [ref=f2e339]: Courtyard
+              - paragraph [ref=f2e340]: Centrally located courtyard pool with sun deck & lounge seating.
+            - generic [ref=f2e345]:
+              - generic [ref=f2e346]:
+                - heading "Daybreak® Breakfast & Lobby" [level=4] [ref=f2e347]
+                - generic [ref=f2e348]: Lobby
+              - paragraph [ref=f2e349]: Complimentary morning breakfast, 24/7 hot coffee & guest registration.
+            - generic [ref=f2e357]:
+              - generic [ref=f2e358]:
+                - heading "Truck & RV Parking" [level=4] [ref=f2e359]
+                - generic [ref=f2e360]: Free Parking
+              - paragraph [ref=f2e361]: Dedicated oversized vehicle, bus, and trailer parking on perimeter.
+            - generic [ref=f2e368]:
+              - generic [ref=f2e369]:
+                - heading "Direct Guest Parking" [level=4] [ref=f2e370]
+                - generic [ref=f2e371]: On-Site
+              - paragraph [ref=f2e372]: Walkway-level parking in front of ground and second floor access stairs.
+      - generic [ref=f2e373]:
+        - link [ref=f2e374] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933
+          - paragraph [ref=f2e375]: Property Location
+          - paragraph [ref=f2e376]: 551 East SR 44
+          - paragraph [ref=f2e377]: Wildwood, FL 34785 (Right off I-75 Exit 329)
+        - generic [ref=f2e378]:
+          - paragraph [ref=f2e379]: Complimentary Wi-Fi
+          - paragraph [ref=f2e380]: High-Speed Guest Network
+          - paragraph [ref=f2e381]:
+            - text: Connect to
+            - strong [ref=f2e382]: DaysInn_Guest
+            - text: (No password needed).
+        - link "Front Desk · (352) 748-7766" [ref=f2e383] [cursor=pointer]:
+          - /url: tel:+13527487766
+    - contentinfo [ref=f2e386]:
+      - generic [ref=f2e387]:
+        - generic [ref=f2e388]:
+          - generic [ref=f2e389]:
+            - img "Days Inn" [ref=f2e390]
+            - generic [ref=f2e391]:
+              - generic [ref=f2e392]: Guest Hub
+              - generic [ref=f2e393]: Days Inn® by Wyndham
+          - paragraph [ref=f2e394]: Warm hospitality · Effortless service
+        - paragraph [ref=f2e395]: This Days Inn® by Wyndham location is independently owned and operated under a franchise agreement. Days Inn®, Daybreak®, and Wyndham Rewards® are registered trademarks of Wyndham Hotel Group, LLC and/or its affiliates.
+  - region "Notifications alt+T"

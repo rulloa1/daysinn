@@ -1,0 +1,40 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - generic [ref=f4e5]:
+          - img "Days Inn" [ref=f4e6]
+          - generic [ref=f4e7]:
+            - generic [ref=f4e8]: Guest Hub
+            - generic [ref=f4e9]: Days Inn® by Wyndham
+        - link "Back to guest hub" [ref=f4e10] [cursor=pointer]:
+          - /url: /
+    - main [ref=f4e13]:
+      - generic [ref=f4e14]:
+        - generic [ref=f4e15]:
+          - generic [ref=f4e17]:
+            - generic [ref=f4e18]: Express Digital Access
+            - heading "Sign in to your room." [level=1] [ref=f4e24]
+            - paragraph [ref=f4e25]: Enter your room number and the registered last name from your key packet to unlock mobile concierge & instant requests.
+            - generic [ref=f4e26]:
+              - generic [ref=f4e27]:
+                - text: Room Number
+                - textbox "Room Number" [ref=f4e28]:
+                  - /placeholder: e.g. 214
+              - generic [ref=f4e29]:
+                - text: Last Name on Reservation
+                - textbox "Last Name on Reservation" [ref=f4e30]:
+                  - /placeholder: e.g. Smith
+              - button "Access Room Concierge →" [ref=f4e31] [cursor=pointer]
+          - generic [ref=f4e32]:
+            - generic [ref=f4e33]: Encrypted Session
+            - link "Call Front Desk" [ref=f4e37] [cursor=pointer]:
+              - /url: tel:+13527487766
+        - generic [ref=f4e38]:
+          - generic [ref=f4e39]: Mobile QR Scanner
+          - heading "Instant Phone Sign-In" [level=2] [ref=f4e46]
+          - paragraph [ref=f4e47]: Scan with your smartphone camera to open your in-room services directly on mobile.
+          - paragraph [ref=f4e49]: QR codes on key jackets link directly to your assigned room.
+    - contentinfo [ref=f4e50]:
+      - paragraph [ref=f4e52]: This Days Inn® by Wyndham location is independently owned and operated under a franchise agreement. Days Inn®, Daybreak®, and Wyndham Rewards® are registered trademarks of Wyndham Hotel Group, LLC and/or its affiliates.
+  - region "Notifications alt+T"

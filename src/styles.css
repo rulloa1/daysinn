@@ -82,30 +82,30 @@
 :root {
   --radius: 0.875rem;
 
-  /* Luxury Hospitality: Slate background with crisp Navy foreground */
-  --background: oklch(0.985 0.008 245);
-  --foreground: oklch(0.24 0.08 260);
+  /* Days Inn by Wyndham Brand Colors */
+  --foreground: oklch(0.22 0.12 250);
+  --primary-foreground: oklch(0.99 0.008 85);
 
   /* Liquid Glass Card surface */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.08 260);
+  --card-foreground: oklch(0.22 0.12 250);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.08 260);
+  --popover-foreground: oklch(0.22 0.12 250);
 
-  /* Deep Navy Brand Primary */
-  --primary: oklch(0.35 0.14 260);
+  /* Days Inn Congress Blue */
+  --primary: oklch(0.28 0.15 250);
   --primary-foreground: oklch(0.99 0.008 85);
 
-  /* Soft Oceanic Secondary */
+  /* Wyndham Light Blue complement */
   --secondary: oklch(0.94 0.02 245);
-  --secondary-foreground: oklch(0.3 0.08 260);
+  --secondary-foreground: oklch(0.22 0.12 250);
 
   /* Muted surfaces */
   --muted: oklch(0.95 0.015 245);
-  --muted-foreground: oklch(0.5 0.04 255);
+  --muted-foreground: oklch(0.45 0.04 255);
 
-  /* Warm Gold Accent / CTA */
+  /* Wyndham Gold Accent / CTA */
   --accent: oklch(0.72 0.16 75);
   --accent-foreground: oklch(0.18 0.06 260);
 
@@ -114,15 +114,15 @@
 
   --border: oklch(0.89 0.025 245);
   --input: oklch(0.89 0.025 245);
-  --ring: oklch(0.35 0.14 260);
+  --ring: oklch(0.28 0.15 250);
 
   /* Semantic Brand Names */
-  --ink: oklch(0.22 0.07 260);
-  --ink-soft: oklch(0.35 0.06 258);
+  --ink: oklch(0.18 0.10 250);
+  --ink-soft: oklch(0.28 0.08 250);
   --cream: oklch(0.985 0.01 85);
   --amber: oklch(0.74 0.16 75);
   --gold: oklch(0.72 0.16 75);
-  --navy: oklch(0.35 0.14 260);
+  --navy: oklch(0.28 0.15 250);
   --ocean: oklch(0.58 0.16 250);
   --sage: oklch(0.7 0.06 145);
 
@@ -151,41 +151,41 @@
 }
 
 .dark {
-  --background: oklch(0.14 0.05 262);
+  --background: oklch(0.14 0.05 250);
   --foreground: oklch(0.98 0.008 245);
 
-  --card: oklch(0.19 0.045 262);
+  --card: oklch(0.18 0.04 250);
   --card-foreground: oklch(0.98 0.008 245);
 
-  --popover: oklch(0.19 0.045 262);
+  --popover: oklch(0.18 0.04 250);
   --popover-foreground: oklch(0.98 0.008 245);
 
   --primary: oklch(0.78 0.14 75);
-  --primary-foreground: oklch(0.15 0.05 262);
+  --primary-foreground: oklch(0.15 0.05 250);
 
-  --secondary: oklch(0.25 0.04 260);
+  --secondary: oklch(0.25 0.04 250);
   --secondary-foreground: oklch(0.98 0.008 245);
 
-  --muted: oklch(0.24 0.035 260);
+  --muted: oklch(0.22 0.035 250);
   --muted-foreground: oklch(0.72 0.03 255);
 
   --accent: oklch(0.78 0.14 75);
-  --accent-foreground: oklch(0.15 0.05 262);
+  --accent-foreground: oklch(0.15 0.05 250);
 
   --destructive: oklch(0.68 0.2 22);
   --destructive-foreground: oklch(0.98 0.008 245);
 
-  --border: oklch(0.3 0.035 260);
-  --input: oklch(0.3 0.035 260);
+  --border: oklch(0.3 0.035 250);
+  --input: oklch(0.3 0.035 250);
   --ring: oklch(0.78 0.14 75);
 
-  --sidebar: oklch(0.16 0.05 262);
+  --sidebar: oklch(0.16 0.05 250);
   --sidebar-foreground: oklch(0.98 0.008 245);
   --sidebar-primary: oklch(0.78 0.14 75);
-  --sidebar-primary-foreground: oklch(0.15 0.05 262);
-  --sidebar-accent: oklch(0.24 0.04 260);
+  --sidebar-primary-foreground: oklch(0.15 0.05 250);
+  --sidebar-accent: oklch(0.24 0.04 250);
   --sidebar-accent-foreground: oklch(0.98 0.008 245);
-  --sidebar-border: oklch(0.28 0.035 260);
+  --sidebar-border: oklch(0.28 0.035 250);
   --sidebar-ring: oklch(0.78 0.14 75);
 }
 

@@ -1,0 +1,116 @@
+- generic [active] [ref=f9e1]:
+  - generic [ref=f9e2]:
+    - banner [ref=f9e3]:
+      - generic [ref=f9e4]:
+        - img "Days Inn" [ref=f9e5]
+        - generic [ref=f9e6]:
+          - generic [ref=f9e7]: Guest Hub
+          - generic [ref=f9e8]: Days Inn® by Wyndham
+      - navigation [ref=f9e9]:
+        - link "Guest hub" [ref=f9e10] [cursor=pointer]:
+          - /url: /
+        - link "Track a request" [ref=f9e11] [cursor=pointer]:
+          - /url: /track
+    - main [ref=f9e12]:
+      - paragraph [ref=f9e13]: Wildwood, Florida
+      - heading [level=1] [ref=f9e15]:
+        - text: Your
+        - emphasis [ref=f9e16]: local guide
+        - text: — food, springs and the fast way out of town.
+      - paragraph [ref=f9e17]: Everything below is a short hop from 551 FL-44. Drive times are approximate; the front desk is happy to call ahead for you.
+      - generic [ref=f9e18]:
+        - heading "Where to eat" [level=2] [ref=f9e19]
+        - paragraph [ref=f9e20]: Breakfast through late dinner, all within a few minutes of the property.
+        - list [ref=f9e21]:
+          - listitem [ref=f9e22]:
+            - generic [ref=f9e23]:
+              - heading "Cracker Barrel Old Country Store" [level=3] [ref=f9e24]
+              - generic [ref=f9e25]: 2 min
+            - paragraph [ref=f9e26]: Southern comfort plates and all-day breakfast right off the I-75 interchange.
+            - link "Directions →" [ref=f9e27] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Cracker%20Barrel%20Wildwood%20FL
+          - listitem [ref=f9e28]:
+            - generic [ref=f9e29]:
+              - heading "Sonny's BBQ" [level=3] [ref=f9e30]
+              - generic [ref=f9e31]: 5 min
+            - paragraph [ref=f9e32]: Slow-smoked brisket, ribs and sweet tea — the local road-trip standby.
+            - link "Directions →" [ref=f9e33] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Sonny's%20BBQ%20Wildwood%20FL
+          - listitem [ref=f9e34]:
+            - generic [ref=f9e35]:
+              - heading "Beef 'O' Brady's" [level=3] [ref=f9e36]
+              - generic [ref=f9e37]: 8 min
+            - paragraph [ref=f9e38]: Family sports pub with wings, burgers and the game on every screen.
+            - link "Directions →" [ref=f9e39] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Beef%20O%20Bradys%20Wildwood%20FL
+          - listitem [ref=f9e40]:
+            - generic [ref=f9e41]:
+              - heading "Brownwood Paddock Square" [level=3] [ref=f9e42]
+              - generic [ref=f9e43]: 12 min
+            - paragraph [ref=f9e44]: Walkable square in The Villages with a dozen restaurants and live music most nights.
+            - link "Directions →" [ref=f9e45] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Brownwood%20Paddock%20Square%20The%20Villages%20FL
+      - generic [ref=f9e46]:
+        - heading "What to see" [level=2] [ref=f9e47]
+        - paragraph [ref=f9e48]: Lakes, trails and springs — plus the theme-park run if you're headed south.
+        - list [ref=f9e49]:
+          - listitem [ref=f9e50]:
+            - generic [ref=f9e51]:
+              - heading "Lake Okahumpka Park" [level=3] [ref=f9e52]
+              - generic [ref=f9e53]: 7 min
+            - paragraph [ref=f9e54]: Boardwalk, fishing pier and shaded picnic pavilions on the lake.
+            - link "Directions →" [ref=f9e55] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Lake%20Okahumpka%20Park%20Wildwood%20FL
+          - listitem [ref=f9e56]:
+            - generic [ref=f9e57]:
+              - heading "Withlacoochee State Trail" [level=3] [ref=f9e58]
+              - generic [ref=f9e59]: 20 min
+            - paragraph [ref=f9e60]: Paved rail-trail for cycling and long walks through old Florida pine.
+            - link "Directions →" [ref=f9e61] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Withlacoochee%20State%20Trail
+          - listitem [ref=f9e62]:
+            - generic [ref=f9e63]:
+              - heading "Rainbow Springs State Park" [level=3] [ref=f9e64]
+              - generic [ref=f9e65]: 45 min
+            - paragraph [ref=f9e66]: Crystal headsprings, waterfalls and tubing on a spring-fed river.
+            - link "Directions →" [ref=f9e67] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Rainbow%20Springs%20State%20Park
+          - listitem [ref=f9e68]:
+            - generic [ref=f9e69]:
+              - heading "Orlando theme parks" [level=3] [ref=f9e70]
+              - generic [ref=f9e71]: 60 min
+            - paragraph [ref=f9e72]: Straight down I-75 to the Turnpike — an easy morning run to the parks.
+            - link "Directions →" [ref=f9e73] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Walt%20Disney%20World%20Resort
+      - generic [ref=f9e74]:
+        - heading "Essentials" [level=2] [ref=f9e75]
+        - paragraph [ref=f9e76]: Groceries, care and fuel while you're on the road.
+        - list [ref=f9e77]:
+          - listitem [ref=f9e78]:
+            - generic [ref=f9e79]:
+              - heading "Walmart Supercenter" [level=3] [ref=f9e80]
+              - generic [ref=f9e81]: 5 min
+            - paragraph [ref=f9e82]: Groceries, pharmacy and anything you left at home.
+            - link "Directions →" [ref=f9e83] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=Walmart%20Supercenter%20Wildwood%20FL
+          - listitem [ref=f9e84]:
+            - generic [ref=f9e85]:
+              - heading "Wildwood urgent care" [level=3] [ref=f9e86]
+              - generic [ref=f9e87]: 8 min
+            - paragraph [ref=f9e88]: Walk-in clinic for minor issues; call 911 for emergencies.
+            - link "Directions →" [ref=f9e89] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=urgent%20care%20Wildwood%20FL
+          - listitem [ref=f9e90]:
+            - generic [ref=f9e91]:
+              - heading "Fuel & truck stop" [level=3] [ref=f9e92]
+              - generic [ref=f9e93]: 3 min
+            - paragraph [ref=f9e94]: 24-hour fuel, showers and coffee at the interchange.
+            - link "Directions →" [ref=f9e95] [cursor=pointer]:
+              - /url: https://www.google.com/maps/search/?api=1&query=truck%20stop%20Wildwood%20FL%20I-75
+      - paragraph [ref=f9e96]:
+        - text: Need a recommendation we haven't listed?
+        - link "Message the front desk from your room" [ref=f9e97] [cursor=pointer]:
+          - /url: /checkin
+        - text: .
+    - paragraph [ref=f9e98]: This Days Inn® by Wyndham location is independently owned and operated under a franchise agreement. Days Inn®, Daybreak®, and Wyndham Rewards® are registered trademarks of Wyndham Hotel Group, LLC and/or its affiliates.
+  - region "Notifications alt+T"
