@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { frontBlock, northBuilding, westWing, type FloorKey } from "@/lib/property-layout";
+import { frontBlock, lift, northBuilding, westWing, type FloorKey } from "@/lib/property-layout";
 import { Waves, MapPin, Snowflake, Car, Truck } from "lucide-react";
 
 type RoomStatus =
