@@ -82,7 +82,7 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
     try {
       parsed = JSON.parse(content) as AssistantResponse;
     } catch {
-      parsed = { reply: content };
+      parsed = { reply: content, tool_calls: undefined };
     }
 
     return parsed;
