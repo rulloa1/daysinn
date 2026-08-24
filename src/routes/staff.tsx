@@ -25,7 +25,8 @@ import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
-import { Menu } from "lucide-react";
+import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
+import { Menu, Map as MapIcon, ListFilter, Users } from "lucide-react";
 
 type RequestRow = {
   id: string;
@@ -317,9 +318,70 @@ function Dashboard({
   const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
+  const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
+  const [rooms, setRooms] = useState<MapRoom[]>([]);
+  const [mapFloor, setMapFloor] = useState<FloorView>("both");
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { staff } = useStaffIdentity();
+
+  useEffect(() => {
+    let active = true;
+    async function loadRooms() {
+      if (demo) {
+        const demoRooms: MapRoom[] = [
+          { id: "r108", number: "108", status: "vacant_clean" },
+          { id: "r118", number: "118", status: "occupied", guest_name: "J. Whitfield" },
+          { id: "r214", number: "214", status: "occupied", guest_name: "M. Alvarez" },
+          { id: "r136", number: "136", status: "vacant_dirty" },
+          { id: "r137", number: "137", status: "occupied_dnd", guest_name: "S. Chen" },
+          { id: "r140", number: "140", status: "reserved" },
+          { id: "r145", number: "145", status: "out_of_order" },
+        ];
+        if (active) setRooms(demoRooms);
+        return;
+      }
+      const { data } = await supabase
+        .from("rooms")
+        .select("id, number, floor, status, guest_name")
+        .order("number");
+      if (active && data) {
+        setRooms(
+          data.map((r) => ({
+            id: r.id,
+            number: r.number,
+            status: (r.status ?? "vacant_clean") as MapRoom["status"],
+            guest_name: r.guest_name,
+          })),
+        );
+      }
+    }
+    void loadRooms();
+    return () => {
+      active = false;
+    };
+  }, [demo]);
+
+  const openRequestsByRoom = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) {
+      if (r.status !== "done") {
+        map.set(r.room, (map.get(r.room) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [rows]);
+
+  const selectedRoom = useMemo(() => {
+    if (!selectedRoomId) return null;
+    return rooms.find((r) => r.id === selectedRoomId) ?? null;
+  }, [selectedRoomId, rooms]);
+
+  const selectedRoomRequests = useMemo(() => {
+    if (!selectedRoom) return [];
+    return rows.filter((r) => r.room === selectedRoom.number);
+  }, [selectedRoom, rows]);
 
   useEffect(() => {
     if (demo) return;
@@ -563,138 +625,305 @@ function Dashboard({
         </div>
       ) : null}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {STATUSES.map((status) => {
-          const active = filter === status;
-          return (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setFilter(active ? "all" : status)}
-              aria-pressed={active}
-              className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
-                active
-                  ? "border-amber/70 bg-cream/[0.07]"
-                  : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-              }`}
-            >
-              <p className="signage flex items-center gap-2 text-cream/60">
-                <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
-                {STATUS_LABEL[status]}
-              </p>
-              <p className="font-display text-3xl leading-none tabular-nums">{counts[status]}</p>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
-        <span className="signage mr-1 text-cream/40">Filter</span>
-        {["all", ...STATUSES].map((option) => (
+      {/* Primary Dashboard Tabs */}
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            key={option}
-            size="sm"
-            variant="outline"
+            type="button"
+            variant={activeTab === "queue" ? "default" : "outline"}
+            onClick={() => setActiveTab("queue")}
             className={
-              filter === option
-                ? "border-amber bg-amber text-ink hover:bg-amber/90"
+              activeTab === "queue"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
                 : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
             }
-            onClick={() => setFilter(option)}
           >
-            {option === "all" ? "All" : STATUS_LABEL[option]}
+            <ListFilter className="mr-1.5 h-4 w-4" />
+            Request queue ({rows.filter((r) => r.status !== "done").length})
           </Button>
-        ))}
-        <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
+
+          <Button
+            type="button"
+            variant={activeTab === "map" ? "default" : "outline"}
+            onClick={() => setActiveTab("map")}
+            className={
+              activeTab === "map"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+            }
+          >
+            <MapIcon className="mr-1.5 h-4 w-4" />
+            Property map ({rooms.length} rooms)
+          </Button>
+
+          <Button
+            type="button"
+            variant={activeTab === "crm" ? "default" : "outline"}
+            onClick={() => setActiveTab("crm")}
+            className={
+              activeTab === "crm"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+            }
+          >
+            <Users className="mr-1.5 h-4 w-4" />
+            Guest CRM
+          </Button>
+        </div>
+
+        {activeTab === "map" ? (
+          <div className="flex items-center gap-1.5">
+            {(["both", 1, 2] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setMapFloor(f)}
+                className={`signage px-3 py-1.5 transition-colors duration-150 rounded border ${
+                  mapFloor === f
+                    ? "border-amber bg-amber text-ink font-bold"
+                    : "border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
+                }`}
+              >
+                {f === "both" ? "All rooms (Stacked)" : `Floor ${f}`}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      <OpsAssistant />
+      {activeTab === "map" ? (
+        <div className="mt-6 space-y-4">
+          <FloorPlan
+            floor={mapFloor}
+            rooms={rooms}
+            openRequests={openRequestsByRoom}
+            onSelect={(roomId) => setSelectedRoomId(roomId)}
+          />
 
-      {visible.length === 0 ? (
-        <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
-          <p className="font-display text-2xl">Queue is clear</p>
-          <p className="mt-2 text-sm text-cream/60">New guest requests land here automatically.</p>
-        </div>
-      ) : (
-        <ul className="mt-6 space-y-2">
-          {visible.map((row) => {
-            const next = NEXT_ACTION[row.status];
-            const others = STATUSES.filter(
-              (status) => status !== row.status && status !== next?.status,
-            );
-            return (
-              <li
-                key={row.id}
-                className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
-              >
-                <span
-                  aria-hidden
-                  className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
-                />
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-3">
-                      <span className="font-display text-2xl tabular-nums">{row.room}</span>
-                      <span className="text-base text-cream">{row.type}</span>
-                      <Badge
-                        className={
-                          row.status === "new"
-                            ? "bg-amber text-ink"
-                            : row.status === "in_progress"
-                              ? "bg-sage text-ink"
-                              : "bg-cream/15 text-cream"
-                        }
-                      >
-                        {STATUS_LABEL[row.status] ?? row.status}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 text-xs text-cream/50">
-                      {row.guest_name ? `${row.guest_name} · ` : ""}
-                      <span title={new Date(row.created_at).toLocaleString()}>
-                        {timeAgo(row.created_at)}
-                      </span>
-                    </p>
-                    {row.details ? (
-                      <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
-                    ) : null}
-                  </div>
-                  {canTriage ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {next ? (
-                        <Button
-                          size="sm"
-                          className="bg-amber text-ink hover:bg-amber/90"
-                          onClick={() => setStatus(row.id, next.status)}
-                        >
-                          {next.label}
-                        </Button>
-                      ) : null}
-                      {others.map((status) => (
-                        <Button
-                          key={status}
-                          size="sm"
-                          variant="outline"
-                          className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                          onClick={() => setStatus(row.id, status)}
-                        >
-                          {STATUS_LABEL[status]}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="signage text-cream/40">View only</p>
+          {/* Room Inspector Sheet */}
+          <Sheet
+            open={Boolean(selectedRoom)}
+            onOpenChange={(open) => !open && setSelectedRoomId(null)}
+          >
+            <SheetContent
+              side="right"
+              className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
+            >
+              <SheetHeader>
+                <SheetTitle className="text-left text-cream flex items-center justify-between">
+                  <span>Room {selectedRoom?.number}</span>
+                  {selectedRoom && (
+                    <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
+                      {selectedRoom.status.replace("_", " ")}
+                    </Badge>
                   )}
-                </div>
-                {demo ? null : (
-                  <RequestWorkflowPanel request={row} canEdit={canTriage} staff={staff ?? null} />
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                </SheetTitle>
+              </SheetHeader>
 
-      <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
+              {selectedRoom && (
+                <div className="mt-6 space-y-6">
+                  <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
+                    <p className="text-xs text-cream/50 uppercase tracking-wider">Current Guest</p>
+                    <p className="mt-1 font-serif text-lg font-bold text-cream">
+                      {selectedRoom.guest_name ?? "No guest registered"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
+                      Open Requests ({selectedRoomRequests.length})
+                    </h3>
+                    {selectedRoomRequests.length === 0 ? (
+                      <p className="text-sm text-cream/40 italic">
+                        No open requests for room {selectedRoom.number}.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {selectedRoomRequests.map((req) => (
+                          <li
+                            key={req.id}
+                            className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-sm text-cream">{req.type}</span>
+                              <Badge className="text-[10px] bg-amber/20 text-amber">
+                                {req.status}
+                              </Badge>
+                            </div>
+                            {req.details && (
+                              <p className="mt-1 text-xs text-cream/70">{req.details}</p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                    >
+                      <Link to="/front-desk">Open Front Desk Board →</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                    >
+                      <Link to="/housekeeping">Open Housekeeping Board →</Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </SheetContent>
+          </Sheet>
+        </div>
+      ) : activeTab === "crm" ? (
+        <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
+      ) : (
+        <>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {STATUSES.map((status) => {
+              const active = filter === status;
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => setFilter(active ? "all" : status)}
+                  aria-pressed={active}
+                  className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
+                    active
+                      ? "border-amber/70 bg-cream/[0.07]"
+                      : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+                  }`}
+                >
+                  <p className="signage flex items-center gap-2 text-cream/60">
+                    <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
+                    {STATUS_LABEL[status]}
+                  </p>
+                  <p className="font-display text-3xl leading-none tabular-nums">
+                    {counts[status]}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
+            <span className="signage mr-1 text-cream/40">Filter</span>
+            {["all", ...STATUSES].map((option) => (
+              <Button
+                key={option}
+                size="sm"
+                variant="outline"
+                className={
+                  filter === option
+                    ? "border-amber bg-amber text-ink hover:bg-amber/90"
+                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                }
+                onClick={() => setFilter(option)}
+              >
+                {option === "all" ? "All" : STATUS_LABEL[option]}
+              </Button>
+            ))}
+            <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
+          </div>
+
+          <OpsAssistant />
+
+          {visible.length === 0 ? (
+            <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
+              <p className="font-display text-2xl">Queue is clear</p>
+              <p className="mt-2 text-sm text-cream/60">
+                New guest requests land here automatically.
+              </p>
+            </div>
+          ) : (
+            <ul className="mt-6 space-y-2">
+              {visible.map((row) => {
+                const next = NEXT_ACTION[row.status];
+                const others = STATUSES.filter(
+                  (status) => status !== row.status && status !== next?.status,
+                );
+                return (
+                  <li
+                    key={row.id}
+                    className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
+                    />
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-3">
+                          <span className="font-display text-2xl tabular-nums">{row.room}</span>
+                          <span className="text-base text-cream">{row.type}</span>
+                          <Badge
+                            className={
+                              row.status === "new"
+                                ? "bg-amber text-ink"
+                                : row.status === "in_progress"
+                                  ? "bg-sage text-ink"
+                                  : "bg-cream/15 text-cream"
+                            }
+                          >
+                            {STATUS_LABEL[row.status] ?? row.status}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-xs text-cream/50">
+                          {row.guest_name ? `${row.guest_name} · ` : ""}
+                          <span title={new Date(row.created_at).toLocaleString()}>
+                            {timeAgo(row.created_at)}
+                          </span>
+                        </p>
+                        {row.details ? (
+                          <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
+                        ) : null}
+                      </div>
+                      {canTriage ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {next ? (
+                            <Button
+                              size="sm"
+                              className="bg-amber text-ink hover:bg-amber/90"
+                              onClick={() => setStatus(row.id, next.status)}
+                            >
+                              {next.label}
+                            </Button>
+                          ) : null}
+                          {others.map((status) => (
+                            <Button
+                              key={status}
+                              size="sm"
+                              variant="outline"
+                              className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                              onClick={() => setStatus(row.id, status)}
+                            >
+                              {STATUS_LABEL[status]}
+                            </Button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="signage text-cream/40">View only</p>
+                      )}
+                    </div>
+                    {demo ? null : (
+                      <RequestWorkflowPanel
+                        request={row}
+                        canEdit={canTriage}
+                        staff={staff ?? null}
+                      />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
+      )}
 
       {isManager ? (
         <div>

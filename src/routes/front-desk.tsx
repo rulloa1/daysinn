@@ -569,7 +569,7 @@ function Board() {
           {!loading && view === "map" ? (
             <FloorPlan
               floor={mapFloor}
-              rooms={mapFloor === "both" ? rooms : rooms.filter((r) => r.floor === mapFloor)}
+              rooms={rooms}
               openRequests={openCountByRoom}
               dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
               onSelect={setActiveRoomId}

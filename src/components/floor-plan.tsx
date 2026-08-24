@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { frontBlock, lift, northBuilding, westWing, type FloorKey } from "@/lib/property-layout";
+import { frontBlock, northBuilding, westWing, type FloorKey } from "@/lib/property-layout";
 import { Waves, MapPin, Snowflake, Car, Truck } from "lucide-react";
 
 type RoomStatus =
@@ -53,11 +53,10 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
   }, [rooms]);
 
   const both = floor === "both";
-  const layoutFloor: FloorKey = both ? 1 : floor;
-  const north = northBuilding(layoutFloor);
+  const northF1 = northBuilding(1);
   const northF2 = northBuilding(2);
-  const wing = westWing(layoutFloor);
-  const front = frontBlock(layoutFloor);
+  const wingF1 = westWing(1);
+  const wingF2 = westWing(2);
 
   function Slot({ number, size = "md" }: { number: string; size?: "sm" | "md" }) {
     const room = byNumber.get(number);
@@ -122,25 +121,6 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
         className={`grid place-items-center rounded border border-dashed border-white/15 bg-white/[0.04] p-1 text-center text-[10px] font-semibold text-slate-300 ${className}`}
       >
         {label}
-      </div>
-    );
-  }
-
-  function ZoneLabel({
-    label,
-    icon: Icon,
-    className = "",
-  }: {
-    label: string;
-    icon?: typeof Truck | typeof Car;
-    className?: string;
-  }) {
-    return (
-      <div
-        className={`flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/10 bg-slate-900/40 p-2 text-center text-[10px] font-bold tracking-widest text-slate-400 uppercase ${className}`}
-      >
-        {Icon && <Icon className="h-3.5 w-3.5 opacity-70" />}
-        <span>{label}</span>
       </div>
     );
   }
@@ -252,16 +232,19 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                 {/* Top Row: Outer / Even Rooms */}
                 <div
                   className="grid gap-1"
-                  style={{ gridTemplateColumns: `repeat(${north.top.length}, minmax(0, 1fr))` }}
+                  style={{ gridTemplateColumns: `repeat(${northF1.top.length}, minmax(0, 1fr))` }}
                 >
-                  {north.top.map((num, i) => (
-                    <StackedPair
-                      key={num}
-                      floor1Num={num}
-                      floor2Num={northF2.top[i] ?? lift(Number(num), 2)}
-                      size="sm"
-                    />
-                  ))}
+                  {northF1.top.map((numF1, i) => {
+                    const numF2 = northF2.top[i] ?? `2${numF1.slice(1)}`;
+                    return (
+                      <StackedPair
+                        key={numF1}
+                        floor1Num={numF1}
+                        floor2Num={numF2}
+                        size="sm"
+                      />
+                    );
+                  })}
                 </div>
 
                 {/* Central Corridor */}
@@ -272,16 +255,19 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                 {/* Bottom Row: Inner / Odd Rooms */}
                 <div
                   className="grid gap-1"
-                  style={{ gridTemplateColumns: `repeat(${north.bottom.length}, minmax(0, 1fr))` }}
+                  style={{ gridTemplateColumns: `repeat(${northF1.bottom.length}, minmax(0, 1fr))` }}
                 >
-                  {north.bottom.map((num, i) => (
-                    <StackedPair
-                      key={num}
-                      floor1Num={num}
-                      floor2Num={northF2.bottom[i] ?? lift(Number(num), 2)}
-                      size="sm"
-                    />
-                  ))}
+                  {northF1.bottom.map((numF1, i) => {
+                    const numF2 = northF2.bottom[i] ?? `2${numF1.slice(1)}`;
+                    return (
+                      <StackedPair
+                        key={numF1}
+                        floor1Num={numF1}
+                        floor2Num={numF2}
+                        size="sm"
+                      />
+                    );
+                  })}
                 </div>
               </div>
 
@@ -303,29 +289,43 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
             </div>
 
             <div className="space-y-1">
-              {wing.map((row, i) =>
-                row.kind === "divider" ? (
-                  <div
-                    key={`div-${i}`}
-                    className="rounded border border-dashed border-amber-500/30 bg-amber-500/10 py-1 text-center text-[9px] font-black tracking-widest text-amber-300 uppercase"
-                  >
-                    {row.label}
-                  </div>
-                ) : (
-                  <div key={row.outer} className="grid grid-cols-2 gap-1">
+              {wingF1.map((rowF1, i) => {
+                if (rowF1.kind === "divider") {
+                  return (
+                    <div
+                      key={`div-${i}`}
+                      className="rounded border border-dashed border-amber-500/30 bg-amber-500/10 py-1 text-center text-[9px] font-black tracking-widest text-amber-300 uppercase"
+                    >
+                      {rowF1.label}
+                    </div>
+                  );
+                }
+
+                const rowF2 = wingF2[i];
+                const outerF2 =
+                  rowF2 && rowF2.kind === "rooms"
+                    ? rowF2.outer
+                    : String(Number(rowF1.outer) + 100);
+                const innerF2 =
+                  rowF2 && rowF2.kind === "rooms"
+                    ? rowF2.inner
+                    : String(Number(rowF1.inner) + 100);
+
+                return (
+                  <div key={rowF1.outer} className="grid grid-cols-2 gap-1">
                     <StackedPair
-                      floor1Num={row.outer}
-                      floor2Num={lift(Number(row.outer), 2)}
+                      floor1Num={rowF1.outer}
+                      floor2Num={outerF2}
                       size="sm"
                     />
                     <StackedPair
-                      floor1Num={row.inner}
-                      floor2Num={lift(Number(row.inner), 2)}
+                      floor1Num={rowF1.inner}
+                      floor2Num={innerF2}
                       size="sm"
                     />
                   </div>
-                ),
-              )}
+                );
+              })}
 
               {/* Service & Storage at Bottom of West Wing */}
               <div className="mt-2 space-y-1 border-t border-white/10 pt-1.5">
