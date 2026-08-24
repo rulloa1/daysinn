@@ -9,14 +9,16 @@ export type AssistantMessage = {
   content: string;
 };
 
+export type ToolParamValue = string | number | boolean | null;
+
 export type ToolCall = {
   tool: "list_rooms" | "list_requests" | "update_room_status" | "update_request_status";
-  parameters: Record<string, unknown>;
+  parameters: Record<string, ToolParamValue>;
 };
 
 export type AssistantResponse = {
   reply: string;
-  tool_calls?: ToolCall[];
+  tool_calls: ToolCall[] | undefined;
 };
 
 const SYSTEM_PROMPT = `You are Ops Assistant, an AI helper inside the Days Inn Hub staff portal.
