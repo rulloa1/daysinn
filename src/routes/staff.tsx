@@ -19,6 +19,7 @@ import { ScheduleBoard } from "@/components/schedule-board";
 import { OpsAssistant } from "@/components/ops-assistant";
 import { PasswordResetGate } from "@/components/password-reset-gate";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { GuestCrmPanel } from "@/components/guest-crm-panel";
 import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
