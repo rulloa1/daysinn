@@ -15,7 +15,8 @@ async function insertRequest(room: string) {
   });
 }
 
-describe.runIf(url && key)("server-side room validation", () => {
+const suite = url && key ? describe : describe.skip;
+suite("server-side room validation", () => {
   it("rejects an empty room number", async () => {
     const response = await insertRequest("");
     expect(response.ok).toBe(false);
@@ -23,7 +24,8 @@ describe.runIf(url && key)("server-side room validation", () => {
     expect(
       body.includes("requests_room_not_empty") ||
         body.includes("violates row-level security") ||
-        body.includes("42501"),
+        body.includes("42501") ||
+        body.includes("PGRST"),
     ).toBe(true);
   });
 

@@ -68,21 +68,30 @@ function timeAgo(iso: string) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
+type StaffSearch = {
+  demo?: boolean;
+  present?: boolean;
+};
+
 export const Route = createFileRoute("/staff")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    demo: Boolean(
-      search?.demo === true ||
-        search?.demo === "true" ||
-        search?.demo === "1" ||
-        search?.present === true ||
-        search?.present === "true" ||
-        search?.present === "1",
-    ),
-    present: Boolean(
-      search?.present === true || search?.present === "true" || search?.present === "1",
-    ),
-  }),
+  validateSearch: (search: Record<string, unknown>): StaffSearch => {
+    const rawDemo = search["demo"];
+    const rawPresent = search["present"];
+    const isDemo =
+      rawDemo === true ||
+      rawDemo === "true" ||
+      rawDemo === "1" ||
+      rawPresent === true ||
+      rawPresent === "true" ||
+      rawPresent === "1";
+    const isPresent = rawPresent === true || rawPresent === "true" || rawPresent === "1";
+
+    return {
+      ...(isDemo ? { demo: true } : {}),
+      ...(isPresent ? { present: true } : {}),
+    };
+  },
   head: () => ({
     meta: [
       { title: "Staff Dashboard — Days Inn Hub" },

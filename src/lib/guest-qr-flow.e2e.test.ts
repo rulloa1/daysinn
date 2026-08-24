@@ -51,7 +51,8 @@ afterAll(async () => {
   }
 });
 
-describe.runIf(e2eReady)("guest QR sign-in (end-to-end over HTTP)", () => {
+const suite = e2eReady ? describe : describe.skip;
+suite("guest QR sign-in (end-to-end over HTTP)", () => {
   it("has a running app and an occupied room fixture", () => {
     expect(serverUp, `dev server not reachable at ${APP_URL}`).toBe(true);
     expect(room, "no occupied room to test with").not.toBe("");
