@@ -164,6 +164,10 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
       toast.error("Room number and check-in date are required.");
       return;
     }
+    if (demo) {
+      toast.success("Demo mode — stay changes are not saved.");
+      return;
+    }
     try {
       if (id) {
         await updateStay({ data: { id, room_number, check_in, check_out, notes } });
