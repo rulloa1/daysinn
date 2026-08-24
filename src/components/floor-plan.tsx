@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { frontBlock, northBuilding, westWing, type FloorKey } from "@/lib/property-layout";
-import { Waves, MapPin, Snowflake, Car, Truck } from "lucide-react";
+import type { FloorKey } from "@/lib/property-layout";
+import propertyMapImage from "@/assets/property_map.png";
 
 type RoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
@@ -14,13 +14,14 @@ export type MapRoom = {
 
 export type FloorView = FloorKey | "both";
 
-const TILE: Record<RoomStatus, string> = {
-  vacant_clean: "border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/30",
-  vacant_dirty: "border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/30",
-  occupied: "border-blue-500/50 bg-blue-500/15 text-blue-300 hover:bg-blue-500/30",
-  occupied_dnd: "border-purple-500/50 bg-purple-500/15 text-purple-300 hover:bg-purple-500/30",
-  reserved: "border-cyan-500/50 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/30",
-  out_of_order: "border-rose-500/50 bg-rose-500/15 text-rose-300 hover:bg-rose-500/30",
+/** Solid background colors per status for high contrast over the photo */
+const PILL_BG: Record<RoomStatus, string> = {
+  vacant_clean: "bg-emerald-500 text-white border-emerald-700",
+  vacant_dirty: "bg-amber-400 text-black border-amber-600",
+  occupied: "bg-blue-500 text-white border-blue-700",
+  occupied_dnd: "bg-purple-600 text-white border-purple-800",
+  reserved: "bg-cyan-500 text-black border-cyan-700",
+  out_of_order: "bg-rose-600 text-white border-rose-800",
 };
 
 type Props = {
@@ -32,14 +33,119 @@ type Props = {
 };
 
 /**
- * Architectural interactive floor plan of Days Inn Wildwood (551 FL-44),
- * directly mirroring the aerial blueprint overlay:
- * - Top-Left Corner: Lobby, Registration, Breakfast, GM Office, Kitchen, Security, Room 108/208, Ice machine.
- * - North Wing (Top Horizontal): Even outer rooms 136-162 & Odd inner rooms 137-163/265 with breezeway stairs.
- * - West Wing (Left Vertical): Outer parking 111-135 & Inner courtyard 110-134, breezeways, facility, vending, laundry & storage.
- * - Central Courtyard: Heated Swim Pool & central courtyard parking stalls.
- * - Perimeter: North truck parking along FL-44, East guest parking driveway, South truck parking.
+ * Percentage-based [left%, top%] coordinates for each room number.
+ *
+ * Calibrated against the official "Days Inn by Wyndham Wildwood I-75" site plan.
+ * Image ~1024×640. Building map occupies roughly x:14%–87%, y:12%–88%.
+ *
+ * Layout (0,0 = top-left corner of the full image):
+ *
+ *  BACK PARKING (top edge)
+ *  ┌─────────────────────────────────────────────────────────────────┐  ← y≈14%
+ *  │ Lobby │ 201 203 205 207 209 211 213 215 217 219 221 223 225 227 229 233 │ ← floor 1 top row
+ *  │ block │ 202 204 206 208 210 212 214 216 218 220 222 224 228 230 232 234 │ ← floor 1 bot row
+ *  ├───────┤  (north horizontal wing)                                        ← y≈28%
+ *  │101 102│
+ *  │103 104│   SWIMMING POOL          COURTYARD (grass)
+ *  │ ...   │
+ *  │133 134│
+ *  └───────┘  ← y≈88%
+ *  FRONT PARKING / MAIN ENTRANCE (bottom edge)
+ *
+ * 1xx = floor 1, 2xx = floor 2 (same physical location, +1.5% y offset in "both" view).
  */
+const ROOM_COORDS: Record<string, [number, number]> = {
+  // ── Lobby / corner block (top-left) ─────────────────────────────────
+  // Lobby occupies roughly x:14–22%, y:20–50%
+
+  // ── North Wing — TOP ROW (odd numbers, back-parking side) ────────────
+  // Row runs x:22%→85%, y≈17%  (17 cells, step ≈ 3.7%)
+  "201": [23.0, 17.0],
+  "203": [26.7, 17.0],
+  "205": [30.4, 17.0],
+  "207": [34.1, 17.0],
+  "209": [37.8, 17.0],
+  "211": [41.5, 17.0],
+  "213": [45.2, 17.0],
+  "215": [48.9, 17.0],
+  "217": [52.6, 17.0],
+  "219": [56.3, 17.0],
+  "221": [60.0, 17.0],
+  "223": [63.7, 17.0],
+  "225": [67.4, 17.0],
+  "227": [71.1, 17.0],
+  "229": [74.8, 17.0],
+  "233": [78.5, 17.0],
+
+  // ── North Wing — BOTTOM ROW (even numbers, courtyard-facing) ─────────
+  // Row runs x:22%→85%, y≈24%
+  "202": [23.0, 24.5],
+  "204": [26.7, 24.5],
+  "206": [30.4, 24.5],
+  "208": [34.1, 24.5],
+  "210": [37.8, 24.5],
+  "212": [41.5, 24.5],
+  "214": [45.2, 24.5],
+  "216": [48.9, 24.5],
+  "218": [52.6, 24.5],
+  "220": [56.3, 24.5],
+  "222": [60.0, 24.5],
+  "224": [63.7, 24.5],
+  "228": [67.4, 24.5],
+  "230": [71.1, 24.5],
+  "232": [74.8, 24.5],
+  "234": [78.5, 24.5],
+
+  // ── West Wing — LEFT column (odd, side-parking side) ─────────────────
+  // Column x≈15.5%, y from 34%→86%  (17 cells, step ≈ 3.2%)
+  "101": [15.5, 34.0],
+  "103": [15.5, 37.2],
+  "105": [15.5, 40.4],
+  "107": [15.5, 43.6],
+  "109": [15.5, 46.8],
+  "111": [15.5, 50.0],
+  "113": [15.5, 53.2],
+  "115": [15.5, 56.4],
+  "117": [15.5, 59.6],
+  "119": [15.5, 62.8],
+  "121": [15.5, 66.0],
+  "123": [15.5, 69.2],
+  "125": [15.5, 72.4],
+  "127": [15.5, 75.6],
+  "129": [15.5, 78.8],
+  "131": [15.5, 82.0],
+  "133": [15.5, 85.2],
+
+  // ── West Wing — RIGHT column (even, courtyard-facing) ────────────────
+  // Column x≈19.5%, same y steps
+  "102": [19.5, 34.0],
+  "104": [19.5, 37.2],
+  "106": [19.5, 40.4],
+  "108": [19.5, 43.6],
+  "110": [19.5, 46.8],
+  "112": [19.5, 50.0],
+  "114": [19.5, 53.2],
+  "116": [19.5, 56.4],
+  "118": [19.5, 59.6],
+  "120": [19.5, 62.8],
+  "122": [19.5, 66.0],
+  "124": [19.5, 69.2],
+  "126": [19.5, 72.4],
+  "128": [19.5, 75.6],
+  "130": [19.5, 78.8],
+  "132": [19.5, 82.0],
+  "134": [19.5, 85.2],
+};
+
+/** Filter rooms to the floors the user wants to see */
+function filterByFloor(rooms: MapRoom[], floor: FloorView): MapRoom[] {
+  if (floor === "both") return rooms;
+  return rooms.filter((r) => {
+    const n = Number(r.number);
+    return floor === 1 ? n < 200 : n >= 200;
+  });
+}
+
 export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Props) {
   const byNumber = useMemo(() => {
     const map = new Map<string, MapRoom>();
@@ -47,318 +153,111 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
     return map;
   }, [rooms]);
 
-  const both = floor === "both";
-  const northF1 = northBuilding(1);
-  const northF2 = northBuilding(2);
-  const wingF1 = westWing(1);
-  const wingF2 = westWing(2);
-
-  function Slot({ number, size = "md" }: { number: string; size?: "sm" | "md" }) {
-    const room = byNumber.get(number);
-    if (!room) {
-      return (
-        <div
-          className={`grid place-items-center rounded border border-white/10 bg-white/[0.03] text-center font-mono text-white/30 ${
-            size === "sm" ? "px-1 py-0.5 text-[10px]" : "px-1.5 py-1 text-xs"
-          }`}
-        >
-          {number}
-        </div>
-      );
-    }
-    const open = openRequests?.get(number) ?? 0;
-    const faded = dimmed?.size ? !dimmed.has(number) : false;
-    return (
-      <button
-        type="button"
-        onClick={() => onSelect(room.id)}
-        title={`Room ${number} · ${room.guest_name ?? "Vacant"} (${room.status.replace("_", " ")})`}
-        className={`relative w-full rounded border font-bold leading-none transition-all duration-150 ${
-          size === "sm" ? "px-1 py-1 text-[10px]" : "px-1.5 py-1.5 text-xs"
-        } ${TILE[room.status]} ${faded ? "opacity-25" : "shadow-sm hover:scale-[1.03] cursor-pointer"}`}
-      >
-        <span className="font-mono">{number}</span>
-        {open > 0 && (
-          <span className="absolute -top-1 -right-1 grid h-3.5 w-3.5 place-items-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow">
-            {open}
-          </span>
-        )}
-      </button>
-    );
-  }
-
-  function StackedPair({
-    floor1Num,
-    floor2Num,
-    size = "sm",
-  }: {
-    floor1Num: string;
-    floor2Num: string;
-    size?: "sm" | "md";
-  }) {
-    if (!both) {
-      const activeNum = floor === 2 ? floor2Num : floor1Num;
-      return <Slot number={activeNum} size={size} />;
-    }
-
-    return (
-      <div className="flex flex-col gap-0.5">
-        <Slot number={floor1Num} size="sm" />
-        <div className="h-[1px] bg-white/10" />
-        <Slot number={floor2Num} size="sm" />
-      </div>
-    );
-  }
-
-  function Space({ label, className = "" }: { label: string; className?: string }) {
-    return (
-      <div
-        className={`grid place-items-center rounded border border-dashed border-white/15 bg-white/[0.04] p-1 text-center text-[10px] font-semibold text-slate-300 ${className}`}
-      >
-        {label}
-      </div>
-    );
-  }
+  const visibleRooms = useMemo(() => filterByFloor(rooms, floor), [rooms, floor]);
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 shadow-2xl">
-      {/* MAP HEADER */}
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 shadow-2xl">
+      {/* HEADER */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
           <span className="font-serif text-sm font-bold text-white tracking-wide">
-            Days Inn® Wildwood Physical Layout & Aerial Blueprint
+            Days Inn® Wildwood — Interactive Site Plan
           </span>
           <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-mono">
-            {both ? "Floors 1 & 2 (Stacked: 1xx / 2xx)" : `Floor ${floor}`}
+            {floor === "both" ? "Floors 1 & 2" : `Floor ${floor}`}
           </span>
         </div>
-
         {/* Status Legend */}
         <div className="flex flex-wrap items-center gap-2.5 text-[10px]">
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" /> Clean
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-amber-400" /> Dirty
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-blue-400" /> Occupied
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-purple-400" /> DND
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-rose-500" /> Out of order
-          </span>
-        </div>
-      </div>
-
-      {/* BLUEPRINT CONTAINER */}
-      <div className="min-w-[960px] space-y-3">
-        {/* TOP PERIMETER: TRUCK PARKING (FL-44 HIGHWAY FRONTAGE) */}
-        <div className="grid grid-cols-[1.5fr_2fr_1.5fr] gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-center text-[10px] font-bold text-amber-300">
-          <div className="text-left text-slate-400">Even Number Rooms (Outer / North)</div>
-          <div className="flex items-center justify-center gap-1 uppercase tracking-widest">
-            <Truck className="h-3.5 w-3.5" /> Truck Parking (FL-44 Frontage)
-          </div>
-          <div className="text-right text-slate-400">Odd Number Rooms (Courtyard)</div>
-        </div>
-
-        {/* TOP ROW: L-CORNER BLOCK (LEFT) + NORTH HORIZONTAL WING (RIGHT) */}
-        <div className="grid grid-cols-[260px_1fr] gap-3 items-stretch">
-          {/* TOP-LEFT CORNER BLOCK: LOBBY, SERVICES & ROOM 108/208 */}
-          <div className="relative rounded-xl border border-slate-800 bg-slate-900/90 p-2.5 flex flex-col justify-between space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              <span className="flex items-center gap-1 text-rose-400">
-                <MapPin className="h-3 w-3" /> Lobby & Admin Corner
-              </span>
-              <span className="text-[9px] text-slate-500">Corner Wing</span>
-            </div>
-
-            <div className="flex gap-2">
-              {/* ICE Machine column on outer left */}
-              <div className="w-8 shrink-0 flex flex-col items-center justify-center rounded border border-cyan-500/30 bg-cyan-500/10 p-1 text-[9px] font-bold text-cyan-300">
-                <Snowflake className="h-3.5 w-3.5 mb-1" />
-                <span className="[writing-mode:vertical-rl] tracking-widest uppercase">ICE</span>
-              </div>
-
-              {/* Main Admin Grid */}
-              <div className="flex-1 space-y-1">
-                {/* Breezeway / Stairs */}
-                <div className="rounded border border-dashed border-amber-500/30 bg-amber-500/10 py-0.5 text-center text-[9px] font-bold tracking-widest text-amber-300 uppercase">
-                  BREEZEWAY // STAIRS
-                </div>
-
-                {/* GM Office | Kitchen */}
-                <div className="grid grid-cols-2 gap-1">
-                  <Space label="GM OFFICE" className="py-1 text-[9px]" />
-                  <Space label="Kitchen" className="py-1 text-[9px]" />
-                </div>
-
-                {/* Lobby / Registration / Breakfast */}
-                <div className="rounded border border-white/20 bg-slate-800/80 p-1.5 text-center text-[9px] font-bold text-white shadow-inner">
-                  Lobby / Registration / Breakfast
-                </div>
-
-                {/* Security | Room 108 / 208 */}
-                <div className="grid grid-cols-2 gap-1 items-center">
-                  <Space label="SECURITY" className="py-1 text-[9px]" />
-                  <StackedPair floor1Num="108" floor2Num="208" size="sm" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* NORTH HORIZONTAL WING: ROOMS 136-162 (TOP) & 137-163/265 (BOTTOM) */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-2.5 flex flex-col justify-between">
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                North Building (Rooms 136–162 / 236–262 Outer · 137–163 / 237–265 Courtyard)
-              </span>
-              <div className="flex gap-2 text-[9px] font-semibold text-slate-400">
-                <span className="rounded bg-white/10 px-1.5 py-0.5">Top: Even (Outer)</span>
-                <span className="rounded bg-white/10 px-1.5 py-0.5">Bottom: Odd (Pool View)</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="flex-1 space-y-1.5">
-                {/* Top Row: Outer / Even Rooms */}
-                <div
-                  className="grid gap-1"
-                  style={{ gridTemplateColumns: `repeat(${northF1.top.length}, minmax(0, 1fr))` }}
-                >
-                  {northF1.top.map((numF1, i) => {
-                    const numF2 = northF2.top[i] ?? `2${numF1.slice(1)}`;
-                    return (
-                      <StackedPair key={numF1} floor1Num={numF1} floor2Num={numF2} size="sm" />
-                    );
-                  })}
-                </div>
-
-                {/* Central Corridor */}
-                <div className="h-2 rounded bg-slate-950/80 text-center text-[7px] font-mono text-slate-500 leading-none flex items-center justify-center">
-                  CORRIDOR // BREEZEWAY
-                </div>
-
-                {/* Bottom Row: Inner / Odd Rooms */}
-                <div
-                  className="grid gap-1"
-                  style={{
-                    gridTemplateColumns: `repeat(${northF1.bottom.length}, minmax(0, 1fr))`,
-                  }}
-                >
-                  {northF1.bottom.map((numF1, i) => {
-                    const numF2 = northF2.bottom[i] ?? `2${numF1.slice(1)}`;
-                    return (
-                      <StackedPair key={numF1} floor1Num={numF1} floor2Num={numF2} size="sm" />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Far-Right Stairs */}
-              <div className="grid w-7 shrink-0 place-items-center rounded border border-amber-500/30 bg-amber-500/10 text-[9px] font-black tracking-widest text-amber-300 uppercase [writing-mode:vertical-rl]">
-                STAIRS
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* MIDDLE SECTION: WEST WING (LEFT) + COURTYARD & POOL (CENTER) + EAST PARKING (RIGHT) */}
-        <div className="grid grid-cols-[260px_1fr_120px] gap-3 items-stretch">
-          {/* WEST WING (VERTICAL BUILDING) */}
-          <div className="space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/90 p-2.5">
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
-              <span>WEST WING</span>
-              <span className="text-[9px] text-slate-500">Outer (Odds) | Inner (Evens)</span>
-            </div>
-
-            <div className="space-y-1">
-              {wingF1.map((rowF1, i) => {
-                if (rowF1.kind === "divider") {
-                  return (
-                    <div
-                      key={`div-${i}`}
-                      className="rounded border border-dashed border-amber-500/30 bg-amber-500/10 py-1 text-center text-[9px] font-black tracking-widest text-amber-300 uppercase"
-                    >
-                      {rowF1.label}
-                    </div>
-                  );
-                }
-
-                const rowF2 = wingF2[i];
-                const outerF2 =
-                  rowF2 && rowF2.kind === "rooms" ? rowF2.outer : String(Number(rowF1.outer) + 100);
-                const innerF2 =
-                  rowF2 && rowF2.kind === "rooms" ? rowF2.inner : String(Number(rowF1.inner) + 100);
-
-                return (
-                  <div key={rowF1.outer} className="grid grid-cols-2 gap-1">
-                    <StackedPair floor1Num={rowF1.outer} floor2Num={outerF2} size="sm" />
-                    <StackedPair floor1Num={rowF1.inner} floor2Num={innerF2} size="sm" />
-                  </div>
-                );
-              })}
-
-              {/* Service & Storage at Bottom of West Wing */}
-              <div className="mt-2 space-y-1 border-t border-white/10 pt-1.5">
-                <div className="grid grid-cols-2 gap-1">
-                  <Space label="Facility" className="py-1 text-[9px]" />
-                  <Space label="Vending" className="py-1 text-[9px]" />
-                </div>
-                <Space label="Laundry and Storage" className="py-1.5 text-[9px]" />
-              </div>
-            </div>
-          </div>
-
-          {/* COURTYARD: SWIM POOL & CENTRAL GUEST PARKING */}
-          <div className="flex flex-col justify-between space-y-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-            {/* SWIM POOL */}
-            <div className="relative overflow-hidden rounded-2xl border border-cyan-500/40 bg-gradient-to-br from-blue-900/50 via-cyan-900/30 to-slate-950 p-6 text-center shadow-xl">
-              <div className="absolute top-3 left-4 flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-cyan-300 uppercase">
-                <Waves className="h-4 w-4" /> Central Courtyard
-              </div>
-              <div className="my-4 flex flex-col items-center justify-center">
-                <div className="rounded-xl border border-cyan-400/60 bg-cyan-500/25 px-10 py-6 backdrop-blur-md shadow-lg shadow-cyan-500/20">
-                  <h3 className="font-serif text-xl font-bold text-cyan-100 tracking-wider">
-                    SWIM POOL
-                  </h3>
-                  <p className="mt-1 text-[11px] text-cyan-200/90 font-medium">
-                    Outdoor Heated Pool & Sun Deck
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* CENTRAL GUEST PARKING */}
-            <div className="flex-1 flex flex-col justify-center items-center rounded-xl border border-dashed border-white/15 bg-slate-950/60 p-6 text-center">
-              <Car className="h-6 w-6 text-slate-400 mb-1 opacity-70" />
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                Main Courtyard Guest Parking
-              </span>
-              <span className="text-[10px] text-slate-500 mt-0.5">
-                Stalls facing West Wing & Pool Walkways
-              </span>
-            </div>
-          </div>
-
-          {/* RIGHT MARGIN: EAST PARKING & DRIVEWAY */}
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-slate-900/60 p-3 text-center">
-            <Car className="h-5 w-5 text-slate-400 mb-2 opacity-70" />
-            <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase [writing-mode:vertical-rl]">
-              GUEST PARKING & ACCESS DRIVEWAY
+          {(
+            [
+              ["bg-emerald-500", "Clean"],
+              ["bg-amber-400", "Dirty"],
+              ["bg-blue-500", "Occupied"],
+              ["bg-purple-600", "DND"],
+              ["bg-rose-600", "OOO"],
+              ["bg-cyan-500", "Reserved"],
+            ] as const
+          ).map(([color, label]) => (
+            <span key={label} className="flex items-center gap-1">
+              <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+              {label}
             </span>
-          </div>
-        </div>
-
-        {/* BOTTOM PERIMETER: SOUTH TRUCK PARKING */}
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-center text-[10px] font-bold text-amber-300 flex items-center justify-center gap-2">
-          <Truck className="h-4 w-4" />
-          <span className="uppercase tracking-widest">Truck Parking & Rear Perimeter Driveway</span>
+          ))}
         </div>
       </div>
+
+      {/* INTERACTIVE MAP IMAGE */}
+      <div className="relative w-full overflow-hidden rounded-xl border border-slate-700">
+        <img
+          src={propertyMapImage}
+          alt="Days Inn Wildwood Site Plan"
+          className="block w-full select-none"
+          draggable={false}
+        />
+
+        {/* Overlay room pills at percentage positions */}
+        {visibleRooms.map((room) => {
+          const coords = ROOM_COORDS[room.number];
+          if (!coords) return null;
+          const [left, top] = coords;
+          const open = openRequests?.get(room.number) ?? 0;
+          const faded = dimmed?.size ? !dimmed.has(room.number) : false;
+
+          return (
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => onSelect(room.id)}
+              title={`Room ${room.number} · ${room.guest_name ?? "Vacant"} (${room.status.replace(/_/g, " ")})`}
+              style={{ left: `${left}%`, top: `${top}%` }}
+              className={[
+                "absolute -translate-x-1/2 -translate-y-1/2 z-10",
+                "rounded border px-1 py-0.5 text-[8px] font-black leading-none font-mono",
+                "shadow-md transition-all duration-100",
+                "hover:scale-[1.4] hover:z-20",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                PILL_BG[room.status],
+                faded ? "opacity-20" : "opacity-90 cursor-pointer",
+              ].join(" ")}
+            >
+              {room.number}
+              {open > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 grid h-3 w-3 place-items-center rounded-full bg-rose-600 text-[7px] font-black text-white shadow">
+                  {open}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* FALLBACK: rooms without photo coordinates */}
+      {(() => {
+        const unmapped = visibleRooms.filter((r) => !ROOM_COORDS[r.number]);
+        if (!unmapped.length) return null;
+        return (
+          <div className="mt-4 border-t border-slate-800 pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Additional rooms
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {unmapped.map((room) => (
+                <button
+                  key={room.id}
+                  type="button"
+                  onClick={() => onSelect(room.id)}
+                  title={`Room ${room.number}`}
+                  className={`rounded border px-2 py-1 text-[10px] font-bold font-mono shadow transition-all hover:scale-105 ${PILL_BG[room.status]}`}
+                >
+                  {room.number}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
