@@ -694,7 +694,7 @@ function Dashboard({
         </ul>
       )}
 
-      <GuestCrmPanel canEdit={canEditCrm} />
+      <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
 
       {isManager ? (
         <div>
