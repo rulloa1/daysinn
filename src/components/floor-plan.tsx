@@ -3,12 +3,7 @@ import { frontBlock, northBuilding, westWing, type FloorKey } from "@/lib/proper
 import { Waves, MapPin, Snowflake, Car, Truck } from "lucide-react";
 
 type RoomStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "out_of_order"
-  | "reserved";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
 export type MapRoom = {
   id: string;
@@ -237,12 +232,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                   {northF1.top.map((numF1, i) => {
                     const numF2 = northF2.top[i] ?? `2${numF1.slice(1)}`;
                     return (
-                      <StackedPair
-                        key={numF1}
-                        floor1Num={numF1}
-                        floor2Num={numF2}
-                        size="sm"
-                      />
+                      <StackedPair key={numF1} floor1Num={numF1} floor2Num={numF2} size="sm" />
                     );
                   })}
                 </div>
@@ -255,17 +245,14 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
                 {/* Bottom Row: Inner / Odd Rooms */}
                 <div
                   className="grid gap-1"
-                  style={{ gridTemplateColumns: `repeat(${northF1.bottom.length}, minmax(0, 1fr))` }}
+                  style={{
+                    gridTemplateColumns: `repeat(${northF1.bottom.length}, minmax(0, 1fr))`,
+                  }}
                 >
                   {northF1.bottom.map((numF1, i) => {
                     const numF2 = northF2.bottom[i] ?? `2${numF1.slice(1)}`;
                     return (
-                      <StackedPair
-                        key={numF1}
-                        floor1Num={numF1}
-                        floor2Num={numF2}
-                        size="sm"
-                      />
+                      <StackedPair key={numF1} floor1Num={numF1} floor2Num={numF2} size="sm" />
                     );
                   })}
                 </div>
@@ -303,26 +290,14 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
 
                 const rowF2 = wingF2[i];
                 const outerF2 =
-                  rowF2 && rowF2.kind === "rooms"
-                    ? rowF2.outer
-                    : String(Number(rowF1.outer) + 100);
+                  rowF2 && rowF2.kind === "rooms" ? rowF2.outer : String(Number(rowF1.outer) + 100);
                 const innerF2 =
-                  rowF2 && rowF2.kind === "rooms"
-                    ? rowF2.inner
-                    : String(Number(rowF1.inner) + 100);
+                  rowF2 && rowF2.kind === "rooms" ? rowF2.inner : String(Number(rowF1.inner) + 100);
 
                 return (
                   <div key={rowF1.outer} className="grid grid-cols-2 gap-1">
-                    <StackedPair
-                      floor1Num={rowF1.outer}
-                      floor2Num={outerF2}
-                      size="sm"
-                    />
-                    <StackedPair
-                      floor1Num={rowF1.inner}
-                      floor2Num={innerF2}
-                      size="sm"
-                    />
+                    <StackedPair floor1Num={rowF1.outer} floor2Num={outerF2} size="sm" />
+                    <StackedPair floor1Num={rowF1.inner} floor2Num={innerF2} size="sm" />
                   </div>
                 );
               })}
@@ -381,9 +356,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
         {/* BOTTOM PERIMETER: SOUTH TRUCK PARKING */}
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-center text-[10px] font-bold text-amber-300 flex items-center justify-center gap-2">
           <Truck className="h-4 w-4" />
-          <span className="uppercase tracking-widest">
-            Truck Parking & Rear Perimeter Driveway
-          </span>
+          <span className="uppercase tracking-widest">Truck Parking & Rear Perimeter Driveway</span>
         </div>
       </div>
     </div>

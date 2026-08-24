@@ -15,7 +15,8 @@ export type FloorKey = 1 | 2;
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
-  { kind: "rooms"; outer: string; inner: string; left?: string; right?: string } | { kind: "divider"; label: string };
+  | { kind: "rooms"; outer: string; inner: string; left?: string; right?: string }
+  | { kind: "divider"; label: string };
 
 /**
  * West Wing (Vertical Building along guest parking):
@@ -66,7 +67,21 @@ export function northBuilding(floor: FloorKey): {
 
   return {
     top: ["236", "238", "240", "242", "244", "246", "248", "250", "254", "258", "260", "262"],
-    bottom: ["237", "239", "241", "243", "245", "247", "251", "253", "255", "259", "261", "263", "265"],
+    bottom: [
+      "237",
+      "239",
+      "241",
+      "243",
+      "245",
+      "247",
+      "251",
+      "253",
+      "255",
+      "259",
+      "261",
+      "263",
+      "265",
+    ],
   };
 }
 
