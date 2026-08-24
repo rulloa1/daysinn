@@ -26,6 +26,7 @@ import {
 } from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
 import { FloorPlan } from "@/components/floor-plan";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { MetricsExportButton } from "@/components/metrics-export-button";
 import {
   Dialog,
