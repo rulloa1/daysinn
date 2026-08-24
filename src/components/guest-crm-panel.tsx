@@ -26,7 +26,41 @@ import { Search, Plus, Calendar, BedDouble, ChevronDown, ChevronUp, User } from 
 
 type ProfileWithStays = { profile: GuestProfile; stays: GuestStay[] };
 
-export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
+const DEMO_PROFILES: ProfileWithStays[] = [
+  {
+    profile: {
+      id: "demo-guest-1",
+      name: "M. Alvarez",
+      email: "m.alvarez@example.com",
+      phone: "352-555-0142",
+      preferences: { floor: "2", late_checkout: true, newspaper: false },
+      notes: "Returning guest, prefers quiet room away from elevator.",
+      created_at: new Date(Date.now() - 90 * 86400000).toISOString(),
+      updated_at: new Date(Date.now() - 90 * 86400000).toISOString(),
+    },
+    stays: [
+      { id: "demo-stay-1", guest_profile_id: "demo-guest-1", room_number: "214", check_in: "2026-08-20", check_out: "2026-08-22", notes: "Anniversary weekend", created_at: "", updated_at: "" },
+      { id: "demo-stay-2", guest_profile_id: "demo-guest-1", room_number: "118", check_in: "2025-11-03", check_out: "2025-11-05", notes: "", created_at: "", updated_at: "" },
+    ],
+  },
+  {
+    profile: {
+      id: "demo-guest-2",
+      name: "J. Whitfield",
+      email: null,
+      phone: "407-555-0198",
+      preferences: { pillows: "firm", smoking: false },
+      notes: "Business traveler, early riser.",
+      created_at: new Date(Date.now() - 180 * 86400000).toISOString(),
+      updated_at: new Date(Date.now() - 180 * 86400000).toISOString(),
+    },
+    stays: [
+      { id: "demo-stay-3", guest_profile_id: "demo-guest-2", room_number: "118", check_in: "2026-08-18", check_out: "2026-08-21", notes: "Maintenance call on AC", created_at: "", updated_at: "" },
+    ],
+  },
+];
+
+export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; demo?: boolean }) {
   const [query, setQuery] = useState("");
   const [profiles, setProfiles] = useState<ProfileWithStays[]>([]);
   const [loading, setLoading] = useState(false);
