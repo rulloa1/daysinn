@@ -143,7 +143,7 @@ export const createGuestProfile = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         email: z.string().trim().email().optional().or(z.literal("")),
         phone: z.string().trim().max(30).optional().or(z.literal("")),
-        preferences: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+        preferences: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
         notes: z.string().trim().max(2000).optional().or(z.literal("")),
       })
       .parse(input ?? {}),
