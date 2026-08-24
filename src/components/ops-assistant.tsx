@@ -48,12 +48,16 @@ export function OpsAssistant() {
           return `Found ${count} requests:\n${JSON.stringify(requests.slice(0, 5), null, 2)}${count > 5 ? "\n..." : ""}`;
         }
         case "update_room_status": {
-          const { room } = await setRoomStatus({ data: call.parameters as { room_number: string; status: string; dnd?: boolean } });
-          return `Updated room ${room.number} to ${room.status}.`;
+          const result = await setRoomStatus({ data: call.parameters as { room_number: string; status: string; dnd?: boolean } });
+          const room = result?.room;
+          if (!room) return "Room update returned no data.";
+          return `Updated room ${room["number"]} to ${room["status"]}.`;
         }
         case "update_request_status": {
-          const { request } = await setRequestStatus({ data: call.parameters as { request_id: string; status: "new" | "in_progress" | "done"; note?: string } });
-          return `Updated request ${request.id} to ${request.status}.`;
+          const result = await setRequestStatus({ data: call.parameters as { request_id: string; status: "new" | "in_progress" | "done"; note?: string } });
+          const request = result?.request;
+          if (!request) return "Request update returned no data.";
+          return `Updated request ${request["id"]} to ${request["status"]}.`;
         }
         default:
           return "Unknown tool.";
