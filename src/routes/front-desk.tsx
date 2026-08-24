@@ -530,7 +530,7 @@ function Board() {
       <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <section>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {(["map", "list"] as const).map((mode) => (
+            {(["map", "list", "analytics"] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -542,7 +542,7 @@ function Board() {
                     : "border-cream/20 text-cream/55 hover:text-cream"
                 }`}
               >
-                {mode === "map" ? "Property map" : "Room list"}
+                {mode === "map" ? "Property map" : mode === "list" ? "Room list" : "Analytics"}
               </button>
             ))}
             {view === "map" ? (
