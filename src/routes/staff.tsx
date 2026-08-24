@@ -606,6 +606,8 @@ function Dashboard({
         <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
       </div>
 
+      <OpsAssistant />
+
       {visible.length === 0 ? (
         <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
           <p className="font-display text-2xl">Queue is clear</p>
