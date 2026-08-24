@@ -24,9 +24,11 @@ export type GuestStay = {
   updated_at: string;
 };
 
-function parsePreferences(value: unknown): Record<string, string | number | boolean | null> {
+type PreferencesMap = Record<string, string | number | boolean | null>;
+
+function parsePreferences(value: unknown): PreferencesMap {
   if (value && typeof value === "object" && !Array.isArray(value)) {
-    const out: Record<string, string | number | boolean | null> = {};
+    const out: PreferencesMap = {};
     for (const [k, v] of Object.entries(value)) {
       if (v === null || typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
         out[k] = v;
@@ -37,6 +39,14 @@ function parsePreferences(value: unknown): Record<string, string | number | bool
     return out;
   }
   return {};
+}
+
+function toJsonPreferences(value: PreferencesMap): Record<string, string | number | boolean | null> {
+  const out: Record<string, string | number | boolean | null> = {};
+  for (const [k, v] of Object.entries(value)) {
+    out[k] = v;
+  }
+  return out;
 }
 
 function toProfile(row: Record<string, unknown>): GuestProfile {
