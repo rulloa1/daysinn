@@ -49,6 +49,7 @@ export const getOccupancyTrend = createServerFn({ method: "GET" })
 
 export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.rpc("rooms_board");
     if (error) throw new Error(error.message);
