@@ -26,6 +26,7 @@ import {
 } from "@/lib/ops";
 import { QrCode } from "@/components/qr-code";
 import { FloorPlan } from "@/components/floor-plan";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { MetricsExportButton } from "@/components/metrics-export-button";
 import {
   Dialog,
@@ -229,7 +230,7 @@ function Board() {
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
-  const [view, setView] = useState<"map" | "list">("map");
+  const [view, setView] = useState<"map" | "list" | "analytics">("map");
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">("both");
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
@@ -529,7 +530,7 @@ function Board() {
       <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <section>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {(["map", "list"] as const).map((mode) => (
+            {(["map", "list", "analytics"] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -541,7 +542,7 @@ function Board() {
                     : "border-cream/20 text-cream/55 hover:text-cream"
                 }`}
               >
-                {mode === "map" ? "Property map" : "Room list"}
+                {mode === "map" ? "Property map" : mode === "list" ? "Room list" : "Analytics"}
               </button>
             ))}
             {view === "map" ? (
@@ -574,6 +575,8 @@ function Board() {
               onSelect={setActiveRoomId}
             />
           ) : null}
+
+          {!loading && view === "analytics" ? <AnalyticsDashboard /> : null}
 
           {loading ? (
             <p className="text-sm text-cream/50">Loading the board…</p>
