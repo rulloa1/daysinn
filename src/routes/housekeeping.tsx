@@ -5,7 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,7 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
+import { frontBlock, northBuilding, westWing } from "@/lib/property-layout";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
@@ -126,6 +127,88 @@ const PRIORITY: RoomStatus[] = [
   "vacant_clean",
   "out_of_order",
 ];
+
+function generateDemoRooms(): RoomRow[] {
+  const list: RoomRow[] = [];
+
+  const addRoom = (num: string, floor: number) => {
+    let status: RoomStatus = "vacant_clean";
+    let guestName: string | null = null;
+    let dnd = false;
+    let extended = false;
+    let assignedStaff: string | null = null;
+    let assignedName: string | null = null;
+
+    const n = Number(num);
+    if (isNaN(n)) return;
+
+    if (n % 7 === 0) {
+      status = "vacant_dirty";
+    } else if (n % 5 === 0) {
+      status = "occupied";
+      guestName = "Guest " + num;
+      if (n % 15 === 0) dnd = true;
+    } else if (n % 9 === 0) {
+      status = "reserved";
+    } else if (n % 13 === 0) {
+      status = "out_of_order";
+    }
+    
+    if (n === 115 || n === 120 || n === 201) {
+      assignedStaff = "00000000-0000-0000-0000-000000000000";
+      assignedName = "Presenter";
+      status = "vacant_dirty";
+    }
+
+    list.push({
+      id: `r-${num}`,
+      number: num,
+      floor,
+      status,
+      guest_name: guestName,
+      check_out: guestName ? "11:00 AM" : null,
+      notes: null,
+      dnd,
+      extended_stay: extended,
+      updated_at: new Date().toISOString(),
+      assigned_staff_id: assignedStaff,
+      assigned_name: assignedName,
+      hk_stage: null,
+      priority: null,
+      linen_change: null
+    });
+  };
+
+  for (const floor of [1, 2] as const) {
+    const fb = frontBlock(floor);
+    fb.upstairsLeft.forEach(num => addRoom(num, floor));
+    fb.upstairsRight.forEach(num => addRoom(num, floor));
+    fb.services.forEach(cell => {
+      if (cell.kind === "room") {
+        addRoom(cell.number, floor);
+      }
+    });
+
+    const ww = westWing(floor);
+    ww.forEach(row => {
+      if (row.kind === "rooms") {
+        addRoom(row.outer, floor);
+        addRoom(row.inner, floor);
+      }
+    });
+
+    const nb = northBuilding(floor);
+    nb.top.forEach(num => addRoom(num, floor));
+    nb.bottom.forEach(num => addRoom(num, floor));
+  }
+
+  const unique = new Map<string, RoomRow>();
+  for (const item of list) {
+    unique.set(item.number, item);
+  }
+
+  return Array.from(unique.values()).sort((a, b) => a.number.localeCompare(b.number));
+}
 
 export const Route = createFileRoute("/housekeeping")({
   head: () => ({
@@ -351,6 +434,7 @@ function HousekeepingBoard({
   staff: NonNullable<StaffIdentity>;
   onSignOut: () => void;
 }) {
+  const presenting = usePresentationMode();
   const [allRooms, setAllRooms] = useState<RoomRow[]>([]);
   const [supervisor, setSupervisor] = useState(false);
   const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
@@ -411,6 +495,16 @@ function HousekeepingBoard({
     let active = true;
 
     async function load() {
+      const isDemo = presenting || !isSupabaseConfigured;
+      if (isDemo) {
+        if (active) {
+          setAllRooms(generateDemoRooms());
+          setLoading(false);
+          setOpenIssues([]);
+        }
+        return;
+      }
+
       const { data, error } = await supabase
         .from("rooms")
         .select(
@@ -598,6 +692,11 @@ function HousekeepingBoard({
           : r,
       ),
     );
+    const isDemo = presenting || !isSupabaseConfigured;
+    if (isDemo) {
+      toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
+      return;
+    }
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
     if (error) {
       setAllRooms(previous);
@@ -615,6 +714,15 @@ function HousekeepingBoard({
     }
     const previous = allRooms;
     setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, hk_stage: stage } : r)));
+    const isDemo = presenting || !isSupabaseConfigured;
+    if (isDemo) {
+      toast.success(
+        stage === null
+          ? `Room ${room.number} stage cleared`
+          : `Room ${room.number} · ${stage === "in_progress" ? "In progress" : "Inspected"}`,
+      );
+      return;
+    }
     const { error } = await supabase.from("rooms").update({ hk_stage: stage }).eq("id", room.id);
     if (error) {
       setAllRooms(previous);
@@ -633,6 +741,8 @@ function HousekeepingBoard({
     if (!canTriage) return;
     const next = !room.linen_change;
     setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, linen_change: next } : r)));
+    const isDemo = presenting || !isSupabaseConfigured;
+    if (isDemo) return;
     const { error } = await supabase.from("rooms").update({ linen_change: next }).eq("id", room.id);
     if (error) toast.error("Couldn't update the linen flag.");
   }
@@ -650,6 +760,11 @@ function HousekeepingBoard({
         r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
       ),
     );
+    const isDemo = presenting || !isSupabaseConfigured;
+    if (isDemo) {
+      toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
+      return;
+    }
     const { error } = await supabase.from("rooms").update({ status: next }).eq("id", room.id);
     if (error) {
       setAllRooms(previous);

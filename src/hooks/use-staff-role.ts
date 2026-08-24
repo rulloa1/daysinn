@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { readPresentationMode } from "@/lib/presentation";
 
 export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
@@ -8,16 +9,29 @@ export function useStaffRole() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id;
-    if (!uid) {
-      setRoles([]);
+    const isDemo = !isSupabaseConfigured || readPresentationMode();
+    if (isDemo) {
+      setRoles(["manager"]);
       setLoading(false);
       return;
     }
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
-    setLoading(false);
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) {
+        setRoles([]);
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
+    } catch (err) {
+      console.error("[useStaffRole] Failed to fetch staff role:", err);
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

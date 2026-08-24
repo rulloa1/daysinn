@@ -30,31 +30,113 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+export const isSupabaseConfigured = Boolean(
+  (import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"]) &&
+  (import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"])
+);
+
+function createMockSupabaseClient() {
+  const handler: ProxyHandler<any> = {
+    get(target, prop, receiver) {
+      if (prop === "auth") {
+        return {
+          onAuthStateChange: (cb: any) => {
+            if (typeof cb === "function") {
+              // Call with a null session initially to trigger state update
+              setTimeout(() => cb("SIGNED_OUT", null), 0);
+            }
+            return { data: { subscription: { unsubscribe: () => {} } } };
+          },
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          getUser: () => Promise.resolve({ data: { user: null } }),
+          signInWithPassword: () => Promise.resolve({ data: {}, error: { message: "Database not configured" } }),
+          signUp: () => Promise.resolve({ data: {}, error: { message: "Database not configured" } }),
+          signOut: () => Promise.resolve({ error: null }),
+        };
+      }
+      if (prop === "from") {
+        return () => {
+          const queryBuilder: any = {
+            single: () => Promise.resolve({ data: null, error: { message: "Database not configured" } }),
+            maybeSingle: () => Promise.resolve({ data: null, error: { message: "Database not configured" } }),
+            then: (resolve: any) => resolve({ data: [], error: null }),
+          };
+          const queryProxy: any = new Proxy(queryBuilder, {
+            get(targetObj, method) {
+              if (method in targetObj) {
+                return targetObj[method];
+              }
+              return () => queryProxy;
+            }
+          });
+          return queryProxy;
+        };
+      }
+      if (prop === "rpc") {
+        return () => {
+          const rpcBuilder: any = {
+            then: (resolve: any) => resolve({ data: [], error: null }),
+          };
+          const rpcProxy: any = new Proxy(rpcBuilder, {
+            get(targetObj, method) {
+              if (method in targetObj) {
+                return targetObj[method];
+              }
+              return () => rpcProxy;
+            }
+          });
+          return rpcProxy;
+        };
+      }
+      if (prop === "channel") {
+        return () => {
+          const channelBuilder: any = {
+            subscribe: () => ({})
+          };
+          const channelProxy: any = new Proxy(channelBuilder, {
+            get(targetObj, method) {
+              if (method === "subscribe") {
+                return () => ({});
+              }
+              return () => channelProxy;
+            }
+          });
+          return channelProxy;
+        };
+      }
+      if (prop === "removeChannel") {
+        return () => {};
+      }
+      const val = target[prop];
+      if (typeof val === "function") {
+        return () => val;
+      }
+      return new Proxy(() => {}, handler);
+    }
+  };
+  return new Proxy({} as any, handler);
+}
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL =
     import.meta.env["VITE_SUPABASE_URL"] ||
-    process.env["SUPABASE_URL"] ||
-    "https://trlkgeufyuegmngogbxx.supabase.co";
+    process.env["SUPABASE_URL"];
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
-    process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-    "sb_publishable_4EMN0P2fACH9BUdhb_9PEA_pjEXVXAR";
+    process.env["SUPABASE_PUBLISHABLE_KEY"];
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+  if (!isSupabaseConfigured) {
+    console.warn(
+      "[Supabase] Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud. Running in unconfigured/mock mode."
+    );
+    return createMockSupabaseClient();
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!, {
     global: {
-      fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+      fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY!),
     },
     auth: {
       storage: brokeredPreviewStorage(),
@@ -74,3 +156,4 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
+

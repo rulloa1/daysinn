@@ -32,23 +32,61 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+export const isSupabaseAdminConfigured = Boolean(
+  process.env["SUPABASE_URL"] && process.env["SUPABASE_SERVICE_ROLE_KEY"]
+);
+
+function createMockSupabaseAdminClient() {
+  const handler: ProxyHandler<any> = {
+    get(target, prop, receiver) {
+      if (prop === "auth") {
+        return {
+          admin: {
+            listUsers: () => Promise.resolve({ data: { users: [] } }),
+            inviteUserByEmail: () => Promise.resolve({ data: { user: {} } }),
+            generateLink: () => Promise.resolve({ data: { properties: { action_link: "" } } }),
+          }
+        };
+      }
+      if (prop === "from") {
+        return () => {
+          const builder: any = {
+            delete: () => builder,
+            eq: () => builder,
+            neq: () => builder,
+            upsert: () => builder,
+            select: () => builder,
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            single: () => Promise.resolve({ data: null, error: null }),
+            then: (resolve: any) => resolve({ data: [], error: null }),
+          };
+          return builder;
+        };
+      }
+      const val = target[prop];
+      if (typeof val === "function") {
+        return () => val;
+      }
+      return new Proxy(() => {}, handler);
+    }
+  };
+  return new Proxy({} as any, handler);
+}
+
 function createSupabaseAdminClient() {
   const SUPABASE_URL = process.env["SUPABASE_URL"];
   const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-      ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+  if (!isSupabaseAdminConfigured) {
+    console.warn(
+      "[Supabase] Missing Supabase admin environment variables. Running in mock admin mode."
+    );
+    return createMockSupabaseAdminClient();
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
     global: {
-      fetch: createSupabaseFetch(SUPABASE_SERVICE_ROLE_KEY),
+      fetch: createSupabaseFetch(SUPABASE_SERVICE_ROLE_KEY!),
     },
     auth: {
       storage: undefined,
