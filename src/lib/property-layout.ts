@@ -1,51 +1,84 @@
 /**
  * Physical layout of Days Inn Wildwood (551 FL-44), transcribed directly from
- * the property architectural blueprint and sketch.
+ * the aerial architectural overlay and property blueprints.
  *
- * Floor 1 rooms: 108, 110-135 (West Wing), 136-163 (South Wing).
- * Floor 2 rooms: 200-209 (Top/Lobby), 210-235 (West Wing), 236-265 (South Wing).
+ * The property is an L-shaped compound:
+ *  1. Top-Left Corner: Lobby, Registration, Breakfast, GM Office, Kitchen, Security, Room 108/208, Ice, Breezeway/Stairs.
+ *  2. North Wing (Horizontal Top Building): Rooms 136-162 (outer/even) & 137-163/265 (inner/odd) with central breezeway.
+ *  3. West Wing (Vertical Left Building): Rooms 110-134 (inner/even) & 111-135 (outer/odd) + BOH (Facility, Vending, Laundry & Storage).
+ *  4. Central Courtyard: Heated Swim Pool, Sun Deck, and Central Parking.
+ *  5. Perimeter: Truck parking (FL-44 top frontage & rear south), East parking driveway.
  */
 
 export type FloorKey = 1 | 2;
 
-const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
+export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
-  { kind: "rooms"; left: string; right: string } | { kind: "divider"; label: string };
+  { kind: "rooms"; outer: string; inner: string; left?: string; right?: string } | { kind: "divider"; label: string };
 
-/** West wing: two rooms per row (odd numbers inside/courtyard, even numbers outside/parking). */
+/**
+ * West Wing (Vertical Building along guest parking):
+ * - Outer (Left) column: Odd numbers facing west parking (111-117, 119-135)
+ * - Inner (Right) column: Even numbers facing pool courtyard (110-116, 120-134)
+ */
 export function westWing(floor: FloorKey): WingRow[] {
   const rows: WingRow[] = [];
-  // Upper section: 111-117 (odd, inside) & 110-116 (even, outside)
+
+  // Upper section: 111-117 (outer) & 110-116 (inner)
   for (let odd = 111; odd <= 117; odd += 2) {
-    rows.push({ kind: "rooms", left: lift(odd, floor), right: lift(odd - 1, floor) });
+    const outer = lift(odd, floor);
+    const inner = lift(odd - 1, floor);
+    rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
   }
+
   rows.push({ kind: "divider", label: "Breezeway // Stairs" });
-  // Lower section: 119-135 (odd, inside) & 118-134 (even, outside)
-  for (let odd = 119; odd <= 135; odd += 2) {
-    rows.push({ kind: "rooms", left: lift(odd, floor), right: lift(odd - 1, floor) });
+
+  // Lower section: 119-135 (outer) & 120-134 (inner)
+  const lowerOdds = [119, 121, 123, 125, 127, 129, 131, 133, 135];
+  const lowerEvens = [120, 122, 124, 126, 128, 130, 132, 134, 134];
+
+  for (let i = 0; i < lowerOdds.length; i++) {
+    const outer = lift(lowerOdds[i]!, floor);
+    const inner = lift(lowerEvens[i]!, floor);
+    rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
   }
+
   rows.push({ kind: "divider", label: "Breezeway" });
   return rows;
 }
 
-/** South building: long double-loaded corridor (top row evens facing courtyard, bottom row odds facing outer parking). */
-export function southBuilding(floor: FloorKey): { top: string[]; bottom: string[] } {
-  const top: string[] = [];
-  for (let n = 136; n <= 162; n += 2) top.push(lift(n, floor));
+/**
+ * North Wing (Horizontal Top Building running east from Lobby Corner):
+ * - Top (Outer) row: Even rooms facing North / Truck Parking (136-162 / 236-262)
+ * - Bottom (Inner) row: Odd rooms facing Swim Pool / Courtyard (137-163 / 237-265)
+ */
+export function northBuilding(floor: FloorKey): {
+  top: string[];
+  bottom: string[];
+} {
+  if (floor === 1) {
+    return {
+      top: ["136", "138", "140", "142", "144", "146", "148", "150", "154", "156", "160", "162"],
+      bottom: ["137", "139", "141", "143", "145", "147", "149", "151", "155", "157", "161", "163"],
+    };
+  }
 
-  const bottom: string[] = [];
-  for (let n = 137; n <= 161; n += 2) bottom.push(lift(n, floor));
-  bottom.push(lift(163, floor));
-  if (floor === 2) bottom.push("265");
-
-  return { top, bottom };
+  return {
+    top: ["236", "238", "240", "242", "244", "246", "248", "250", "254", "258", "260", "262"],
+    bottom: ["237", "239", "241", "243", "245", "247", "251", "253", "255", "259", "261", "263", "265"],
+  };
 }
+
+/** Alias for backward compatibility */
+export const southBuilding = northBuilding;
 
 export type StripCell =
   { kind: "room"; number: string } | { kind: "space"; label: string; wide?: boolean };
 
-/** The top block: Lobby, admin offices, breakfast downstairs, and 200-series upstairs. */
+/**
+ * Top-Left Corner (Lobby & Administrative Services Block):
+ */
 export function frontBlock(floor: FloorKey): {
   upstairsLeft: string[];
   services: StripCell[];
@@ -56,10 +89,9 @@ export function frontBlock(floor: FloorKey): {
     services: [
       { kind: "space", label: "GM Office" },
       { kind: "space", label: "Kitchen" },
-      { kind: "space", label: "Lobby / Registration", wide: true },
-      { kind: "space", label: "Breakfast", wide: true },
+      { kind: "space", label: "Lobby / Registration / Breakfast", wide: true },
       { kind: "space", label: "Security" },
-      { kind: "room", number: "108" },
+      { kind: "room", number: floor === 2 ? "208" : "108" },
     ],
     upstairsRight: ["200", "202", "204", "206", "208"],
   };
@@ -71,14 +103,15 @@ export function cornerRoom(floor: FloorKey) {
   return lift(CORNER_ROOM, floor);
 }
 
-/** Back-of-house spaces at the bottom of the west wing. */
+/** Back-of-house spaces in the property. */
 export const SERVICE_SPACES = [
   "GM Office",
   "Kitchen",
-  "Lobby / Registration",
-  "Breakfast",
+  "Lobby / Registration / Breakfast",
   "Security",
+  "Ice Machine",
   "Facility",
+  "Vending",
   "GST Laundry",
-  "Laundry & Storage",
+  "Laundry and Storage",
 ] as const;
