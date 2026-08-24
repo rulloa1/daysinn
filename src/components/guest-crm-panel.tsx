@@ -75,6 +75,20 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
 
   async function load() {
     setLoading(true);
+    if (demo) {
+      const q = query.trim().toLowerCase();
+      const data = q
+        ? DEMO_PROFILES.filter(
+            (p) =>
+              p.profile.name.toLowerCase().includes(q) ||
+              (p.profile.email?.toLowerCase().includes(q) ?? false) ||
+              (p.profile.phone?.toLowerCase().includes(q) ?? false),
+          )
+        : DEMO_PROFILES;
+      setProfiles(data);
+      setLoading(false);
+      return;
+    }
     try {
       const data = query.trim()
         ? await search({ data: { query: query.trim(), limit: 20 } })
