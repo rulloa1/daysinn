@@ -137,6 +137,10 @@ export function GuestCrmPanel({ canEdit, demo = false }: { canEdit: boolean; dem
       toast.error("Name is required.");
       return;
     }
+    if (demo) {
+      toast.success("Demo mode — profile changes are not saved.");
+      return;
+    }
     try {
       if (id) {
         await updateProfile({ data: { id, name, email, phone, preferences, notes } });
