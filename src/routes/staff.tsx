@@ -16,8 +16,10 @@ import { TeamPanel } from "@/components/team-panel";
 import { InvitePanel } from "@/components/invite-panel";
 import { AssignmentBoard } from "@/components/assignment-board";
 import { ScheduleBoard } from "@/components/schedule-board";
+import { OpsAssistant } from "@/components/ops-assistant";
 import { PasswordResetGate } from "@/components/password-reset-gate";
 import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
+import { GuestCrmPanel } from "@/components/guest-crm-panel";
 import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
@@ -312,6 +314,7 @@ function Dashboard({
   const roleLoading = demo ? false : role.loading;
   const isManager = demo ? false : role.isManager;
   const canTriage = demo ? true : role.canTriage;
+  const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [claiming, setClaiming] = useState(false);
@@ -605,6 +608,8 @@ function Dashboard({
         <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
       </div>
 
+      <OpsAssistant />
+
       {visible.length === 0 ? (
         <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
           <p className="font-display text-2xl">Queue is clear</p>
@@ -688,6 +693,8 @@ function Dashboard({
           })}
         </ul>
       )}
+
+      <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
 
       {isManager ? (
         <div>

@@ -157,6 +157,80 @@ export type Database = {
           },
         ]
       }
+      guest_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          preferences: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      guest_stays: {
+        Row: {
+          check_in: string
+          check_out: string | null
+          created_at: string
+          guest_profile_id: string
+          id: string
+          notes: string | null
+          room_number: string
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out?: string | null
+          created_at?: string
+          guest_profile_id: string
+          id?: string
+          notes?: string | null
+          room_number: string
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string | null
+          created_at?: string
+          guest_profile_id?: string
+          id?: string
+          notes?: string | null
+          room_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_stays_guest_profile_id_fkey"
+            columns: ["guest_profile_id"]
+            isOneToOne: false
+            referencedRelation: "guest_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_secrets: {
         Row: {
           name: string
