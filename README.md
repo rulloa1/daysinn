@@ -1,5 +1,7 @@
 # daysInn
 
+> **Project operating context:** Read [Days Inn Housekeeping & Front Desk Tool Project Context](docs/PROJECT_CONTEXT.md) before planning features, integrations, offline behavior, or pilot work.
+
 https://rodewayhub-pwk3xuel.manus.space
 
 This project was built with [Lovable](https://lovable.dev).
