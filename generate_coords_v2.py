@@ -35,35 +35,35 @@ OFFSET = 1.0 # 2nd floor offset for overlapping boxes
 
 # West Wing Left column (Odd)
 for i, num in enumerate(west_odds):
-    coords[str(num)] = [23.5, west_y[i]]
-    coords[str(num + 100)] = [23.5 + OFFSET, west_y[i] + OFFSET]
+    coords[str(num)] = [100 - 23.5, west_y[i]]
+    coords[str(num + 100)] = [100 - (23.5 + OFFSET), west_y[i] + OFFSET]
 
 # West Wing Right column (Even)
 for i, num in enumerate(west_evens):
     if str(num) not in coords: # Avoid duplicate 134
-        coords[str(num)] = [27.5, west_y[i]]
-        coords[str(num + 100)] = [27.5 + OFFSET, west_y[i] + OFFSET]
+        coords[str(num)] = [100 - 27.5, west_y[i]]
+        coords[str(num + 100)] = [100 - (27.5 + OFFSET), west_y[i] + OFFSET]
 
 # North Wing Top
 for i, num in enumerate(north_top):
-    coords[str(num)] = [north_x_12[i], north_top_y]
+    coords[str(num)] = [100 - north_x_12[i], north_top_y]
 for i, num in enumerate(north_top_2):
-    coords[str(num)] = [north_x_12[i], north_top_y_2]
+    coords[str(num)] = [100 - north_x_12[i], north_top_y_2]
 
 # North Wing Bottom
 for i, num in enumerate(north_bot):
-    coords[str(num)] = [north_x_12[i], north_bot_y]
+    coords[str(num)] = [100 - north_x_12[i], north_bot_y]
 for i, num in enumerate(north_bot_2):
-    coords[str(num)] = [north_x_13[i], north_bot_y_2]
+    coords[str(num)] = [100 - north_x_13[i], north_bot_y_2]
 
 # Corner
 for i, num in enumerate(corner_odds):
-    coords[str(num)] = [23.5 + OFFSET, corner_y[i] + OFFSET]
+    coords[str(num)] = [100 - (23.5 + OFFSET), corner_y[i] + OFFSET]
 for i, num in enumerate(corner_evens):
-    coords[str(num)] = [27.5 + OFFSET, corner_y[i] + OFFSET]
+    coords[str(num)] = [100 - (27.5 + OFFSET), corner_y[i] + OFFSET]
 
-coords['101'] = [23.5, 36.0]
-coords['108'] = [27.5, 36.0]
+coords['101'] = [100 - 23.5, 36.0]
+coords['108'] = [100 - 27.5, 36.0]
 
 # Print JS object format
 out = "const ROOM_COORDS: Record<string, [number, number]> = {\n"
