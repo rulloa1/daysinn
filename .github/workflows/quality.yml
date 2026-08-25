@@ -37,3 +37,45 @@ jobs:
 
       - name: Check production dependency severity
         run: npm audit --omit=dev --audit-level=high
+
+  integration:
+    name: Run database integration tests
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_TEST_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_TEST_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Detect isolated integration-test credentials
+        id: integration-config
+        shell: bash
+        run: |
+          if [[ -n "$SUPABASE_URL" && -n "$SUPABASE_PUBLISHABLE_KEY" && -n "$SUPABASE_SERVICE_ROLE_KEY" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run database integration tests
+        if: steps.integration-config.outputs.available == 'true'
+        run: npm run test:integration
+
+      - name: Explain skipped integration coverage
+        if: steps.integration-config.outputs.available != 'true'
+        run: |
+          echo "::notice::Database integration tests are not enabled. Configure the three SUPABASE_TEST_* repository secrets for an isolated non-production project."

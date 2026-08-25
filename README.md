@@ -47,4 +47,18 @@ SUPABASE_PUBLISHABLE_KEY=<test-project-publishable-key>
 SUPABASE_SERVICE_ROLE_KEY=<test-project-service-role-key>
 ```
 
-Apply all migrations in `supabase/migrations/` to the test project before running the tests. CI integration coverage should use repository secrets scoped exclusively to the test project; never add production Supabase credentials to local files, commits, or CI logs.
+Apply all migrations in `supabase/migrations/` to the test project before running the tests. The guarded runner starts a local app on port 8080, waits for it to become ready, executes the database-backed suites, and shuts the app down afterwards.
+
+```sh
+npm run test:integration
+```
+
+The GitHub Actions workflow enables this job automatically when the following repository secrets are configured for an **isolated non-production** Supabase project:
+
+```text
+SUPABASE_TEST_URL
+SUPABASE_TEST_PUBLISHABLE_KEY
+SUPABASE_TEST_SERVICE_ROLE_KEY
+```
+
+Without these secrets, CI completes the deterministic checks and emits a notice that database integration coverage is inactive. Never add production Supabase credentials to local files, commits, repository secrets intended for testing, or CI logs.
