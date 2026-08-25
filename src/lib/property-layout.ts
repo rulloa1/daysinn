@@ -3,7 +3,7 @@
  *
  * The map is an L-shaped compound with a lobby/service block, a horizontal
  * guest wing, a vertical guest wing, a central courtyard, and perimeter parking.
- * The room ranges below reflect the approved property-map convention.
+ * Room sequences follow the original property wing drawing.
  */
 
 export type FloorKey = 1 | 2;
@@ -24,12 +24,11 @@ function roomPair(start: number, count: number): Array<[string, string]> {
 /**
  * Vertical guest wing.
  *
- * First floor: after the approved cross-wing swap, this physical wing carries
- * rooms 136–163. The second-floor roster remains unchanged pending an explicit
- * second-floor renumbering decision.
+ * The first-floor sequence is 110–135; the corresponding second-floor
+ * sequence is 210–235. The breezeway separates the upper and lower sections.
  */
 export function westWing(floor: FloorKey): WingRow[] {
-  const pairs = floor === 1 ? roomPair(136, 14) : roomPair(210, 13);
+  const pairs = floor === 1 ? roomPair(110, 13) : roomPair(210, 13);
   const rows: WingRow[] = [];
 
   pairs.forEach(([outer, inner], index) => {
@@ -42,12 +41,10 @@ export function westWing(floor: FloorKey): WingRow[] {
 }
 
 /**
- * Horizontal guest wing.
+ * Horizontal guest wing, as shown in the supplied original wing drawing.
  *
- * First floor: after the approved cross-wing swap, this physical wing carries
- * rooms 110–135. Its two unused physical end slots remain intentionally blank
- * on the visual site plan. The second-floor roster remains unchanged pending an
- * explicit second-floor renumbering decision.
+ * Room 265 is the additional second-floor room beneath the terminal 263 cell.
+ * The drawing also shows stair access at the central split and at the wing end.
  */
 export function northBuilding(floor: FloorKey): {
   top: string[];
@@ -55,28 +52,14 @@ export function northBuilding(floor: FloorKey): {
 } {
   if (floor === 1) {
     return {
-      top: roomPair(110, 13).map(([even]) => even),
-      bottom: roomPair(110, 13).map(([, odd]) => odd),
+      top: roomPair(136, 14).map(([even]) => even),
+      bottom: roomPair(136, 14).map(([, odd]) => odd),
     };
   }
 
   return {
-    top: ["236", "238", "240", "242", "244", "246", "248", "250", "254", "258", "260", "262"],
-    bottom: [
-      "237",
-      "239",
-      "241",
-      "243",
-      "245",
-      "247",
-      "251",
-      "253",
-      "255",
-      "259",
-      "261",
-      "263",
-      "265",
-    ],
+    top: roomPair(236, 14).map(([even]) => even),
+    bottom: [...roomPair(236, 14).map(([, odd]) => odd), "265"],
   };
 }
 
