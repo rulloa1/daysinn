@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { FloorKey } from "@/lib/property-layout";
-import propertyMapImage from "@/assets/property_map.png";
+import propertyMapImage from "@/assets/property_map_entrance_right.png";
 
 type RoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
@@ -54,7 +54,7 @@ type Props = {
  *
  * 1xx = floor 1, 2xx = floor 2 (same physical location, +1.5% y offset in "both" view).
  */
-const ROOM_COORDS: Record<string, [number, number]> = {
+const BASE_ROOM_COORDS: Record<string, [number, number]> = {
   "110": [64.0, 27.5],
   "111": [64.0, 23.5],
   "112": [59.8, 27.5],
@@ -176,6 +176,36 @@ const ROOM_COORDS: Record<string, [number, number]> = {
   "265": [79.5, 71.0],
 };
 
+/**
+ * The approved first-floor cross-wing swap. Rooms 110–135 use the former
+ * vertical-wing positions, while 136–163 use the former horizontal-wing
+ * positions. The final pair adds the two confirmed end positions required to
+ * preserve every room number.
+ */
+function firstFloorWingSwapCoordinates(): Record<string, [number, number]> {
+  const coordinates: Record<string, [number, number]> = {};
+
+  for (let offset = 0; offset < 26; offset++) {
+    coordinates[String(110 + offset)] = BASE_ROOM_COORDS[String(136 + offset)]!;
+    coordinates[String(136 + offset)] = BASE_ROOM_COORDS[String(110 + offset)]!;
+  }
+
+  coordinates["162"] = [8.8, 27.5];
+  coordinates["163"] = [8.8, 23.5];
+  return coordinates;
+}
+
+const ROOM_COORDS: Record<string, [number, number]> = {
+  ...BASE_ROOM_COORDS,
+  ...firstFloorWingSwapCoordinates(),
+};
+
+/** The two final vertical-wing cells are intentionally unused after the swap. */
+const UNUSED_FIRST_FLOOR_SLOTS: Array<[number, number]> = [
+  BASE_ROOM_COORDS["162"]!,
+  BASE_ROOM_COORDS["163"]!,
+];
+
 /** Filter rooms to the floors the user wants to see */
 function filterByFloor(rooms: MapRoom[], floor: FloorView): MapRoom[] {
   if (floor === "both") return rooms;
@@ -235,6 +265,19 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
           className="block w-full select-none"
           draggable={false}
         />
+
+        {/* The two physical cells not occupied by the 110–135 range stay visibly unused. */}
+        {floor !== 2 &&
+          UNUSED_FIRST_FLOOR_SLOTS.map(([left, top]) => (
+            <span
+              key={`unused-${left}-${top}`}
+              title="Unused physical room slot"
+              style={{ left: `${left}%`, top: `${top}%` }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded border border-slate-400/70 bg-slate-100/95 px-1 py-0.5 text-[7px] font-bold uppercase tracking-tight text-slate-600 shadow-sm"
+            >
+              Unused
+            </span>
+          ))}
 
         {/* Overlay room pills at percentage positions */}
         {visibleRooms.map((room) => {
