@@ -135,7 +135,7 @@ function generateDemoRooms(): RoomRow[] {
     let status: RoomStatus = "vacant_clean";
     let guestName: string | null = null;
     let dnd = false;
-    let extended = false;
+    const extended = false;
     let assignedStaff: string | null = null;
     let assignedName: string | null = null;
 
@@ -153,7 +153,7 @@ function generateDemoRooms(): RoomRow[] {
     } else if (n % 13 === 0) {
       status = "out_of_order";
     }
-    
+
     if (n === 115 || n === 120 || n === 201) {
       assignedStaff = "00000000-0000-0000-0000-000000000000";
       assignedName = "Presenter";
@@ -175,22 +175,22 @@ function generateDemoRooms(): RoomRow[] {
       assigned_name: assignedName,
       hk_stage: null,
       priority: null,
-      linen_change: null
+      linen_change: null,
     });
   };
 
   for (const floor of [1, 2] as const) {
     const fb = frontBlock(floor);
-    fb.upstairsLeft.forEach(num => addRoom(num, floor));
-    fb.upstairsRight.forEach(num => addRoom(num, floor));
-    fb.services.forEach(cell => {
+    fb.upstairsLeft.forEach((num) => addRoom(num, floor));
+    fb.upstairsRight.forEach((num) => addRoom(num, floor));
+    fb.services.forEach((cell) => {
       if (cell.kind === "room") {
         addRoom(cell.number, floor);
       }
     });
 
     const ww = westWing(floor);
-    ww.forEach(row => {
+    ww.forEach((row) => {
       if (row.kind === "rooms") {
         addRoom(row.outer, floor);
         addRoom(row.inner, floor);
@@ -198,8 +198,8 @@ function generateDemoRooms(): RoomRow[] {
     });
 
     const nb = northBuilding(floor);
-    nb.top.forEach(num => addRoom(num, floor));
-    nb.bottom.forEach(num => addRoom(num, floor));
+    nb.top.forEach((num) => addRoom(num, floor));
+    nb.bottom.forEach((num) => addRoom(num, floor));
   }
 
   const unique = new Map<string, RoomRow>();
@@ -579,7 +579,7 @@ function HousekeepingBoard({
       active = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [presenting]);
 
   function toggleAlerts() {
     setAlertsOn((v) => {
@@ -694,7 +694,9 @@ function HousekeepingBoard({
     );
     const isDemo = presenting || !isSupabaseConfigured;
     if (isDemo) {
-      toast.success(toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`);
+      toast.success(
+        toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`,
+      );
       return;
     }
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);

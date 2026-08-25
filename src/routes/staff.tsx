@@ -27,7 +27,16 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
-import { Menu, Map as MapIcon, ListFilter, Users, ClipboardCheck, FileText, Bell, Play } from "lucide-react";
+import {
+  Menu,
+  Map as MapIcon,
+  ListFilter,
+  Users,
+  ClipboardCheck,
+  FileText,
+  Bell,
+  Play,
+} from "lucide-react";
 
 type RequestRow = {
   id: string;
@@ -269,10 +278,11 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
               <p className="mt-2 text-sm text-cream/60">
                 A cleaner queue means a calmer shift. Sign in to work the board.
               </p>
-              
+
               {!isSupabaseConfigured && (
                 <div className="mt-4 rounded-lg border border-amber/30 bg-amber/10 p-3 text-xs text-amber-200">
-                  <strong>Notice:</strong> The backend database is not configured. Real sign-in is disabled, but you can explore the dashboard via the Demo Mode CTA below.
+                  <strong>Notice:</strong> The backend database is not configured. Real sign-in is
+                  disabled, but you can explore the dashboard via the Demo Mode CTA below.
                 </div>
               )}
 
@@ -333,7 +343,8 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
                 Presenting or Evaluating?
               </p>
               <p className="mt-2 text-xs text-cream/60 leading-relaxed">
-                Skip the credentials and load a fully functional sandbox interface with pre-loaded mock rooms, housekeeping states, and request flows.
+                Skip the credentials and load a fully functional sandbox interface with pre-loaded
+                mock rooms, housekeeping states, and request flows.
               </p>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
@@ -361,7 +372,8 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
                 DaysInn Hub Operations Portal
               </h2>
               <p className="mt-2 text-sm text-cream/50">
-                A unified dashboard designed to streamline day-to-day hospitality operations, room turnovers, and guest communication.
+                A unified dashboard designed to streamline day-to-day hospitality operations, room
+                turnovers, and guest communication.
               </p>
 
               <div className="mt-8 space-y-6">
@@ -373,7 +385,9 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
                   <div>
                     <h3 className="text-base font-semibold text-cream">Housekeeping Queue</h3>
                     <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Real-time cleaning statuses, staff assignments, and room audits. Track turnovers (dirty-to-clean) and log exact cleaning durations for operational analytics.
+                      Real-time cleaning statuses, staff assignments, and room audits. Track
+                      turnovers (dirty-to-clean) and log exact cleaning durations for operational
+                      analytics.
                     </p>
                   </div>
                 </div>
@@ -386,7 +400,9 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
                   <div>
                     <h3 className="text-base font-semibold text-cream">Guest History & CRM</h3>
                     <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Access active guest details, VIP statuses, preferences, and historical check-in logs. Empower staff with context to deliver personalized hospitality experiences.
+                      Access active guest details, VIP statuses, preferences, and historical
+                      check-in logs. Empower staff with context to deliver personalized hospitality
+                      experiences.
                     </p>
                   </div>
                 </div>
@@ -397,9 +413,13 @@ function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | nu
                     <Bell className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-cream">Service Requests Dispatch</h3>
+                    <h3 className="text-base font-semibold text-cream">
+                      Service Requests Dispatch
+                    </h3>
                     <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Triage incoming guest asks (amenities, maintenance, front desk inquiries) through an interactive Kanban board. Dispatch jobs, transition statuses, and track response times.
+                      Triage incoming guest asks (amenities, maintenance, front desk inquiries)
+                      through an interactive Kanban board. Dispatch jobs, transition statuses, and
+                      track response times.
                     </p>
                   </div>
                 </div>
@@ -506,7 +526,9 @@ Suggestions: ${feedbackText || "None"}`;
 
   const emailFeedback = () => {
     const subject = encodeURIComponent("DaysInn staff portal demo feedback");
-    const body = encodeURIComponent(`Would this make daily operations easier? ${feedbackAnswer}\nSuggestions: ${feedbackText || "None"}`);
+    const body = encodeURIComponent(
+      `Would this make daily operations easier? ${feedbackAnswer}\nSuggestions: ${feedbackText || "None"}`,
+    );
     window.open(`mailto:demo-feedback@daysinn.com?subject=${subject}&body=${body}`, "_blank");
   };
   const [filter, setFilter] = useState<string>("all");
@@ -684,688 +706,713 @@ Suggestions: ${feedbackText || "None"}`;
         </div>
       )}
       <div className="px-6 md:px-12">
-        <header className={`${present ? "top-8" : "top-0"} sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12`}>
-        <div className="flex min-w-0 items-center gap-5">
-          <BrandLockup tone="cream" />
-          <div className="hidden h-8 w-px bg-cream/15 md:block" />
-          <div className="hidden min-w-0 md:block">
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              {demo ? "Demo shift" : "Live shift"}
-            </p>
-            <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
+        <header
+          className={`${present ? "top-8" : "top-0"} sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12`}
+        >
+          <div className="flex min-w-0 items-center gap-5">
+            <BrandLockup tone="cream" />
+            <div className="hidden h-8 w-px bg-cream/15 md:block" />
+            <div className="hidden min-w-0 md:block">
+              <p className="signage flex items-center gap-2 text-cream/60">
+                <span aria-hidden className="h-3 w-[3px] bg-amber" />
+                {demo ? "Demo shift" : "Live shift"}
+              </p>
+              <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
+            </div>
           </div>
-        </div>
 
-        <div className="flex shrink-0 items-center gap-4">
-          <nav className="hidden items-center gap-4 md:flex">
-            <Link
-              to="/front-desk"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Front desk
-            </Link>
-            <Link
-              to="/housekeeping"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Housekeeping
-            </Link>
-            {isManager ? (
+          <div className="flex shrink-0 items-center gap-4">
+            <nav className="hidden items-center gap-4 md:flex">
               <Link
-                to="/roles"
+                to="/front-desk"
                 className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
-                Roles
+                Front desk
               </Link>
-            ) : null}
-            <Link
-              to="/"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Guest view
-            </Link>
-            {!present ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                onClick={demo ? onExitDemo : signOut}
+              <Link
+                to="/housekeeping"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
-                {demo ? "Exit demo" : "Sign out"}
-              </Button>
-            ) : null}
-          </nav>
+                Housekeeping
+              </Link>
+              {isManager ? (
+                <Link
+                  to="/roles"
+                  className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+                >
+                  Roles
+                </Link>
+              ) : null}
+              <Link
+                to="/"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Guest view
+              </Link>
+              {!present ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                  onClick={demo ? onExitDemo : signOut}
+                >
+                  {demo ? "Exit demo" : "Sign out"}
+                </Button>
+              ) : null}
+            </nav>
 
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="Open menu"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Open menu"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
               >
-                <Menu className="h-5 w-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
-            >
-              <SheetHeader>
-                <SheetTitle className="text-left text-cream">Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="mt-6 flex flex-col gap-3">
-                <Link
-                  to="/front-desk"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Front desk
-                </Link>
-                <Link
-                  to="/housekeeping"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Housekeeping
-                </Link>
-                {isManager ? (
+                <SheetHeader>
+                  <SheetTitle className="text-left text-cream">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 flex flex-col gap-3">
                   <Link
-                    to="/roles"
+                    to="/front-desk"
                     onClick={() => setMenuOpen(false)}
                     className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
                   >
-                    Roles
+                    Front desk
                   </Link>
-                ) : null}
-                <Link
-                  to="/"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Guest view
-                </Link>
-                {!present ? (
-                  <Button
-                    variant="outline"
-                    className="w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      if (demo && onExitDemo) onExitDemo();
-                      else signOut();
-                    }}
+                  <Link
+                    to="/housekeeping"
+                    onClick={() => setMenuOpen(false)}
+                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
                   >
-                    {demo ? "Exit demo" : "Sign out"}
-                  </Button>
-                ) : null}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </header>
-
-      <PwaInstallPrompt className="mt-4" />
-
-      {/* System Status in Dashboard */}
-      <div className="mt-4 flex justify-end">
-        <SystemStatus session={session} demo={demo} />
-      </div>
-
-      {demo ? (
-        <div className="space-y-6">
-          <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
-            <p className="signage text-amber">Demo view</p>
-            <p className="mt-2 max-w-2xl text-sm text-cream/70">
-              Sample requests for presentation only — nothing here is real guest data, and status
-              changes are not saved.
-            </p>
+                    Housekeeping
+                  </Link>
+                  {isManager ? (
+                    <Link
+                      to="/roles"
+                      onClick={() => setMenuOpen(false)}
+                      className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                    >
+                      Roles
+                    </Link>
+                  ) : null}
+                  <Link
+                    to="/"
+                    onClick={() => setMenuOpen(false)}
+                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                  >
+                    Guest view
+                  </Link>
+                  {!present ? (
+                    <Button
+                      variant="outline"
+                      className="w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (demo && onExitDemo) onExitDemo();
+                        else signOut();
+                      }}
+                    >
+                      {demo ? "Exit demo" : "Sign out"}
+                    </Button>
+                  ) : null}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
+        </header>
 
-          {/* Demo Mode Dashboard Preview Metrics */}
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-            <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-              <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">Today's Arrivals</p>
-              <p className="mt-2 font-display text-3xl font-bold text-emerald-400">12</p>
-              <p className="mt-1 text-xs text-cream/40 font-sans">4 checked in · 8 pending</p>
-            </div>
-            <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-              <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">Today's Departures</p>
-              <p className="mt-2 font-display text-3xl font-bold text-amber-400">8</p>
-              <p className="mt-1 text-xs text-cream/40 font-sans">6 checked out · 2 remaining</p>
-            </div>
-            <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-              <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">Cleaning Backlog</p>
-              <p className="mt-2 font-display text-3xl font-bold text-rose-400">
-                5 <span className="text-xs font-normal text-cream/50">rooms</span>
+        <PwaInstallPrompt className="mt-4" />
+
+        {/* System Status in Dashboard */}
+        <div className="mt-4 flex justify-end">
+          <SystemStatus session={session} demo={demo} />
+        </div>
+
+        {demo ? (
+          <div className="space-y-6">
+            <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
+              <p className="signage text-amber">Demo view</p>
+              <p className="mt-2 max-w-2xl text-sm text-cream/70">
+                Sample requests for presentation only — nothing here is real guest data, and status
+                changes are not saved.
               </p>
-              <p className="mt-1 text-xs text-cream/40 font-sans">3 vacant dirty · 2 occupied dirty</p>
+            </div>
+
+            {/* Demo Mode Dashboard Preview Metrics */}
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
+                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
+                  Today's Arrivals
+                </p>
+                <p className="mt-2 font-display text-3xl font-bold text-emerald-400">12</p>
+                <p className="mt-1 text-xs text-cream/40 font-sans">4 checked in · 8 pending</p>
+              </div>
+              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
+                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
+                  Today's Departures
+                </p>
+                <p className="mt-2 font-display text-3xl font-bold text-amber-400">8</p>
+                <p className="mt-1 text-xs text-cream/40 font-sans">6 checked out · 2 remaining</p>
+              </div>
+              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
+                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
+                  Cleaning Backlog
+                </p>
+                <p className="mt-2 font-display text-3xl font-bold text-rose-400">
+                  5 <span className="text-xs font-normal text-cream/50">rooms</span>
+                </p>
+                <p className="mt-1 text-xs text-cream/40 font-sans">
+                  3 vacant dirty · 2 occupied dirty
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {!demo && !roleLoading && !canTriage ? (
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
-          <div>
-            <p className="signage text-amber">View-only access</p>
-            <p className="mt-2 text-sm text-cream/70">
-              You can watch the queue, but a manager must grant you staff access before you can
-              triage requests.
-            </p>
+        {!demo && !roleLoading && !canTriage ? (
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
+            <div>
+              <p className="signage text-amber">View-only access</p>
+              <p className="mt-2 text-sm text-cream/70">
+                You can watch the queue, but a manager must grant you staff access before you can
+                triage requests.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              disabled={claiming}
+              className="bg-amber text-ink hover:bg-amber/90"
+              onClick={claim}
+            >
+              {claiming ? "Setting up…" : "I'm the first manager"}
+            </Button>
           </div>
-          <Button
-            size="sm"
-            disabled={claiming}
-            className="bg-amber text-ink hover:bg-amber/90"
-            onClick={claim}
-          >
-            {claiming ? "Setting up…" : "I'm the first manager"}
-          </Button>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* Primary Dashboard Tabs */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant={activeTab === "queue" ? "default" : "outline"}
-            onClick={() => setActiveTab("queue")}
-            className={`${
-              activeTab === "queue"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            } ${
-              tourStep === 2 ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse" : ""
-            }`}
-          >
-            <ListFilter className="mr-1.5 h-4 w-4" />
-            Request queue ({rows.filter((r) => r.status !== "done").length})
-          </Button>
+        {/* Primary Dashboard Tabs */}
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant={activeTab === "queue" ? "default" : "outline"}
+              onClick={() => setActiveTab("queue")}
+              className={`${
+                activeTab === "queue"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              } ${
+                tourStep === 2
+                  ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
+                  : ""
+              }`}
+            >
+              <ListFilter className="mr-1.5 h-4 w-4" />
+              Request queue ({rows.filter((r) => r.status !== "done").length})
+            </Button>
 
-          <Button
-            type="button"
-            variant={activeTab === "map" ? "default" : "outline"}
-            onClick={() => setActiveTab("map")}
-            className={`${
-              activeTab === "map"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            } ${
-              tourStep === 1 ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse" : ""
-            }`}
-          >
-            <MapIcon className="mr-1.5 h-4 w-4" />
-            Property map ({rooms.length} rooms)
-          </Button>
+            <Button
+              type="button"
+              variant={activeTab === "map" ? "default" : "outline"}
+              onClick={() => setActiveTab("map")}
+              className={`${
+                activeTab === "map"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              } ${
+                tourStep === 1
+                  ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
+                  : ""
+              }`}
+            >
+              <MapIcon className="mr-1.5 h-4 w-4" />
+              Property map ({rooms.length} rooms)
+            </Button>
 
-          <Button
-            type="button"
-            variant={activeTab === "crm" ? "default" : "outline"}
-            onClick={() => setActiveTab("crm")}
-            className={`${
-              activeTab === "crm"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            } ${
-              tourStep === 3 ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse" : ""
-            }`}
-          >
-            <Users className="mr-1.5 h-4 w-4" />
-            Guest CRM
-          </Button>
+            <Button
+              type="button"
+              variant={activeTab === "crm" ? "default" : "outline"}
+              onClick={() => setActiveTab("crm")}
+              className={`${
+                activeTab === "crm"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              } ${
+                tourStep === 3
+                  ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
+                  : ""
+              }`}
+            >
+              <Users className="mr-1.5 h-4 w-4" />
+              Guest CRM
+            </Button>
+          </div>
+
+          {activeTab === "map" ? (
+            <div className="flex items-center gap-1.5">
+              {(["both", 1, 2] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setMapFloor(f)}
+                  className={`signage px-3 py-1.5 transition-colors duration-150 rounded border ${
+                    mapFloor === f
+                      ? "border-amber bg-amber text-ink font-bold"
+                      : "border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
+                  }`}
+                >
+                  {f === "both" ? "All rooms (Stacked)" : `Floor ${f}`}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {activeTab === "map" ? (
-          <div className="flex items-center gap-1.5">
-            {(["both", 1, 2] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setMapFloor(f)}
-                className={`signage px-3 py-1.5 transition-colors duration-150 rounded border ${
-                  mapFloor === f
-                    ? "border-amber bg-amber text-ink font-bold"
-                    : "border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
-                }`}
+          <div className="mt-6 space-y-4">
+            <FloorPlan
+              floor={mapFloor}
+              rooms={rooms}
+              openRequests={openRequestsByRoom}
+              onSelect={(roomId) => setSelectedRoomId(roomId)}
+            />
+
+            {/* Room Inspector Sheet */}
+            <Sheet
+              open={Boolean(selectedRoom)}
+              onOpenChange={(open) => !open && setSelectedRoomId(null)}
+            >
+              <SheetContent
+                side="right"
+                className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
               >
-                {f === "both" ? "All rooms (Stacked)" : `Floor ${f}`}
-              </button>
-            ))}
+                <SheetHeader>
+                  <SheetTitle className="text-left text-cream flex items-center justify-between">
+                    <span>Room {selectedRoom?.number}</span>
+                    {selectedRoom && (
+                      <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
+                        {selectedRoom.status.replace("_", " ")}
+                      </Badge>
+                    )}
+                  </SheetTitle>
+                </SheetHeader>
+
+                {selectedRoom && (
+                  <div className="mt-6 space-y-6">
+                    <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
+                      <p className="text-xs text-cream/50 uppercase tracking-wider">
+                        Current Guest
+                      </p>
+                      <p className="mt-1 font-serif text-lg font-bold text-cream">
+                        {selectedRoom.guest_name ?? "No guest registered"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
+                        Open Requests ({selectedRoomRequests.length})
+                      </h3>
+                      {selectedRoomRequests.length === 0 ? (
+                        <p className="text-sm text-cream/40 italic">
+                          No open requests for room {selectedRoom.number}.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {selectedRoomRequests.map((req) => (
+                            <li
+                              key={req.id}
+                              className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm text-cream">{req.type}</span>
+                                <Badge className="text-[10px] bg-amber/20 text-amber">
+                                  {req.status}
+                                </Badge>
+                              </div>
+                              {req.details && (
+                                <p className="mt-1 text-xs text-cream/70">{req.details}</p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                      >
+                        <Link to="/front-desk">Open Front Desk Board →</Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                      >
+                        <Link to="/housekeeping">Open Housekeeping Board →</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : activeTab === "crm" ? (
+          <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
+        ) : (
+          <>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {STATUSES.map((status) => {
+                const active = filter === status;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFilter(active ? "all" : status)}
+                    aria-pressed={active}
+                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
+                      active
+                        ? "border-amber/70 bg-cream/[0.07]"
+                        : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+                    }`}
+                  >
+                    <p className="signage flex items-center gap-2 text-cream/60">
+                      <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
+                      {STATUS_LABEL[status]}
+                    </p>
+                    <p className="font-display text-3xl leading-none tabular-nums">
+                      {counts[status]}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
+              <span className="signage mr-1 text-cream/40">Filter</span>
+              {["all", ...STATUSES].map((option) => (
+                <Button
+                  key={option}
+                  size="sm"
+                  variant="outline"
+                  className={
+                    filter === option
+                      ? "border-amber bg-amber text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }
+                  onClick={() => setFilter(option)}
+                >
+                  {option === "all" ? "All" : STATUS_LABEL[option]}
+                </Button>
+              ))}
+              <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
+            </div>
+
+            <OpsAssistant />
+
+            {visible.length === 0 ? (
+              <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
+                <p className="font-display text-2xl">Queue is clear</p>
+                <p className="mt-2 text-sm text-cream/60">
+                  New guest requests land here automatically.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-6 space-y-2">
+                {visible.map((row) => {
+                  const next = NEXT_ACTION[row.status];
+                  const others = STATUSES.filter(
+                    (status) => status !== row.status && status !== next?.status,
+                  );
+                  return (
+                    <li
+                      key={row.id}
+                      className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
+                    >
+                      <span
+                        aria-hidden
+                        className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
+                      />
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-baseline gap-3">
+                            <span className="font-display text-2xl tabular-nums">{row.room}</span>
+                            <span className="text-base text-cream">{row.type}</span>
+                            <Badge
+                              className={
+                                row.status === "new"
+                                  ? "bg-amber text-ink"
+                                  : row.status === "in_progress"
+                                    ? "bg-sage text-ink"
+                                    : "bg-cream/15 text-cream"
+                              }
+                            >
+                              {STATUS_LABEL[row.status] ?? row.status}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-xs text-cream/50">
+                            {row.guest_name ? `${row.guest_name} · ` : ""}
+                            <span title={new Date(row.created_at).toLocaleString()}>
+                              {timeAgo(row.created_at)}
+                            </span>
+                          </p>
+                          {row.details ? (
+                            <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
+                          ) : null}
+                        </div>
+                        {canTriage ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            {next ? (
+                              <Button
+                                size="sm"
+                                className="bg-amber text-ink hover:bg-amber/90"
+                                onClick={() => setStatus(row.id, next.status)}
+                              >
+                                {next.label}
+                              </Button>
+                            ) : null}
+                            {others.map((status) => (
+                              <Button
+                                key={status}
+                                size="sm"
+                                variant="outline"
+                                className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                                onClick={() => setStatus(row.id, status)}
+                              >
+                                {STATUS_LABEL[status]}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="signage text-cream/40">View only</p>
+                        )}
+                      </div>
+                      {demo ? null : (
+                        <RequestWorkflowPanel
+                          request={row}
+                          canEdit={canTriage}
+                          staff={staff ?? null}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        )}
+
+        {isManager ? (
+          <div>
+            <ScheduleBoard />
+            <AssignmentBoard />
+            <TeamPanel />
+            <InvitePanel />
           </div>
         ) : null}
-      </div>
 
-      {activeTab === "map" ? (
-        <div className="mt-6 space-y-4">
-          <FloorPlan
-            floor={mapFloor}
-            rooms={rooms}
-            openRequests={openRequestsByRoom}
-            onSelect={(roomId) => setSelectedRoomId(roomId)}
-          />
+        {/* Tour Guide Card */}
+        {tourStep !== null && tourStep < 4 && (
+          <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 w-full max-w-sm border border-amber/40 bg-ink shadow-2xl p-6 rounded-xl space-y-4 font-sans">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-amber font-mono">
+                Step {tourStep} of 4
+              </span>
+              <span className="text-[10px] text-cream/40 font-mono">[ESC to exit]</span>
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-cream">
+                {tourStep === 1 && "Property Map"}
+                {tourStep === 2 && "Housekeeping Queue"}
+                {tourStep === 3 && "Guest CRM"}
+              </h3>
+              <p className="mt-1 text-sm text-cream/70 leading-relaxed font-sans">
+                {tourStep === 1 && "See the property and room status at a glance."}
+                {tourStep === 2 &&
+                  "Prioritize rooms and coordinate turnovers without scattered texts."}
+                {tourStep === 3 && "Give staff relevant guest context when it matters."}
+              </p>
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <button
+                onClick={() => setTourStep(null)}
+                className="text-xs text-cream/40 hover:text-cream hover:underline font-sans"
+              >
+                Skip
+              </button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={tourStep === 1}
+                  onClick={handlePrevStep}
+                  className="border-cream/20 text-cream hover:bg-cream/10 disabled:opacity-30 font-sans"
+                >
+                  Back
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleNextStep}
+                  className="bg-amber text-ink font-bold hover:bg-amber/90 font-sans"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* Room Inspector Sheet */}
-          <Sheet
-            open={Boolean(selectedRoom)}
-            onOpenChange={(open) => !open && setSelectedRoomId(null)}
-          >
-            <SheetContent
-              side="right"
-              className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
-            >
-              <SheetHeader>
-                <SheetTitle className="text-left text-cream flex items-center justify-between">
-                  <span>Room {selectedRoom?.number}</span>
-                  {selectedRoom && (
-                    <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
-                      {selectedRoom.status.replace("_", " ")}
-                    </Badge>
-                  )}
-                </SheetTitle>
-              </SheetHeader>
+        {/* Feedback Modal Overlay (Step 4) */}
+        {tourStep === 4 && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
+            <div className="w-full max-w-md border border-cream/15 bg-ink p-8 rounded-2xl space-y-6 shadow-2xl font-sans">
+              <h2 className="font-serif text-2xl font-bold tracking-tight text-cream">
+                Your operational feedback matters
+              </h2>
 
-              {selectedRoom && (
-                <div className="mt-6 space-y-6">
-                  <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
-                    <p className="text-xs text-cream/50 uppercase tracking-wider">Current Guest</p>
-                    <p className="mt-1 font-serif text-lg font-bold text-cream">
-                      {selectedRoom.guest_name ?? "No guest registered"}
+              {!feedbackSubmitted ? (
+                <form onSubmit={submitFeedback} className="space-y-4">
+                  <div className="space-y-3">
+                    <p className="text-sm text-cream/80 font-sans">
+                      Would this make daily operations easier for your team?
                     </p>
+                    <div className="flex gap-2 font-sans">
+                      {(["Yes", "Maybe", "No"] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setFeedbackAnswer(opt)}
+                          className={`flex-1 py-2 rounded-lg border font-semibold text-sm transition-all duration-150 ${
+                            feedbackAnswer === opt
+                              ? "border-amber bg-amber/15 text-amber"
+                              : "border-cream/15 bg-cream/[0.02] text-cream/70 hover:border-cream/35 hover:text-cream"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
-                      Open Requests ({selectedRoomRequests.length})
-                    </h3>
-                    {selectedRoomRequests.length === 0 ? (
-                      <p className="text-sm text-cream/40 italic">
-                        No open requests for room {selectedRoom.number}.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {selectedRoomRequests.map((req) => (
-                          <li
-                            key={req.id}
-                            className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-sm text-cream">{req.type}</span>
-                              <Badge className="text-[10px] bg-amber/20 text-amber">
-                                {req.status}
-                              </Badge>
-                            </div>
-                            {req.details && (
-                              <p className="mt-1 text-xs text-cream/70">{req.details}</p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <div className="space-y-2 font-sans">
+                    <Label htmlFor="changeText" className="text-xs text-cream/60">
+                      What would you change or add?
+                    </Label>
+                    <textarea
+                      id="changeText"
+                      rows={3}
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      className="w-full rounded-lg border border-cream/15 bg-cream/[0.02] p-3 text-sm text-cream focus:border-amber focus:outline-none"
+                      placeholder="Enter optional suggestions..."
+                    />
                   </div>
 
-                  <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                  <div className="flex items-center justify-between pt-4 font-sans">
+                    <button
+                      type="button"
+                      onClick={() => setTourStep(3)}
+                      className="text-xs text-cream/40 hover:text-cream hover:underline font-sans"
                     >
-                      <Link to="/front-desk">Open Front Desk Board →</Link>
+                      Back
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTourStep(null)}
+                        className="px-4 py-2 rounded-lg border border-cream/20 text-cream/70 text-sm hover:bg-cream/10"
+                      >
+                        Skip
+                      </button>
+                      <Button
+                        type="submit"
+                        className="bg-amber font-bold text-ink hover:bg-amber/90"
+                      >
+                        Send feedback
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4 text-center font-sans">
+                  <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-3 w-12 h-12 flex items-center justify-center mx-auto text-emerald-400 font-bold">
+                    ✓
+                  </div>
+                  <p className="text-sm text-cream/80 font-sans">
+                    Your feedback has been prepared. Since there is no database connection
+                    configured, please select an option below:
+                  </p>
+                  <div className="flex flex-col gap-2 pt-2">
+                    <Button
+                      onClick={copyFeedback}
+                      className="w-full bg-amber text-ink font-bold hover:bg-amber/90"
+                    >
+                      Copy feedback to clipboard
                     </Button>
                     <Button
-                      asChild
                       variant="outline"
+                      onClick={emailFeedback}
                       className="w-full border-cream/20 text-cream hover:bg-cream/10"
                     >
-                      <Link to="/housekeeping">Open Housekeeping Board →</Link>
+                      Open pre-filled Email client
                     </Button>
+                  </div>
+                  <div className="pt-4 border-t border-cream/10 font-sans">
+                    <button
+                      onClick={() => {
+                        setTourStep(null);
+                        setFeedbackSubmitted(false);
+                        setFeedbackAnswer(null);
+                        setFeedbackText("");
+                      }}
+                      className="text-xs text-cream/40 hover:text-cream hover:underline"
+                    >
+                      Close & Finish walkthrough
+                    </button>
                   </div>
                 </div>
               )}
-            </SheetContent>
-          </Sheet>
-        </div>
-      ) : activeTab === "crm" ? (
-        <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
-      ) : (
-        <>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {STATUSES.map((status) => {
-              const active = filter === status;
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => setFilter(active ? "all" : status)}
-                  aria-pressed={active}
-                  className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
-                    active
-                      ? "border-amber/70 bg-cream/[0.07]"
-                      : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-                  }`}
-                >
-                  <p className="signage flex items-center gap-2 text-cream/60">
-                    <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
-                    {STATUS_LABEL[status]}
-                  </p>
-                  <p className="font-display text-3xl leading-none tabular-nums">
-                    {counts[status]}
-                  </p>
-                </button>
-              );
-            })}
+            </div>
           </div>
+        )}
 
-          <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
-            <span className="signage mr-1 text-cream/40">Filter</span>
-            {["all", ...STATUSES].map((option) => (
-              <Button
-                key={option}
-                size="sm"
-                variant="outline"
-                className={
-                  filter === option
-                    ? "border-amber bg-amber text-ink hover:bg-amber/90"
-                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                }
-                onClick={() => setFilter(option)}
-              >
-                {option === "all" ? "All" : STATUS_LABEL[option]}
-              </Button>
-            ))}
-            <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
-          </div>
-
-          <OpsAssistant />
-
-          {visible.length === 0 ? (
-            <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
-              <p className="font-display text-2xl">Queue is clear</p>
-              <p className="mt-2 text-sm text-cream/60">
-                New guest requests land here automatically.
+        {/* Welcome Overlay */}
+        {showWelcome && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-6 backdrop-blur-sm">
+            <div className="w-full max-w-md border border-cream/15 bg-ink p-8 rounded-2xl text-center space-y-6 shadow-2xl font-sans">
+              <h2 className="font-serif text-3xl font-bold tracking-tight text-cream">
+                A calmer way to run the shift
+              </h2>
+              <p className="text-sm text-cream/70 leading-relaxed font-sans">
+                Explore a working concept for room readiness, housekeeping coordination, property
+                visibility, and guest context. All information shown is sample data only.
               </p>
-            </div>
-          ) : (
-            <ul className="mt-6 space-y-2">
-              {visible.map((row) => {
-                const next = NEXT_ACTION[row.status];
-                const others = STATUSES.filter(
-                  (status) => status !== row.status && status !== next?.status,
-                );
-                return (
-                  <li
-                    key={row.id}
-                    className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
-                    />
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-baseline gap-3">
-                          <span className="font-display text-2xl tabular-nums">{row.room}</span>
-                          <span className="text-base text-cream">{row.type}</span>
-                          <Badge
-                            className={
-                              row.status === "new"
-                                ? "bg-amber text-ink"
-                                : row.status === "in_progress"
-                                  ? "bg-sage text-ink"
-                                  : "bg-cream/15 text-cream"
-                            }
-                          >
-                            {STATUS_LABEL[row.status] ?? row.status}
-                          </Badge>
-                        </div>
-                        <p className="mt-1 text-xs text-cream/50">
-                          {row.guest_name ? `${row.guest_name} · ` : ""}
-                          <span title={new Date(row.created_at).toLocaleString()}>
-                            {timeAgo(row.created_at)}
-                          </span>
-                        </p>
-                        {row.details ? (
-                          <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
-                        ) : null}
-                      </div>
-                      {canTriage ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          {next ? (
-                            <Button
-                              size="sm"
-                              className="bg-amber text-ink hover:bg-amber/90"
-                              onClick={() => setStatus(row.id, next.status)}
-                            >
-                              {next.label}
-                            </Button>
-                          ) : null}
-                          {others.map((status) => (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant="outline"
-                              className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                              onClick={() => setStatus(row.id, status)}
-                            >
-                              {STATUS_LABEL[status]}
-                            </Button>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="signage text-cream/40">View only</p>
-                      )}
-                    </div>
-                    {demo ? null : (
-                      <RequestWorkflowPanel
-                        request={row}
-                        canEdit={canTriage}
-                        staff={staff ?? null}
-                      />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </>
-      )}
-
-      {isManager ? (
-        <div>
-          <ScheduleBoard />
-          <AssignmentBoard />
-          <TeamPanel />
-          <InvitePanel />
-        </div>
-      ) : null}
-
-      {/* Tour Guide Card */}
-      {tourStep !== null && tourStep < 4 && (
-        <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 w-full max-w-sm border border-amber/40 bg-ink shadow-2xl p-6 rounded-xl space-y-4 font-sans">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-amber font-mono">
-              Step {tourStep} of 4
-            </span>
-            <span className="text-[10px] text-cream/40 font-mono">
-              [ESC to exit]
-            </span>
-          </div>
-          <div>
-            <h3 className="font-serif text-lg font-bold text-cream">
-              {tourStep === 1 && "Property Map"}
-              {tourStep === 2 && "Housekeeping Queue"}
-              {tourStep === 3 && "Guest CRM"}
-            </h3>
-            <p className="mt-1 text-sm text-cream/70 leading-relaxed font-sans">
-              {tourStep === 1 && "See the property and room status at a glance."}
-              {tourStep === 2 && "Prioritize rooms and coordinate turnovers without scattered texts."}
-              {tourStep === 3 && "Give staff relevant guest context when it matters."}
-            </p>
-          </div>
-          <div className="flex items-center justify-between pt-2">
-            <button
-              onClick={() => setTourStep(null)}
-              className="text-xs text-cream/40 hover:text-cream hover:underline font-sans"
-            >
-              Skip
-            </button>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={tourStep === 1}
-                onClick={handlePrevStep}
-                className="border-cream/20 text-cream hover:bg-cream/10 disabled:opacity-30 font-sans"
-              >
-                Back
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleNextStep}
-                className="bg-amber text-ink font-bold hover:bg-amber/90 font-sans"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Feedback Modal Overlay (Step 4) */}
-      {tourStep === 4 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
-          <div className="w-full max-w-md border border-cream/15 bg-ink p-8 rounded-2xl space-y-6 shadow-2xl font-sans">
-            <h2 className="font-serif text-2xl font-bold tracking-tight text-cream">Your operational feedback matters</h2>
-            
-            {!feedbackSubmitted ? (
-              <form onSubmit={submitFeedback} className="space-y-4">
-                <div className="space-y-3">
-                  <p className="text-sm text-cream/80 font-sans">Would this make daily operations easier for your team?</p>
-                  <div className="flex gap-2 font-sans">
-                    {(["Yes", "Maybe", "No"] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setFeedbackAnswer(opt)}
-                        className={`flex-1 py-2 rounded-lg border font-semibold text-sm transition-all duration-150 ${
-                          feedbackAnswer === opt
-                            ? "border-amber bg-amber/15 text-amber"
-                            : "border-cream/15 bg-cream/[0.02] text-cream/70 hover:border-cream/35 hover:text-cream"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2 font-sans">
-                  <Label htmlFor="changeText" className="text-xs text-cream/60">
-                    What would you change or add?
-                  </Label>
-                  <textarea
-                    id="changeText"
-                    rows={3}
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    className="w-full rounded-lg border border-cream/15 bg-cream/[0.02] p-3 text-sm text-cream focus:border-amber focus:outline-none"
-                    placeholder="Enter optional suggestions..."
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-4 font-sans">
-                  <button
-                    type="button"
-                    onClick={() => setTourStep(3)}
-                    className="text-xs text-cream/40 hover:text-cream hover:underline font-sans"
-                  >
-                    Back
-                  </button>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTourStep(null)}
-                      className="px-4 py-2 rounded-lg border border-cream/20 text-cream/70 text-sm hover:bg-cream/10"
-                    >
-                      Skip
-                    </button>
-                    <Button
-                      type="submit"
-                      className="bg-amber font-bold text-ink hover:bg-amber/90"
-                    >
-                      Send feedback
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-4 text-center font-sans">
-                <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-3 w-12 h-12 flex items-center justify-center mx-auto text-emerald-400 font-bold">
-                  ✓
-                </div>
-                <p className="text-sm text-cream/80 font-sans">
-                  Your feedback has been prepared. Since there is no database connection configured, please select an option below:
-                </p>
-                <div className="flex flex-col gap-2 pt-2">
-                  <Button
-                    onClick={copyFeedback}
-                    className="w-full bg-amber text-ink font-bold hover:bg-amber/90"
-                  >
-                    Copy feedback to clipboard
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={emailFeedback}
-                    className="w-full border-cream/20 text-cream hover:bg-cream/10"
-                  >
-                    Open pre-filled Email client
-                  </Button>
-                </div>
-                <div className="pt-4 border-t border-cream/10 font-sans">
-                  <button
-                    onClick={() => {
-                      setTourStep(null);
-                      setFeedbackSubmitted(false);
-                      setFeedbackAnswer(null);
-                      setFeedbackText("");
-                    }}
-                    className="text-xs text-cream/40 hover:text-cream hover:underline"
-                  >
-                    Close & Finish walkthrough
-                  </button>
-                </div>
+              <div className="flex flex-col gap-3 pt-4 font-sans">
+                <Button
+                  onClick={handleStartTour}
+                  className="w-full bg-amber font-bold text-ink hover:bg-amber/90"
+                >
+                  Start 60-second walkthrough
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSkipTour}
+                  className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                >
+                  Explore on my own
+                </Button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Welcome Overlay */}
-      {showWelcome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-6 backdrop-blur-sm">
-          <div className="w-full max-w-md border border-cream/15 bg-ink p-8 rounded-2xl text-center space-y-6 shadow-2xl font-sans">
-            <h2 className="font-serif text-3xl font-bold tracking-tight text-cream">A calmer way to run the shift</h2>
-            <p className="text-sm text-cream/70 leading-relaxed font-sans">
-              Explore a working concept for room readiness, housekeeping coordination, property visibility, and guest context. All information shown is sample data only.
-            </p>
-            <div className="flex flex-col gap-3 pt-4 font-sans">
-              <Button
-                onClick={handleStartTour}
-                className="w-full bg-amber font-bold text-ink hover:bg-amber/90"
-              >
-                Start 60-second walkthrough
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleSkipTour}
-                className="w-full border-cream/20 text-cream hover:bg-cream/10"
-              >
-                Explore on my own
-              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
