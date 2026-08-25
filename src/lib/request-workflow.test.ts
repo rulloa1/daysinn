@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   from: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: mocks.from },
+  supabase: { from: mocks.from, rpc: mocks.rpc },
 }));
 
 import {
@@ -24,25 +25,17 @@ const request: WorkflowRequest = {
 
 const staff = { id: "staff-1", name: "Jordan" };
 
-function setupWorkflow({
-  requestError,
-  noteError,
-}: { requestError?: string; noteError?: string } = {}) {
-  const eq = vi.fn().mockResolvedValue({
-    error: requestError ? { message: requestError } : null,
-  });
-  const update = vi.fn(() => ({ eq }));
-  const insert = vi.fn().mockResolvedValue({
-    error: noteError ? { message: noteError } : null,
-  });
+function setupAtomicTransition(error?: string) {
+  mocks.rpc.mockResolvedValue({ error: error ? { message: error } : null });
+}
 
+function setupNotes(error?: string) {
+  const insert = vi.fn().mockResolvedValue({ error: error ? { message: error } : null });
   mocks.from.mockImplementation((table: string) => {
-    if (table === "requests") return { update };
     if (table === "request_notes") return { insert };
     throw new Error(`Unexpected table: ${table}`);
   });
-
-  return { eq, update, insert };
+  return { insert };
 }
 
 describe("request workflow", () => {
@@ -86,32 +79,38 @@ describe("request workflow", () => {
     const result = await advanceRequest(request, "cancelled", staff);
 
     expect(result).toEqual({ error: "Invalid request status.", updated: false });
+    expect(mocks.rpc).not.toHaveBeenCalled();
     expect(mocks.from).not.toHaveBeenCalled();
   });
 
-  it("reports a failed request update without writing a timeline entry", async () => {
-    const { insert } = setupWorkflow({ requestError: "Status unavailable" });
+  it("reports an atomic transition failure without any separate timeline write", async () => {
+    setupAtomicTransition("Transition unavailable");
 
     const result = await advanceRequest(request, "in_progress", staff);
 
-    expect(result).toEqual({ error: "Status unavailable", updated: false });
-    expect(insert).not.toHaveBeenCalled();
+    expect(result).toEqual({ error: "Transition unavailable", updated: false });
+    expect(mocks.rpc).toHaveBeenCalledWith("advance_request", {
+      p_request_id: "request-1",
+      p_next_status: "in_progress",
+      p_author_staff_id: "staff-1",
+      p_author_name: "Jordan",
+      p_note: null,
+    });
+    expect(mocks.from).not.toHaveBeenCalled();
   });
 
-  it("reports a timeline write failure after the request update succeeds", async () => {
-    const { update, insert } = setupWorkflow({ noteError: "Timeline unavailable" });
+  it("submits status, attribution, and a trimmed note in one atomic operation", async () => {
+    setupAtomicTransition();
 
     const result = await advanceRequest(request, "in_progress", staff, "  Sent a runner.  ");
 
-    expect(result).toEqual({ error: "Timeline unavailable", updated: true });
-    expect(update).toHaveBeenCalledOnce();
-    expect(insert).toHaveBeenCalledWith({
-      request_id: "request-1",
-      body: "Sent a runner.",
-      status_from: "new",
-      status_to: "in_progress",
-      author_staff_id: "staff-1",
-      author_name: "Jordan",
+    expect(result).toEqual({ error: null, updated: true });
+    expect(mocks.rpc).toHaveBeenCalledWith("advance_request", {
+      p_request_id: "request-1",
+      p_next_status: "in_progress",
+      p_author_staff_id: "staff-1",
+      p_author_name: "Jordan",
+      p_note: "Sent a runner.",
     });
   });
 
@@ -123,7 +122,7 @@ describe("request workflow", () => {
   });
 
   it("trims and saves valid standalone notes", async () => {
-    const { insert } = setupWorkflow();
+    const { insert } = setupNotes();
 
     const result = await addRequestNote("request-1", "  Guest called back.  ", staff);
 

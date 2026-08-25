@@ -108,21 +108,14 @@ export async function advanceRequest(
     return { error: "Invalid request status.", updated: false } satisfies RequestTransitionResult;
   }
 
-  const patch = statusPatch(next, current, staff);
-  const { error } = await supabase.from("requests").update(patch).eq("id", current.id);
-  if (error) return { error: error.message, updated: false } satisfies RequestTransitionResult;
-
-  const { error: noteError } = await supabase.from("request_notes").insert({
-    request_id: current.id,
-    body: note?.trim() ? note.trim() : null,
-    status_from: current.status,
-    status_to: next,
-    author_staff_id: staff?.id ?? null,
-    author_name: staff?.name ?? null,
+  const { error } = await supabase.rpc("advance_request", {
+    p_request_id: current.id,
+    p_next_status: next,
+    p_author_staff_id: staff?.id ?? null,
+    p_author_name: staff?.name ?? null,
+    p_note: note?.trim() || null,
   });
-  if (noteError) {
-    return { error: noteError.message, updated: true } satisfies RequestTransitionResult;
-  }
+  if (error) return { error: error.message, updated: false } satisfies RequestTransitionResult;
 
   return { error: null, updated: true } satisfies RequestTransitionResult;
 }
