@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { FloorKey } from "@/lib/property-layout";
-import propertyMapImage from "@/assets/property_map_entrance_right.png";
+import propertyMapImage from "@/assets/property_map_final.png";
 
 type RoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
