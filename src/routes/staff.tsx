@@ -665,10 +665,12 @@ Suggestions: ${feedbackText || "None"}`;
     const row = previous.find((r) => r.id === id);
     if (!row) return;
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    const { error } = await advanceRequest(row, status, staff ?? null);
-    if (error) {
+    const { error, updated } = await advanceRequest(row, status, staff ?? null);
+    if (error && !updated) {
       setRows(previous);
       toast.error("Update failed — your role may not allow this.");
+    } else if (error) {
+      toast.warning("Request status updated, but its timeline entry could not be saved.");
     }
   }
 

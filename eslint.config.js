@@ -16,6 +16,9 @@ export default tseslint.config(
       "public",
       ".lovable",
       "src/integrations/supabase/types.ts",
+      "src/routes/[[].mcp[]]/**",
+      "src/routes/[[].well-known[]]/**",
+      "src/routes/mcp.ts",
     ],
   },
   {
