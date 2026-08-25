@@ -21,6 +21,30 @@ Prefer working locally? You need Node.js and npm — [install with nvm](https://
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
+npm ci
 npm run dev
 ```
+
+## Quality gate
+
+Run the complete release-quality check locally before opening a pull request or deploying changes.
+
+```sh
+npm run verify
+```
+
+This command checks formatting, linting, TypeScript types, unit tests, and the production build in the same order used by the GitHub Actions workflow. The workflow also runs a production dependency audit that blocks high-severity findings. It runs on pull requests, pushes to `main`, and manual dispatches.
+
+## Database-backed integration tests
+
+The test suite includes database-backed QR and request-constraint tests. They are intentionally skipped when no Supabase credentials are present, allowing the deterministic unit suite to run safely in every contributor environment.
+
+To run the complete suite, use an **isolated non-production Supabase project** and provide the following environment variables:
+
+```sh
+SUPABASE_URL=<test-project-url>
+SUPABASE_PUBLISHABLE_KEY=<test-project-publishable-key>
+SUPABASE_SERVICE_ROLE_KEY=<test-project-service-role-key>
+```
+
+Apply all migrations in `supabase/migrations/` to the test project before running the tests. CI integration coverage should use repository secrets scoped exclusively to the test project; never add production Supabase credentials to local files, commits, or CI logs.
