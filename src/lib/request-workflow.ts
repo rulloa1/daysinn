@@ -42,7 +42,7 @@ export type RequestNote = {
 };
 
 type RequestPatch = {
-  status: string;
+  status: RequestStatus;
   started_at?: string | null;
   started_by_staff_id?: string | null;
   started_by_name?: string | null;
@@ -52,13 +52,22 @@ type RequestPatch = {
   response_seconds?: number | null;
 };
 
+export type RequestTransitionResult = {
+  error: string | null;
+  updated: boolean;
+};
+
+export function isRequestStatus(value: string): value is RequestStatus {
+  return REQUEST_STATUSES.includes(value as RequestStatus);
+}
+
 /** Timestamps written when a request moves into a given status. */
-export function statusPatch(next: string, current: WorkflowRequest, staff: StaffIdentity) {
-  const now = new Date().toISOString();
+export function statusPatch(next: RequestStatus, current: WorkflowRequest, staff: StaffIdentity) {
+  const timestamp = new Date();
   const patch: RequestPatch = { status: next };
 
   if (next === "in_progress") {
-    patch["started_at"] = current.started_at ?? now;
+    patch["started_at"] = current.started_at ?? timestamp.toISOString();
     if (!current.started_at) {
       patch["started_by_staff_id"] = staff?.id ?? null;
       patch["started_by_name"] = staff?.name ?? null;
@@ -68,12 +77,12 @@ export function statusPatch(next: string, current: WorkflowRequest, staff: Staff
     patch["resolved_by_name"] = null;
     patch["response_seconds"] = null;
   } else if (next === "done") {
-    patch["resolved_at"] = now;
+    patch["resolved_at"] = timestamp.toISOString();
     patch["resolved_by_staff_id"] = staff?.id ?? null;
     patch["resolved_by_name"] = staff?.name ?? null;
     patch["response_seconds"] = Math.max(
       0,
-      Math.round((Date.now() - new Date(current.created_at).getTime()) / 1000),
+      Math.round((timestamp.getTime() - new Date(current.created_at).getTime()) / 1000),
     );
   } else {
     patch["started_at"] = null;
@@ -95,27 +104,32 @@ export async function advanceRequest(
   staff: StaffIdentity,
   note?: string,
 ) {
-  const patch = statusPatch(next, current, staff);
-  const { error } = await supabase.from("requests").update(patch).eq("id", current.id);
-  if (error) return { error: error.message };
+  if (!isRequestStatus(next)) {
+    return { error: "Invalid request status.", updated: false } satisfies RequestTransitionResult;
+  }
 
-  await supabase.from("request_notes").insert({
-    request_id: current.id,
-    body: note?.trim() ? note.trim() : null,
-    status_from: current.status,
-    status_to: next,
-    author_staff_id: staff?.id ?? null,
-    author_name: staff?.name ?? null,
+  const { error } = await supabase.rpc("advance_request", {
+    p_request_id: current.id,
+    p_next_status: next,
+    p_author_staff_id: staff?.id ?? null,
+    p_author_name: staff?.name ?? null,
+    p_note: note?.trim() || null,
   });
+  if (error) return { error: error.message, updated: false } satisfies RequestTransitionResult;
 
-  return { error: null as string | null };
+  return { error: null, updated: true } satisfies RequestTransitionResult;
 }
 
 /** Add a free-text note without changing the status. */
 export async function addRequestNote(requestId: string, body: string, staff: StaffIdentity) {
+  const note = body.trim();
+  if (note.length < 2) {
+    return { error: "A request note must contain at least two characters." };
+  }
+
   const { error } = await supabase.from("request_notes").insert({
     request_id: requestId,
-    body: body.trim(),
+    body: note,
     author_staff_id: staff?.id ?? null,
     author_name: staff?.name ?? null,
   });

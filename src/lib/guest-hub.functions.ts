@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertStaff } from "@/lib/roles.guard";
+import { isPastCheckout } from "@/lib/guest-access";
 import { verifyGuest } from "@/lib/guest-verify.server";
 
 const credentials = z.object({
@@ -12,12 +13,6 @@ const credentials = z.object({
 const sendSchema = credentials.extend({
   body: z.string().trim().min(1, "Type a message first.").max(1000),
 });
-
-/** A stay ends at midnight on the checkout date; access ends with it. */
-function isPastCheckout(checkOut: string | null): boolean {
-  if (!checkOut) return false;
-  return new Date(`${checkOut}T23:59:59Z`).getTime() < Date.now();
-}
 
 /** Guest-side chat thread + digital room key, gated on room + last name. */
 export const guestThread = createServerFn({ method: "POST" })

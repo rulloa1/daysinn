@@ -40,9 +40,19 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
     if (isDemo) {
       const mockMembers: StaffMember[] = [
         { id: "demo-presenter", name: "Presenter", active: true, department: "front_desk" },
-        { id: "demo-alice", name: "Alice Smith (Housekeeper)", active: true, department: "housekeeping" },
+        {
+          id: "demo-alice",
+          name: "Alice Smith (Housekeeper)",
+          active: true,
+          department: "housekeeping",
+        },
         { id: "demo-bob", name: "Bob Jones (Front Desk)", active: true, department: "front_desk" },
-        { id: "demo-charlie", name: "Charlie Brown (Housekeeper)", active: true, department: "housekeeping" },
+        {
+          id: "demo-charlie",
+          name: "Charlie Brown (Housekeeper)",
+          active: true,
+          department: "housekeeping",
+        },
       ];
       if (department) {
         setMembers(mockMembers.filter((m) => m.department === department));
@@ -68,7 +78,9 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
 
         const assignedIds = [
           ...new Set(
-            (assignedRooms ?? []).map((r) => r.assigned_staff_id).filter((id): id is string => !!id),
+            (assignedRooms ?? [])
+              .map((r) => r.assigned_staff_id)
+              .filter((id): id is string => !!id),
           ),
         ];
 

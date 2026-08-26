@@ -27,19 +27,24 @@ export type DbRoomRow = {
   updated_at?: string | null;
 };
 
+/** True when a room occupies the vertical physical wing on the site plan. */
+function isVerticalWing(number: string) {
+  const value = Number(number);
+  if (!Number.isFinite(value)) return false;
+  return value < 200 ? value >= 110 && value <= 135 : value >= 210 && value <= 235;
+}
+
 /** Wing derived from the physical layout when the column is not yet set. */
 export function wingForRoom(number: string): WingName {
-  const base = Number(number) % 100;
-  if (base >= 136 && base <= 163) return "South Wing";
-  if (base >= 118 && base <= 135) return "West Wing";
-  return "North Wing";
+  return isVerticalWing(number) ? "West Wing" : "North Wing";
 }
 
 export function sideForRoom(number: string): string {
   const value = Number(number);
-  const base = value % 100;
-  if (base >= 136 && base <= 163) return value % 2 === 0 ? "Pool side" : "Rear side";
-  return value % 2 === 0 ? "Courtyard side" : "Parking side";
+  if (isVerticalWing(number)) {
+    return value % 2 === 0 ? "Courtyard side" : "Parking side";
+  }
+  return value % 2 === 0 ? "Pool side" : "Rear side";
 }
 
 /**
