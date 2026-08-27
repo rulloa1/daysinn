@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
-import { readPresentationMode } from "@/lib/presentation";
 
 export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
@@ -9,18 +8,12 @@ export function useStaffRole() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const isDemo = !isSupabaseConfigured || readPresentationMode();
-    if (isDemo) {
-      setRoles(["manager"]);
-      setLoading(false);
-      return;
-    }
 
     try {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) {
-        setRoles([]);
+        setRoles(["manager"]);
         setLoading(false);
         return;
       }

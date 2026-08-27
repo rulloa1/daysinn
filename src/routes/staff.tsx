@@ -78,30 +78,8 @@ function timeAgo(iso: string) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-type StaffSearch = {
-  demo?: boolean;
-  present?: boolean;
-};
-
 export const Route = createFileRoute("/staff")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): StaffSearch => {
-    const rawDemo = search["demo"];
-    const rawPresent = search["present"];
-    const isDemo =
-      rawDemo === true ||
-      rawDemo === "true" ||
-      rawDemo === "1" ||
-      rawPresent === true ||
-      rawPresent === "true" ||
-      rawPresent === "1";
-    const isPresent = rawPresent === true || rawPresent === "true" || rawPresent === "1";
-
-    return {
-      ...(isDemo ? { demo: true } : {}),
-      ...(isPresent ? { present: true } : {}),
-    };
-  },
   head: () => ({
     meta: [
       { title: "Staff Dashboard — Days Inn Hub" },
@@ -121,58 +99,9 @@ export const Route = createFileRoute("/staff")({
   component: StaffPage,
 });
 
-const DEMO_ROWS: RequestRow[] = [
-  {
-    id: "demo-1",
-    room: "214",
-    guest_name: "M. Alvarez",
-    type: "Extra towels",
-    details: "Two bath towels, please — no rush.",
-    status: "new",
-    created_at: new Date(Date.now() - 4 * 60000).toISOString(),
-  },
-  {
-    id: "demo-2",
-    room: "118",
-    guest_name: "J. Whitfield",
-    type: "Maintenance",
-    details: "The AC unit is rattling when it kicks on.",
-    status: "new",
-    created_at: new Date(Date.now() - 21 * 60000).toISOString(),
-  },
-  {
-    id: "demo-3",
-    room: "307",
-    guest_name: null,
-    type: "Housekeeping",
-    details: "Room refresh after 2pm if possible.",
-    status: "in_progress",
-    created_at: new Date(Date.now() - 58 * 60000).toISOString(),
-  },
-  {
-    id: "demo-4",
-    room: "102",
-    guest_name: "R. Ulloa",
-    type: "Front desk question",
-    details: "What time does the shuttle run to the airport?",
-    status: "done",
-    created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
-  },
-];
-
 function StaffPage() {
-  const { demo: demoParam, present: presentParam } = useSearch({ from: "/staff" });
-  const navigate = useNavigate({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [demo, setDemo] = useState(Boolean(demoParam || presentParam));
-  const present = Boolean(demo && presentParam);
-
-  useEffect(() => {
-    const remembered = readPresentationMode();
-    if (demoParam || presentParam) setPresentationMode(true);
-    setDemo(Boolean(demoParam || presentParam) || remembered);
-  }, [demoParam, presentParam]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -193,262 +122,20 @@ function StaffPage() {
     );
   }
 
-  const exitDemo = () => {
-    setPresentationMode(false);
-    setDemo(false);
-    void navigate({ to: "/staff", search: {} });
-  };
-
-  if (session)
-    return (
-      <PasswordResetGate>
-        <Dashboard session={session} />
-      </PasswordResetGate>
-    );
-  
-  // Force demo mode by default if not signed in
-  return <Dashboard demo present={present} onExitDemo={exitDemo} session={session} />;
-}
-
-function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | null }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!isSupabaseConfigured) {
-      toast.error("Database is not configured. Please use Demo Mode.");
-      return;
-    }
-    setBusy(true);
-    const credentials = { email: email.trim(), password };
-    const { error } =
-      mode === "signin"
-        ? await supabase.auth.signInWithPassword(credentials)
-        : await supabase.auth.signUp({
-            ...credentials,
-            options: { emailRedirectTo: `${window.location.origin}/staff` },
-          });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (mode === "signup") {
-      toast.success("Check your email to confirm the account.");
-    }
-  }
-
   return (
-    <div className="ops-surface flex min-h-screen flex-col bg-ink text-cream">
-      {/* Top Header */}
-      <header className="border-b border-cream/10 bg-ink/50 py-4 px-6 md:px-12 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <BrandLockup tone="cream" />
-            <span className="hidden h-5 w-px bg-cream/15 sm:block" />
-            <span className="hidden text-xs uppercase tracking-wider text-cream/45 sm:block font-mono">
-              Operations Portal
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              ← Guest view
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* System Status Banner */}
-      <div className="mx-auto mt-6 flex w-full max-w-6xl justify-center px-6">
-        <SystemStatus session={session} demo={false} />
-      </div>
-
-      {/* Main Grid Content */}
-      <main className="mx-auto flex w-full max-w-6xl flex-1 items-center px-6 py-8 md:py-12">
-        <div className="grid w-full gap-8 md:grid-cols-12">
-          {/* Primary Panel (Sign-in form) - Takes 5/12 cols */}
-          <div className="flex flex-col gap-6 md:col-span-5">
-            <div className="rounded-2xl border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
-              <h1 className="font-serif text-3xl font-bold tracking-tight">Staff sign in</h1>
-              <p className="mt-2 text-sm text-cream/60">
-                A cleaner queue means a calmer shift. Sign in to work the board.
-              </p>
-
-              {!isSupabaseConfigured && (
-                <div className="mt-4 rounded-lg border border-amber/30 bg-amber/10 p-3 text-xs text-amber-200">
-                  <strong>Notice:</strong> The backend database is not configured. Real sign-in is
-                  disabled, but you can explore the dashboard via the Demo Mode CTA below.
-                </div>
-              )}
-
-              <form onSubmit={submit} className="mt-6 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@daysinn.com"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    disabled={!isSupabaseConfigured}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    minLength={6}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={!isSupabaseConfigured}
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-amber font-bold text-ink hover:bg-amber/90 disabled:opacity-50"
-                  disabled={busy || !isSupabaseConfigured}
-                >
-                  {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
-                </Button>
-              </form>
-
-              {isSupabaseConfigured && (
-                <div className="mt-5 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                    className="text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
-                  >
-                    {mode === "signin"
-                      ? "Need a staff account? Create one"
-                      : "Already have an account? Sign in"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Demo Mode CTA Card */}
-            <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.03] p-6 shadow-lg">
-              <p className="signage flex items-center gap-2 text-amber">
-                <span className="inline-block h-2 w-2 rounded-full bg-amber animate-pulse" />
-                Presenting or Evaluating?
-              </p>
-              <p className="mt-2 text-xs text-cream/60 leading-relaxed">
-                Skip the credentials and load a fully functional sandbox interface with pre-loaded
-                mock rooms, housekeeping states, and request flows.
-              </p>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button
-                  type="button"
-                  className="flex-1 bg-transparent hover:bg-amber/15 text-amber border border-amber/35"
-                  onClick={onDemo}
-                >
-                  Open Sandbox Demo
-                </Button>
-                <Link
-                  to="/staff"
-                  search={{ demo: true, present: true }}
-                  className="signage text-xs text-amber/70 transition-colors duration-200 hover:text-amber text-center sm:text-left"
-                >
-                  Presenter Mode →
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary Panel (Capabilities showcase) - Takes 7/12 cols */}
-          <div className="flex flex-col justify-center gap-6 md:col-span-7">
-            <div className="rounded-2xl border border-cream/10 bg-cream/[0.02] p-8 md:p-10">
-              <h2 className="font-serif text-2xl font-semibold tracking-tight text-cream">
-                DaysInn Hub Operations Portal
-              </h2>
-              <p className="mt-2 text-sm text-cream/50">
-                A unified dashboard designed to streamline day-to-day hospitality operations, room
-                turnovers, and guest communication.
-              </p>
-
-              <div className="mt-8 space-y-6">
-                {/* Capability 1 */}
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber/10 border border-amber/25 text-amber">
-                    <ClipboardCheck className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-cream">Housekeeping Queue</h3>
-                    <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Real-time cleaning statuses, staff assignments, and room audits. Track
-                      turnovers (dirty-to-clean) and log exact cleaning durations for operational
-                      analytics.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Capability 2 */}
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber/10 border border-amber/25 text-cream">
-                    <Users className="h-6 w-6 text-cream" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-cream">Guest History & CRM</h3>
-                    <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Access active guest details, VIP statuses, preferences, and historical
-                      check-in logs. Empower staff with context to deliver personalized hospitality
-                      experiences.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Capability 3 */}
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cream/5 border border-cream/15 text-cream/70">
-                    <Bell className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-cream">
-                      Service Requests Dispatch
-                    </h3>
-                    <p className="mt-1 text-sm text-cream/60 leading-relaxed">
-                      Triage incoming guest asks (amenities, maintenance, front desk inquiries)
-                      through an interactive Kanban board. Dispatch jobs, transition statuses, and
-                      track response times.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <PasswordResetGate>
+      <Dashboard session={session} />
+    </PasswordResetGate>
   );
 }
 
 function Dashboard({
-  demo = false,
-  present = false,
-  onExitDemo,
   session = null,
 }: {
-  demo?: boolean;
-  present?: boolean;
-  onExitDemo?: () => void;
   session?: Session | null;
 }) {
-  const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return present && window.localStorage.getItem("daysinn.tour.dismissed") !== "1";
-  });
+  const [rows, setRows] = useState<RequestRow[]>([]);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [tourStep, setTourStep] = useState<number | null>(null);
 
   useEffect(() => {
@@ -534,10 +221,10 @@ Suggestions: ${feedbackText || "None"}`;
   };
   const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
-  const roleLoading = demo ? false : role.loading;
-  const isManager = demo ? false : role.isManager;
-  const canTriage = demo ? true : role.canTriage;
-  const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
+  const roleLoading = role.loading;
+  const isManager = role.isManager;
+  const canTriage = role.canTriage;
+  const canEditCrm = isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
@@ -551,19 +238,7 @@ Suggestions: ${feedbackText || "None"}`;
   useEffect(() => {
     let active = true;
     async function loadRooms() {
-      if (demo) {
-        const demoRooms: MapRoom[] = [
-          { id: "r108", number: "108", status: "vacant_clean" },
-          { id: "r118", number: "118", status: "occupied", guest_name: "J. Whitfield" },
-          { id: "r214", number: "214", status: "occupied", guest_name: "M. Alvarez" },
-          { id: "r136", number: "136", status: "vacant_dirty" },
-          { id: "r137", number: "137", status: "occupied_dnd", guest_name: "S. Chen" },
-          { id: "r140", number: "140", status: "reserved" },
-          { id: "r145", number: "145", status: "out_of_order" },
-        ];
-        if (active) setRooms(demoRooms);
-        return;
-      }
+
       const { data } = await supabase
         .from("rooms")
         .select("id, number, floor, status, guest_name")
@@ -583,7 +258,7 @@ Suggestions: ${feedbackText || "None"}`;
     return () => {
       active = false;
     };
-  }, [demo]);
+  }, []);
 
   const openRequestsByRoom = useMemo(() => {
     const map = new Map<string, number>();
@@ -606,7 +281,7 @@ Suggestions: ${feedbackText || "None"}`;
   }, [selectedRoom, rows]);
 
   useEffect(() => {
-    if (demo) return;
+
     let active = true;
     async function load() {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
@@ -637,7 +312,7 @@ Suggestions: ${feedbackText || "None"}`;
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [demo]);
+  }, []);
 
   const visible = useMemo(
     () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
@@ -658,10 +333,7 @@ Suggestions: ${feedbackText || "None"}`;
       toast.error("You don't have permission to triage requests.");
       return;
     }
-    if (demo) {
-      setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status } : row)));
-      return;
-    }
+
     const previous = rows;
     const row = previous.find((r) => r.id === id);
     if (!row) return;
@@ -697,20 +369,9 @@ Suggestions: ${feedbackText || "None"}`;
 
   return (
     <div className="ops-surface min-h-screen bg-ink pb-16 text-cream">
-      {present && (
-        <div className="sticky top-0 z-30 bg-amber text-ink py-2 px-6 text-center text-xs font-semibold flex items-center justify-center gap-4 border-b border-amber/20 font-mono">
-          <span>Presentation mode — sample data only</span>
-          <button
-            onClick={() => setTourStep(1)}
-            className="bg-ink text-cream hover:bg-ink/80 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors"
-          >
-            Restart walkthrough
-          </button>
-        </div>
-      )}
       <div className="px-6 md:px-12">
         <header
-          className={`${present ? "top-8" : "top-0"} sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12`}
+          className="top-0 sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12"
         >
           <div className="flex min-w-0 items-center gap-5">
             <BrandLockup tone="cream" />
@@ -718,7 +379,7 @@ Suggestions: ${feedbackText || "None"}`;
             <div className="hidden min-w-0 md:block">
               <p className="signage flex items-center gap-2 text-cream/60">
                 <span aria-hidden className="h-3 w-[3px] bg-amber" />
-                {demo ? "Demo shift" : "Live shift"}
+                Live shift
               </p>
               <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
             </div>
@@ -752,16 +413,6 @@ Suggestions: ${feedbackText || "None"}`;
               >
                 Guest view
               </Link>
-              {!present ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                  onClick={demo ? onExitDemo : signOut}
-                >
-                  {demo ? "Exit demo" : "Sign out"}
-                </Button>
-              ) : null}
             </nav>
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -812,19 +463,6 @@ Suggestions: ${feedbackText || "None"}`;
                   >
                     Guest view
                   </Link>
-                  {!present ? (
-                    <Button
-                      variant="outline"
-                      className="w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        if (demo && onExitDemo) onExitDemo();
-                        else signOut();
-                      }}
-                    >
-                      {demo ? "Exit demo" : "Sign out"}
-                    </Button>
-                  ) : null}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -835,51 +473,10 @@ Suggestions: ${feedbackText || "None"}`;
 
         {/* System Status in Dashboard */}
         <div className="mt-4 flex justify-end">
-          <SystemStatus session={session} demo={demo} />
+          <SystemStatus session={session} />
         </div>
 
-        {demo ? (
-          <div className="space-y-6">
-            <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
-              <p className="signage text-amber">Demo view</p>
-              <p className="mt-2 max-w-2xl text-sm text-cream/70">
-                Sample requests for presentation only — nothing here is real guest data, and status
-                changes are not saved.
-              </p>
-            </div>
-
-            {/* Demo Mode Dashboard Preview Metrics */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
-                  Today's Arrivals
-                </p>
-                <p className="mt-2 font-display text-3xl font-bold text-emerald-400">12</p>
-                <p className="mt-1 text-xs text-cream/40 font-sans">4 checked in · 8 pending</p>
-              </div>
-              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
-                  Today's Departures
-                </p>
-                <p className="mt-2 font-display text-3xl font-bold text-amber-400">8</p>
-                <p className="mt-1 text-xs text-cream/40 font-sans">6 checked out · 2 remaining</p>
-              </div>
-              <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-5 shadow-md">
-                <p className="signage text-xs text-cream/50 uppercase tracking-wider font-sans">
-                  Cleaning Backlog
-                </p>
-                <p className="mt-2 font-display text-3xl font-bold text-rose-400">
-                  5 <span className="text-xs font-normal text-cream/50">rooms</span>
-                </p>
-                <p className="mt-1 text-xs text-cream/40 font-sans">
-                  3 vacant dirty · 2 occupied dirty
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {!demo && !roleLoading && !canTriage ? (
+        {!roleLoading && !canTriage ? (
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
             <div>
               <p className="signage text-amber">View-only access</p>

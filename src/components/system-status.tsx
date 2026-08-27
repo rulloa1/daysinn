@@ -8,9 +8,8 @@ type SystemStatusProps = {
   demo?: boolean;
 };
 
-export function SystemStatus({ session, demo = false }: SystemStatusProps) {
+export function SystemStatus({ session }: SystemStatusProps) {
   const dbConfigured = isSupabaseConfigured;
-  const isDemo = demo || readPresentationMode() || !dbConfigured;
 
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-full border border-cream/10 bg-cream/[0.02] px-4 py-2 text-xs font-mono text-cream/70 backdrop-blur-sm">
@@ -32,37 +31,13 @@ export function SystemStatus({ session, demo = false }: SystemStatusProps) {
 
       <div className="hidden h-3 w-px bg-cream/15 sm:block" />
 
-      {/* Auth Session Status */}
-      <div className="flex items-center gap-2">
-        <Shield className="h-3.5 w-3.5 text-cream/50" />
-        <span>Auth:</span>
-        <span className="flex items-center gap-1.5 font-bold">
-          <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              session ? "bg-emerald-500" : "bg-cream/30"
-            }`}
-          />
-          <span className={session ? "text-emerald-400" : "text-cream/50"}>
-            {session ? "Active Session" : "No Session"}
-          </span>
-        </span>
-      </div>
-
-      <div className="hidden h-3 w-px bg-cream/15 sm:block" />
-
-      {/* Demo / Live Mode Status */}
+      {/* Mode Status */}
       <div className="flex items-center gap-2">
         <MonitorPlay className="h-3.5 w-3.5 text-cream/50" />
         <span>Mode:</span>
         <span className="flex items-center gap-1.5 font-bold">
-          <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              isDemo ? "bg-amber-500" : "bg-sky-500"
-            }`}
-          />
-          <span className={isDemo ? "text-amber-400" : "text-sky-400"}>
-            {isDemo ? "Demo Sandbox" : "Live Production"}
-          </span>
+          <span className="inline-block h-2 w-2 rounded-full bg-sky-500" />
+          <span className="text-sky-400">Live Production</span>
         </span>
       </div>
     </div>
