@@ -42,6 +42,11 @@ const PILL_BG: Record<RoomStatus, string> = {
   out_of_order: "border-slate-500 bg-slate-400 text-slate-950",
 };
 
+/** Persistent exterior-stair wayfinding, separate from transient room-status markers. */
+const EXTERIOR_STAIR_MARKERS = VERIFIED_MAP_LOCATIONS.filter((location) =>
+  location.name.startsWith("Stairs"),
+);
+
 type Props = {
   floor: FloorView;
   rooms: MapRoom[];
@@ -604,6 +609,24 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
             draggable={false}
           />
 
+          {EXTERIOR_STAIR_MARKERS.map((location) => (
+            <div
+              key={location.name}
+              role="img"
+              aria-label={location.name}
+              title={location.name}
+              style={{ left: `${location.left}%`, top: `${location.top}%` }}
+              className="pointer-events-none absolute z-[15] inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-white/90 bg-slate-950/95 px-1.5 py-1 text-[8px] font-black uppercase tracking-wide text-white shadow-lg ring-2 ring-slate-950/40 sm:px-2 sm:text-[9px]"
+            >
+              <span aria-hidden="true" className="flex h-3 items-end gap-px">
+                <i className="block h-1 w-1 rounded-t-sm bg-amber-300" />
+                <i className="block h-2 w-1 rounded-t-sm bg-amber-300" />
+                <i className="block h-3 w-1 rounded-t-sm bg-amber-300" />
+              </span>
+              <span>Stairs</span>
+            </div>
+          ))}
+
           {matchingFacilities.map((facility) => (
             <span
               key={facility.name}
@@ -671,6 +694,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
                 ["bg-emerald-500", "Available"],
                 ["bg-red-600", "Occupied"],
                 ["bg-amber-300", "Dirty / cleaning"],
+                ["border border-slate-950 bg-amber-300", "Exterior stairs"],
                 ["bg-slate-400", "Maintenance"],
               ].map(([color, label]) => (
                 <span key={label} className="flex items-center gap-1.5">
