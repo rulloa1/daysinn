@@ -109,7 +109,7 @@ describe("Role-based access restrictions", () => {
           }),
         }),
       }),
-    } as any;
+    } as unknown as Parameters<typeof assertStaff>[0];
   }
 
   it("assertStaff blocks users with only housekeeper role", async () => {
