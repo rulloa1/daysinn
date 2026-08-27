@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Clock3, Radio, RefreshCw } from "lucide-react";
+import { Clock3, Map as MapIcon, Radio, RefreshCw, Rows3 } from "lucide-react";
 import { toast } from "sonner";
 import { BrandLockup } from "@/components/brand-lockup";
+import { FloorPlan, type FloorView } from "@/components/floor-plan";
 import { Button } from "@/components/ui/button";
 import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 
@@ -121,6 +122,8 @@ function LiveBoard() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [mapFloor, setMapFloor] = useState<FloorView>("both");
 
   const load = useCallback(async (manual = false) => {
     if (!isSupabaseConfigured) {
@@ -185,6 +188,17 @@ function LiveBoard() {
         .filter((room) => room.status === "vacant_clean")
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 8),
+    [rooms],
+  );
+
+  const handleMapRoomSelect = useCallback(
+    (roomId: string) => {
+      const room = rooms.find((candidate) => candidate.id === roomId);
+      if (!room) return;
+      toast.message(`Room ${room.number}`, {
+        description: `${STATUS_LABEL[room.status]} · updated ${relativeTime(room.updated_at)}`,
+      });
+    },
     [rooms],
   );
 
@@ -280,12 +294,48 @@ function LiveBoard() {
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <section>
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="signage text-cream/50">Current property view</p>
-              <h2 className="mt-1 text-2xl">Every live room</h2>
+              <h2 className="mt-1 text-2xl">
+                {viewMode === "map" ? "Live property map" : "Every live room"}
+              </h2>
             </div>
-            <p className="text-sm text-cream/50">{rooms.length} rooms</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <div
+                className="flex overflow-hidden border border-cream/20"
+                role="group"
+                aria-label="Live room-status view"
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode("map")}
+                  aria-pressed={viewMode === "map"}
+                  className={`inline-flex min-h-10 items-center gap-2 px-3 text-xs font-bold transition ${
+                    viewMode === "map"
+                      ? "bg-amber text-ink"
+                      : "bg-transparent text-cream/65 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <MapIcon className="h-4 w-4" />
+                  Map
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  aria-pressed={viewMode === "list"}
+                  className={`inline-flex min-h-10 items-center gap-2 border-l border-cream/20 px-3 text-xs font-bold transition ${
+                    viewMode === "list"
+                      ? "bg-amber text-ink"
+                      : "bg-transparent text-cream/65 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <Rows3 className="h-4 w-4" />
+                  List
+                </button>
+              </div>
+              <p className="text-sm text-cream/50">{rooms.length} rooms</p>
+            </div>
           </div>
 
           {loading ? (
@@ -296,6 +346,15 @@ function LiveBoard() {
               <p className="mt-2 text-sm text-cream/60">
                 Rooms will appear here once they have been added to the operational database.
               </p>
+            </div>
+          ) : viewMode === "map" ? (
+            <div className="mt-5">
+              <FloorPlan
+                floor={mapFloor}
+                rooms={rooms}
+                onFloorChange={setMapFloor}
+                onSelect={handleMapRoomSelect}
+              />
             </div>
           ) : (
             <div className="mt-5 space-y-6">

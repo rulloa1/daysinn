@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import { OMITTED_ROOM_NUMBERS, type FloorKey } from "@/lib/property-layout";
+import { OMITTED_ROOM_NUMBERS, VERIFIED_MAP_LOCATIONS, type FloorKey } from "@/lib/property-layout";
 import propertyMapImage from "@/assets/property_map_3d.png";
 
 type RoomStatus =
@@ -33,61 +33,6 @@ type Props = {
   onFloorChange?: ((floor: FloorView) => void) | undefined;
   onSelect: (roomId: string) => void;
 };
-
-type FacilityMarker = {
-  name: string;
-  aliases: string[];
-  left: number;
-  top: number;
-};
-
-const FACILITY_MARKERS: FacilityMarker[] = [
-  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
-  {
-    name: "Stairs outside 158 / 258",
-    aliases: ["stairs", "stairwell", "158", "258"],
-    left: 63,
-    top: 17.1,
-  },
-  {
-    name: "Stairs between 157 / 159 and 257 / 259",
-    aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
-    left: 71,
-    top: 19.1,
-  },
-  {
-    name: "Upper-floor breezeway after 214",
-    aliases: ["breezeway", "214", "upper floor"],
-    left: 39,
-    top: 52,
-  },
-  {
-    name: "Front-entrance stairwell after 201",
-    aliases: ["stairs", "stairwell", "front entrance", "201"],
-    left: 11,
-    top: 59,
-  },
-  {
-    name: "Stairs between 132 / 130",
-    aliases: ["stairs", "stairwell", "132", "130"],
-    left: 60.35,
-    top: 54.2,
-  },
-  {
-    name: "Authorized Personnel",
-    aliases: ["authorized", "personnel", "staff only"],
-    left: 19,
-    top: 54,
-  },
-  {
-    name: "Lobby / Breakfast / Dining",
-    aliases: ["lobby", "front desk", "breakfast", "dining"],
-    left: 15,
-    top: 60,
-  },
-  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
-  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
-];
 
 /**
  * Percentage-based [left%, top%] coordinates for each room number.
@@ -269,7 +214,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
   const matchingFacilities = useMemo(
     () =>
       normalizedQuery
-        ? FACILITY_MARKERS.filter((facility) =>
+        ? VERIFIED_MAP_LOCATIONS.filter((facility) =>
             [facility.name, ...facility.aliases].some((term) => term.includes(normalizedQuery)),
           )
         : [],

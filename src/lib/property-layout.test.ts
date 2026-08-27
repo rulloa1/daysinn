@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { frontBlock, northBuilding, STAIR_LOCATIONS, westWing } from "./property-layout";
+import {
+  frontBlock,
+  northBuilding,
+  STAIR_LOCATIONS,
+  VERIFIED_MAP_LOCATIONS,
+  westWing,
+} from "./property-layout";
 import { sideForRoom, wingForRoom } from "./room-model";
 
 function roomRows(floor: 1 | 2) {
@@ -103,6 +109,21 @@ describe("authoritative property wing drawing", () => {
       },
       { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] },
       { label: "Stairs between 132 / 130", outsideRooms: ["132", "130"] },
+    ]);
+  });
+
+  it("shares the verified access, breezeway, and service markers across map views", () => {
+    expect(VERIFIED_MAP_LOCATIONS.map((location) => location.name)).toEqual([
+      "Pool",
+      "Stairs outside 158 / 258",
+      "Stairs between 157 / 159 and 257 / 259",
+      "Upper-floor breezeway after 214",
+      "Front-entrance stairwell after 201",
+      "Stairs between 132 / 130",
+      "Authorized Personnel",
+      "Lobby / Breakfast / Dining",
+      "Laundry",
+      "Truck parking",
     ]);
   });
 
