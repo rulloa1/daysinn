@@ -46,8 +46,8 @@ import { usePresentationMode } from "@/lib/presentation";
 
 // DUMMY IMPLEMENTATIONS TO FIX BUILD
 const roomStatusQueueSummary = () => ({ pending: 0, conflicts: 0, latest: null });
-const readQueuedRoomStatusChanges = () => ([] as unknown[]);
-const syncQueuedRoomStatusChange = async (change: unknown) => "synced";
+const readQueuedRoomStatusChanges = () => [] as { state?: string }[];
+const syncQueuedRoomStatusChange = async (change: { state?: string }) => "synced";
 const createQueuedRoomStatusChange = (args: unknown) => ({});
 const enqueueRoomStatusChange = (change: unknown) => {};
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
