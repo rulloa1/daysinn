@@ -68,6 +68,12 @@ const FACILITY_MARKERS: FacilityMarker[] = [
     top: 59,
   },
   {
+    name: "Stairs between 132 / 130",
+    aliases: ["stairs", "stairwell", "132", "130"],
+    left: 60.35,
+    top: 54.2,
+  },
+  {
     name: "Authorized Personnel",
     aliases: ["authorized", "personnel", "staff only"],
     left: 19,
@@ -96,8 +102,9 @@ const FACILITY_MARKERS: FacilityMarker[] = [
  * - Upper-floor pool-facing side: 200, 202, …, 214; then a breezeway.
  * - Upper-floor front-entrance side: 217, 215, 213, 211, 210, 209, 207,
  *   205, 203, 201; ending at the stairwell.
- * - Opposite ground-floor side: 134, 132, …, 118; then a breezeway;
- *   then 116, 114, 112, 110, 108, followed by authorized personnel and
+ * - Opposite ground-floor side: 134, 132, then exterior stairs, then 130,
+ *   …, 118; then a breezeway; then 116, 114, 112, 110, 108, followed by
+ *   authorized personnel and
  *   the lobby / breakfast / dining area.
  *
  * Rooms 237 and 239 are not part of the property inventory.

@@ -94,7 +94,7 @@ describe("authoritative property wing drawing", () => {
     expect(northBuilding(2).topBreezewayAfter).toBe("214");
   });
 
-  it("records both confirmed exterior stair locations", () => {
+  it("records all confirmed exterior stair locations", () => {
     expect(STAIR_LOCATIONS).toEqual([
       { label: "Stairs outside 158 / 258", outsideRooms: ["158", "258"] },
       {
@@ -102,6 +102,7 @@ describe("authoritative property wing drawing", () => {
         outsideRooms: ["157", "159", "257", "259"],
       },
       { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] },
+      { label: "Stairs between 132 / 130", outsideRooms: ["132", "130"] },
     ]);
   });
 

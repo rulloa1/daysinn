@@ -19,6 +19,7 @@ export const STAIR_LOCATIONS = [
     outsideRooms: ["157", "159", "257", "259"] as const,
   },
   { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] as const },
+  { label: "Stairs between 132 / 130", outsideRooms: ["132", "130"] as const },
 ] as const;
 
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
@@ -39,7 +40,8 @@ function roomPair(start: number, count: number): Array<[string, string]> {
  *
  * The visible parking-side rows begin at rooms 109 and 209. Their paired
  * courtyard-side rooms are 108 and 208, respectively, and the rows end at
- * rooms 135 and 235. The breezeway separates the upper and lower sections.
+ * rooms 135 and 235. Exterior stairs sit between rooms 132 and 130. The
+ * breezeway separates the upper and lower sections.
  */
 export function westWing(floor: FloorKey): WingRow[] {
   const base = floor === 1 ? 108 : 208;
