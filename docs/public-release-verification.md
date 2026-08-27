@@ -11,3 +11,7 @@ No mock records were placed in the active Supabase database. The initialized bac
 The linked Lovable editor project was opened to locate a publication control. It remained in a loading state with no actionable controls available in the current browser session, so the final Lovable publication could not be initiated from this session. The GitHub `main` revision and its quality gate are current and successful; the Lovable public URL requires the connected project to finish synchronization and be published from its editor.
 
 After enabling the connected personal browser, the Lovable editor reported that the project is private and this browser session does not have an account with permission to access it. The editor’s **Publish** control therefore remains unavailable. GitHub `main` remains fully updated and the GitHub Actions quality gate for revision `63ac75c` completed successfully.
+
+## Final public check
+
+The public deployment has now synchronized successfully. `https://daysinn.lovable.app/live-room-status` loads the dedicated **Live room status** screen and correctly requires a staff sign-in before showing operational room information. This confirms the separate front-desk monitoring route is live without exposing room status publicly.
