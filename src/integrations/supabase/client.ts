@@ -8,6 +8,42 @@ function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
 
+// Browser-safe project settings for the active Days Inn operations database.
+// Publishable Supabase keys are designed for browser use; database policies still
+// control what the client can access. Keep server/service-role credentials server-only.
+const DAYS_INN_PROJECT_REF = "dwnyuxkztrhwrathngls";
+const DAYS_INN_SUPABASE_URL = `https://${DAYS_INN_PROJECT_REF}.supabase.co`;
+const DAYS_INN_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_noasUf4o6B24X--d98MgmQ_tnRID04u";
+
+function configuredValue(clientValue: string | undefined, serverValue: string | undefined): string {
+  return clientValue || serverValue || "";
+}
+
+function resolveDaysInnConfiguration(): { url: string; publishableKey: string } {
+  const configuredUrl = configuredValue(
+    import.meta.env["VITE_SUPABASE_URL"],
+    process.env["SUPABASE_URL"],
+  );
+  const configuredKey = configuredValue(
+    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
+    process.env["SUPABASE_PUBLISHABLE_KEY"],
+  );
+
+  // Old preview environments may still inject a different Supabase project.
+  // Use only an explicit Days Inn project configuration; otherwise use the
+  // approved browser-safe default for this standalone deployment.
+  if (configuredUrl.includes(DAYS_INN_PROJECT_REF) && configuredKey) {
+    return { url: configuredUrl, publishableKey: configuredKey };
+  }
+
+  return {
+    url: DAYS_INN_SUPABASE_URL,
+    publishableKey: DAYS_INN_SUPABASE_PUBLISHABLE_KEY,
+  };
+}
+
+const DAYS_INN_SUPABASE_CONFIG = resolveDaysInnConfiguration();
+
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(
@@ -32,8 +68,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 export const isSupabaseConfigured = Boolean(
-  (import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"]) &&
-  (import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"]),
+  DAYS_INN_SUPABASE_CONFIG.url && DAYS_INN_SUPABASE_CONFIG.publishableKey,
 );
 
 type AppSupabaseClient = SupabaseClient<Database>;
@@ -138,13 +173,12 @@ function createMockSupabaseClient(): AppSupabaseClient {
 function createSupabaseClient(): AppSupabaseClient {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-  const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+  const SUPABASE_URL = DAYS_INN_SUPABASE_CONFIG.url;
+  const SUPABASE_PUBLISHABLE_KEY = DAYS_INN_SUPABASE_CONFIG.publishableKey;
 
   if (!isSupabaseConfigured) {
     console.warn(
-      "[Supabase] Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud. Running in unconfigured/mock mode.",
+      "[Supabase] Missing active Days Inn project configuration. Running in unconfigured/mock mode.",
     );
     return createMockSupabaseClient();
   }
