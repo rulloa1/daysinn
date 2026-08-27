@@ -1,74 +1,88 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
-  readQueuedRoomStatusChanges,
-  writeQueuedRoomStatusChanges,
+  removeQueuedRoomStatusChange,
+  updateQueuedRoomStatusChange,
   type QueuedRoomStatusChange,
 } from "./room-status-sync";
 
+type ApplyRoomStatusResult = {
+  outcome: "synced" | "conflict";
+  current_status: string;
+  current_updated_at: string;
+};
+
+type RpcClient = (
+  functionName: string,
+  args: Record<string, unknown>,
+) => Promise<{ data: ApplyRoomStatusResult[] | null; error: { message: string } | null }>;
+
 /**
- * Attempts to sync a single queued change to Supabase.
- * Returns 'synced', 'conflict', or 'error'.
+ * Sends one persisted room-status action to the database. The server verifies the
+ * displayed room version, updates the room, and writes its audit event atomically.
  */
 export async function syncQueuedRoomStatusChange(
   change: QueuedRoomStatusChange,
 ): Promise<"synced" | "conflict" | "error"> {
-  if (!supabase) return "error";
-
-  try {
-    // 1. Fetch the latest room state to check for conflicts
-    const { data: room, error: fetchError } = await supabase
-      .from("rooms")
-      .select("updated_at")
-      .eq("id", change.roomId)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching room for sync:", fetchError);
-      return "error";
-    }
-
-    // 2. Conflict check
-    if (room.updated_at && room.updated_at !== change.expectedUpdatedAt) {
-      // Conflict: The room was updated by someone else while this device was offline/syncing
-      const queue = readQueuedRoomStatusChanges();
-      const idx = queue.findIndex((c) => c.id === change.id);
-      if (idx !== -1) {
-        queue[idx].state = "conflict";
-        writeQueuedRoomStatusChanges(queue);
-      }
-      return "conflict";
-    }
-
-    // 3. Apply the update
-    const { error: updateError } = await supabase
-      .from("rooms")
-      .update({ status: change.newStatus })
-      .eq("id", change.roomId);
-
-    if (updateError) {
-      console.error("Error updating room status:", updateError);
-      return "error";
-    }
-
-    // 4. Log the event if staff info was provided
-    if (change.staff) {
-      await supabase.from("room_status_events").insert({
-        room_number: change.roomNumber,
-        old_status: change.oldStatus,
-        new_status: change.newStatus,
-        staff_name: change.staff.name,
-        changed_at: new Date().toISOString(),
-      });
-    }
-
-    // 5. Success - remove from queue
-    const queue = readQueuedRoomStatusChanges();
-    const updatedQueue = queue.filter((item) => item.id !== change.id);
-    writeQueuedRoomStatusChanges(updatedQueue);
-
-    return "synced";
-  } catch (error) {
-    console.error("Failed to sync queued change:", error);
+  const attempts = change.attempts + 1;
+  if (!change.staff) {
+    updateQueuedRoomStatusChange(change.id, {
+      state: "error",
+      attempts,
+      lastAttemptAt: new Date().toISOString(),
+      lastError: "A live room-status change requires a selected staff identity.",
+    });
     return "error";
   }
+
+  updateQueuedRoomStatusChange(change.id, {
+    state: "pending",
+    attempts,
+    lastAttemptAt: new Date().toISOString(),
+    lastError: null,
+  });
+
+  const rpc = supabase.rpc.bind(supabase) as unknown as RpcClient;
+  const { data, error } = await rpc("apply_room_status_change", {
+    p_operation_id: change.id,
+    p_room_id: change.roomId,
+    p_expected_updated_at: change.expectedUpdatedAt,
+    p_new_status: change.newStatus,
+    p_staff_member_id: change.staff.id,
+    p_staff_name: change.staff.name,
+    p_changed_at: change.createdAt,
+  });
+
+  if (error) {
+    updateQueuedRoomStatusChange(change.id, {
+      state: "error",
+      attempts,
+      lastAttemptAt: new Date().toISOString(),
+      lastError: error.message,
+    });
+    return "error";
+  }
+
+  const result = data?.[0];
+  if (result?.outcome === "synced") {
+    removeQueuedRoomStatusChange(change.id);
+    return "synced";
+  }
+
+  if (result?.outcome === "conflict") {
+    updateQueuedRoomStatusChange(change.id, {
+      state: "conflict",
+      attempts,
+      lastAttemptAt: new Date().toISOString(),
+      lastError: "A newer room update is already recorded on the live board.",
+    });
+    return "conflict";
+  }
+
+  updateQueuedRoomStatusChange(change.id, {
+    state: "error",
+    attempts,
+    lastAttemptAt: new Date().toISOString(),
+    lastError: "The live room-status service returned an unexpected response.",
+  });
+  return "error";
 }

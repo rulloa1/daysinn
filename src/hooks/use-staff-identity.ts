@@ -31,10 +31,16 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
   const [staff, setStaff] = useState<StaffIdentity>(null);
 
   useEffect(() => {
-    setStaff(read(STORAGE_KEY));
+    setStaff(isSupabaseConfigured ? read(STORAGE_KEY) : null);
   }, [STORAGE_KEY]);
 
-  const refresh = useCallback(async () => {    try {
+  const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setMembers([]);
+      return;
+    }
+
+    try {
       if (department === "housekeeping") {
         // Housekeeping roster: always show housekeeping staff, and also include
         // front-desk staff who are currently assigned to rooms.
@@ -107,7 +113,9 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
       const trimmed = name.trim();
       if (!trimmed) return null;
 
-      if (!isSupabaseConfigured) return null;      try {
+      if (!isSupabaseConfigured) return null;
+
+      try {
         const { data, error } = await supabase
           .from("staff_members")
           .insert({ name: trimmed, department: department ?? "front_desk" })
