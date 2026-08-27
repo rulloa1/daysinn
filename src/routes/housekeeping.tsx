@@ -21,6 +21,7 @@ import {
 } from "@/lib/room-status-sync";
 import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
+
 import {
   enableDevicePush,
   pushPermission,
@@ -29,9 +30,11 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
+import { HousekeepingRunner } from "@/components/housekeeping-runner";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
+import { Footprints } from "lucide-react";
 
 import {
   Dialog,
@@ -109,6 +112,20 @@ const STATUS_TEXT: Record<RoomStatus, string> = {
   occupied_dnd: "text-status-dnd",
   reserved: "text-status-reserved",
   out_of_order: "text-status-ooo",
+};
+
+const STATUS_PILL: Record<RoomStatus, string> = {
+  vacant_clean: "border-status-clean/40 bg-status-clean/15 text-status-clean",
+  vacant_dirty: "border-status-dirty/45 bg-status-dirty/15 text-status-dirty",
+  occupied: "border-status-occupied/40 bg-status-occupied/15 text-status-occupied",
+  occupied_dnd: "border-status-dnd/45 bg-status-dnd/15 text-status-dnd",
+  reserved: "border-status-reserved/40 bg-status-reserved/15 text-status-reserved",
+  out_of_order: "border-status-ooo/45 bg-status-ooo/15 text-status-ooo",
+};
+
+const STAGE_LABEL: Record<string, string> = {
+  in_progress: "In progress",
+  inspected: "Inspected",
 };
 
 /** One-tap cleaning states a housekeeper can set on their own rooms. */
@@ -361,7 +378,7 @@ function HousekeepingBoard({
   const [query, setQuery] = useState("");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "map" | "runner">("grid");
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
@@ -685,6 +702,25 @@ function HousekeepingBoard({
     }
   }
 
+  /** Update persistent notes for a room. */
+  async function saveNotes(room: RoomRow, notes: string) {
+    if (!canTriage) return;
+    const previous = allRooms;
+    setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, notes } : r)));
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
+      return;
+    }
+    const { error } = await supabase.from("rooms").update({ notes }).eq("id", room.id);
+    if (error) {
+      setAllRooms(previous);
+      toast.error("Couldn't save notes.");
+    } else {
+      toast.success(`Notes saved for Room ${room.number}`);
+    }
+  }
+
   /** Quick status change from the housekeeping board. */
   async function setStatus(room: RoomRow, next: RoomStatus) {
     if (!canTriage) {
@@ -856,78 +892,114 @@ function HousekeepingBoard({
         </div>
       ) : null}
 
-      <div className="sticky top-0 z-20 -mx-3 mt-4 bg-ink/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <Input
-          value={query}
-          inputMode="numeric"
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find a room number…"
-          className="h-12 border-cream/20 bg-cream/[0.04] text-base text-cream placeholder:text-cream/35"
-        />
-        <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-          {(
-            [
-              ["all", "All rooms"],
-              ["dirty", "Dirty only"],
-              ["mine", `My rooms (${mine.length})`],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setFilter(key)}
-              aria-pressed={filter === key}
-              className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
-                filter === key
-                  ? "border-amber bg-amber/15 text-amber"
-                  : "border-cream/20 text-cream/60"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={toggleAlerts}
-            aria-pressed={alertsOn}
-            className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
-              alertsOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
-            }`}
+      <section
+        className="sticky top-0 z-20 -mx-3 mt-4 border-y border-cream/10 bg-ink/95 px-3 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6"
+        aria-label="Housekeeping board controls"
+      >
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <Input
+            value={query}
+            inputMode="numeric"
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Find a room number…"
+            aria-label="Find a room number"
+            className="h-11 max-w-xl border-cream/20 bg-cream/[0.04] text-base text-cream placeholder:text-cream/35"
+          />
+          <div
+            className="flex snap-x gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] xl:overflow-visible xl:pb-0"
+            role="group"
+            aria-label="Room filters"
           >
-            {alertsOn ? "Alerts on" : "Alerts off"}
-          </button>
-          {pushSupported() ? (
+            {(
+              [
+                ["all", "All rooms"],
+                ["dirty", `Priority (${toClean})`],
+                ["mine", `My rooms (${mine.length})`],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                aria-pressed={filter === key}
+                className={`signage shrink-0 snap-start rounded-lg border px-3.5 py-2.5 transition-colors duration-200 ${
+                  filter === key
+                    ? "border-amber bg-amber text-ink shadow-sm"
+                    : "border-cream/20 bg-cream/[0.03] text-cream/65 hover:border-cream/40 hover:text-cream"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Alerts">
             <button
               type="button"
-              onClick={() => void togglePush()}
-              aria-pressed={pushOn}
-              className={`signage shrink-0 snap-start border px-4 py-3 transition-colors duration-200 ${
-                pushOn ? "border-amber bg-amber/15 text-amber" : "border-cream/20 text-cream/60"
+              onClick={toggleAlerts}
+              aria-pressed={alertsOn}
+              className={`signage rounded-md border px-3 py-2 transition-colors duration-200 ${
+                alertsOn
+                  ? "border-status-clean/50 bg-status-clean/10 text-status-clean"
+                  : "border-cream/20 text-cream/55 hover:text-cream"
               }`}
             >
-              {pushOn ? "Phone alerts on" : "Phone alerts off"}
+              {alertsOn ? "Live alerts on" : "Live alerts off"}
             </button>
-          ) : null}
+            {pushSupported() ? (
+              <button
+                type="button"
+                onClick={() => void togglePush()}
+                aria-pressed={pushOn}
+                className={`signage rounded-md border px-3 py-2 transition-colors duration-200 ${
+                  pushOn
+                    ? "border-status-clean/50 bg-status-clean/10 text-status-clean"
+                    : "border-cream/20 text-cream/55 hover:text-cream"
+                }`}
+              >
+                {pushOn ? "Phone alerts on" : "Phone alerts off"}
+              </button>
+            ) : null}
+          </div>
 
-          {/* View Mode Toggle: Grid List vs Interactive Property Map */}
-          <div className="flex shrink-0 snap-start items-center rounded border border-cream/20 bg-cream/5 p-1">
+          <div
+            className="flex items-center rounded-lg border border-cream/20 bg-cream/[0.04] p-1"
+            role="group"
+            aria-label="Board view"
+          >
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`signage px-3 py-2 transition-colors duration-200 ${
+              aria-pressed={viewMode === "grid"}
+              className={`signage rounded-md px-3 py-2 transition-colors duration-200 ${
                 viewMode === "grid"
-                  ? "bg-amber font-bold text-ink"
+                  ? "bg-amber font-bold text-ink shadow-sm"
                   : "text-cream/60 hover:text-cream"
               }`}
             >
-              Grid list
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("runner")}
+              aria-pressed={viewMode === "runner"}
+              className={`signage flex items-center gap-1.5 rounded-md px-3 py-2 transition-colors duration-200 ${
+                viewMode === "runner"
+                  ? "bg-amber font-bold text-ink shadow-sm"
+                  : "text-cream/60 hover:text-cream"
+              }`}
+            >
+              <Footprints className="h-3.5 w-3.5" />
+              <span>Runner</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode("map")}
-              className={`signage px-3 py-2 transition-colors duration-200 ${
+              aria-pressed={viewMode === "map"}
+              className={`signage rounded-md px-3 py-2 transition-colors duration-200 ${
                 viewMode === "map"
-                  ? "bg-amber font-bold text-ink"
+                  ? "bg-amber font-bold text-ink shadow-sm"
                   : "text-cream/60 hover:text-cream"
               }`}
             >
@@ -935,7 +1007,23 @@ function HousekeepingBoard({
             </button>
           </div>
         </div>
-      </div>
+      </section>
+
+      {viewMode === "runner" ? (
+        <HousekeepingRunner
+          rooms={rooms}
+          staff={staff}
+          canTriage={canTriage}
+          initialRoomId={activeId}
+          openRequests={openIssues}
+          onSetStatus={(room, next) => setStatus(room as RoomRow, next)}
+          onSetStage={(room, stage) => setStage(room as RoomRow, stage)}
+          onToggleLinen={(room) => toggleLinen(room as RoomRow)}
+          onSaveNotes={(room, notes) => saveNotes(room as RoomRow, notes)}
+          onReportIssue={(room) => setIssueRoom(room as RoomRow)}
+          onClose={() => setViewMode("grid")}
+        />
+      ) : null}
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
@@ -982,6 +1070,8 @@ function HousekeepingBoard({
               {list.map((room) => {
                 const mine = room.assigned_staff_id === staff.id;
                 const actionable = !room.assigned_staff_id || mine;
+                const needsTurn = room.status === "vacant_dirty";
+                const stage = room.hk_stage ? (STAGE_LABEL[room.hk_stage] ?? room.hk_stage) : null;
                 return (
                   <div
                     key={room.id}
@@ -994,79 +1084,101 @@ function HousekeepingBoard({
                         setActiveId(room.id);
                       }
                     }}
-                    className={`group relative flex h-full min-h-[7.5rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden border p-3.5 pl-4 text-left transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
+                    className={`group relative flex h-full min-h-[10.25rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden rounded-xl border p-3.5 pl-4 text-left shadow-sm transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                   >
                     <span
                       aria-hidden
-                      className={`absolute inset-y-0 left-0 w-[3px] ${STATUS_DOT[room.status]} rounded-none`}
+                      className={`absolute inset-y-0 left-0 w-[4px] ${STATUS_DOT[room.status]}`}
                     />
-                    <span className="flex items-baseline justify-between gap-2">
-                      <span className="text-3xl leading-none tracking-tight sm:text-2xl">
-                        {room.number}
-                      </span>
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="text-3xl leading-none tracking-tight">{room.number}</span>
                       <span
-                        className={`signage text-right text-[0.6rem] leading-tight ${STATUS_TEXT[room.status]}`}
+                        className={`signage rounded-full border px-2 py-1 text-right text-[0.55rem] leading-none ${STATUS_PILL[room.status]}`}
                       >
                         {STATUS_LABEL[room.status]}
                       </span>
                     </span>
 
-                    <span className="mt-2.5 flex min-h-[1.25rem] flex-wrap gap-1">
+                    <span className="mt-3 flex min-h-[1.25rem] flex-wrap gap-1">
+                      {stage ? (
+                        <span className="signage border border-sky-300/30 bg-sky-300/10 px-1.5 py-0.5 text-[0.6rem] text-sky-100">
+                          {stage}
+                        </span>
+                      ) : null}
                       {room.dnd ? (
-                        <span className="signage flex items-center gap-1 bg-status-dnd px-1.5 py-0.5 text-[0.6rem] text-ink">
-                          <span aria-hidden>⛔</span> DND
+                        <span className="signage bg-status-dnd px-1.5 py-0.5 text-[0.6rem] text-ink">
+                          DND
                         </span>
                       ) : null}
                       {room.extended_stay ? (
-                        <span className="signage flex items-center gap-1 bg-amber px-1.5 py-0.5 text-[0.6rem] text-ink">
-                          <span aria-hidden>↻</span> Stayover
+                        <span className="signage bg-amber px-1.5 py-0.5 text-[0.6rem] text-ink">
+                          Stayover
                         </span>
                       ) : null}
-                      {room.assigned_name ? (
-                        <span
-                          className={`signage px-1.5 py-0.5 text-[0.6rem] ${
-                            mine ? "bg-cream text-ink" : "border border-cream/25 text-cream/55"
-                          }`}
-                        >
-                          {mine ? "Mine" : room.assigned_name}
+                      {room.linen_change ? (
+                        <span className="signage border border-amber/50 px-1.5 py-0.5 text-[0.6rem] text-amber">
+                          Linens
                         </span>
                       ) : null}
                     </span>
 
-                    {actionable ? (
-                      <span className="mt-auto block pt-3">
-                        <span className="grid grid-cols-2 gap-1.5">
-                          {QUICK_STATUS.map((option) => (
-                            <button
-                              key={option.status}
-                              type="button"
-                              disabled={!canTriage || room.status === option.status}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                void setStatus(room, option.status);
-                              }}
-                              className={`signage flex min-h-11 touch-manipulation items-center justify-center px-1.5 py-2 text-center text-[0.65rem] transition-opacity disabled:opacity-25 sm:min-h-9 sm:text-[0.6rem] ${option.className}`}
-                            >
-                              {option.label}
-                            </button>
-                          ))}
-                        </span>
+                    <span className="mt-2 flex items-center justify-between gap-2 text-xs">
+                      <span className="truncate text-cream/55">
+                        {room.assigned_name
+                          ? mine
+                            ? "Assigned to you"
+                            : `Assigned to ${room.assigned_name}`
+                          : "Unassigned"}
+                      </span>
+                      <span className="shrink-0 text-cream/35">{stamp(room.updated_at)}</span>
+                    </span>
+
+                    <span className="mt-auto block pt-3">
+                      {actionable && needsTurn ? (
+                        <button
+                          type="button"
+                          disabled={!canTriage}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void markClean(room);
+                          }}
+                          className="signage flex min-h-11 w-full touch-manipulation items-center justify-center rounded-lg bg-status-clean px-3 py-2 text-center text-[0.68rem] font-bold text-ink shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Mark clean
+                        </button>
+                      ) : null}
+                      <span
+                        className={`grid gap-1.5 ${actionable && needsTurn ? "mt-1.5 grid-cols-2" : "grid-cols-1"}`}
+                      >
+                        {actionable ? (
+                          <button
+                            type="button"
+                            disabled={!canTriage}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void setAssignment(room, !mine);
+                            }}
+                            className={`signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border px-2 py-2 text-center text-[0.62rem] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                              mine
+                                ? "border-cream/25 text-cream/60 hover:bg-cream/10 hover:text-cream"
+                                : "border-amber/60 text-amber hover:bg-amber hover:text-ink"
+                            }`}
+                          >
+                            {mine ? "Release" : "Claim"}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            void setAssignment(room, !mine);
+                            setActiveId(room.id);
                           }}
-                          className={`signage mt-1.5 flex min-h-11 w-full touch-manipulation items-center justify-center px-2 py-2 text-center text-[0.65rem] transition-colors sm:min-h-9 sm:text-[0.6rem] ${
-                            mine
-                              ? "border border-cream/25 text-cream/60 hover:text-cream"
-                              : "border border-amber/60 text-amber hover:bg-amber hover:text-ink"
-                          }`}
+                          className="signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border border-cream/20 px-2 py-2 text-center text-[0.62rem] text-cream/65 transition-colors hover:border-cream/45 hover:bg-cream/10 hover:text-cream"
                         >
-                          {mine ? "Release" : "Claim room"}
+                          {actionable ? "Details & status" : "View details"}
                         </button>
                       </span>
-                    ) : null}
+                    </span>
                   </div>
                 );
               })}
@@ -1235,6 +1347,19 @@ function HousekeepingBoard({
       </Dialog>
 
       <IssueDialog room={issueRoom} staff={staff} onClose={() => setIssueRoom(null)} />
+
+      {/* Mobile Floating Action Button to launch Runner Mode */}
+      {viewMode !== "runner" ? (
+        <button
+          type="button"
+          onClick={() => setViewMode("runner")}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-amber px-5 py-3.5 font-bold text-ink shadow-2xl transition-all active:scale-95 hover:bg-amber/90 sm:hidden"
+          aria-label="Start runner mode"
+        >
+          <Footprints className="h-5 w-5" />
+          <span>Runner ({toClean})</span>
+        </button>
+      ) : null}
     </div>
   );
 }

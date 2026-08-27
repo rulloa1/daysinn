@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-
 import { assertStaff } from "@/lib/roles.guard";
-import { isPastCheckout } from "@/lib/guest-access";
 import { verifyGuest } from "@/lib/guest-verify.server";
+import { isPastCheckout } from "@/lib/guest-access";
 
 const credentials = z.object({
   room: z.string().trim().min(1).max(10),
@@ -16,7 +15,7 @@ const sendSchema = credentials.extend({
 
 /** Guest-side chat thread + digital room key, gated on room + last name. */
 export const guestThread = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => credentials.parse(input))
+  .validator((input: unknown) => credentials.parse(input))
   .handler(async ({ data }) => {
     const { allowGuestAttempt, recordAudit } = await import("@/lib/audit.server");
     if (!(await allowGuestAttempt("guest_thread", data.room))) {
@@ -65,7 +64,7 @@ export const guestThread = createServerFn({ method: "POST" })
 
 /** Guest sends a message to the front desk. */
 export const guestSendMessage = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => sendSchema.parse(input))
+  .validator((input: unknown) => sendSchema.parse(input))
   .handler(async ({ data }) => {
     const { allowGuestAttempt } = await import("@/lib/audit.server");
     if (!(await allowGuestAttempt("guest_message", data.room))) {
@@ -90,9 +89,7 @@ export const guestSendMessage = createServerFn({ method: "POST" })
 
 /** Staff-only: mint or rotate the digital room key PIN for a room. */
 export const issueDoorPin = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
-    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 
@@ -124,9 +121,7 @@ export const issueDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only: clear a room key (checkout, lost phone, re-key). */
 export const clearDoorPin = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
-    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -148,9 +143,7 @@ export const clearDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only read of a room's current key, kept out of client table reads. */
 export const readDoorPin = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
-    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 

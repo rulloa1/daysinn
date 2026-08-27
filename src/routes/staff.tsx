@@ -24,6 +24,8 @@ import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
+import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
 import {
@@ -37,6 +39,8 @@ import {
   Play,
   Calendar,
   UserPlus,
+  Wrench,
+  BarChart3,
 } from "lucide-react";
 
 type RequestRow = {
@@ -239,7 +243,7 @@ function Dashboard({ session }: { session: Session }) {
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
   const [activeTab, setActiveTab] = useState<
-    "queue" | "map" | "crm" | "schedules" | "assignments" | "team"
+    "queue" | "map" | "crm" | "maintenance" | "analytics" | "schedules" | "assignments" | "team"
   >("queue");
   const [rooms, setRooms] = useState<MapRoom[]>([]);
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
@@ -550,6 +554,36 @@ function Dashboard({ session }: { session: Session }) {
               Guest CRM
             </Button>
 
+            <Button
+              type="button"
+              variant={activeTab === "maintenance" ? "default" : "outline"}
+              onClick={() => setActiveTab("maintenance")}
+              className={`min-h-11 sm:min-h-9 ${
+                activeTab === "maintenance"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              }`}
+            >
+              <Wrench className="mr-1.5 h-4 w-4" />
+              Maintenance
+            </Button>
+
+            {isManager ? (
+              <Button
+                type="button"
+                variant={activeTab === "analytics" ? "default" : "outline"}
+                onClick={() => setActiveTab("analytics")}
+                className={`min-h-11 sm:min-h-9 ${
+                  activeTab === "analytics"
+                    ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                }`}
+              >
+                <BarChart3 className="mr-1.5 h-4 w-4" />
+                Analytics
+              </Button>
+            ) : null}
+
             {isManager ? (
               <>
                 <div className="mx-1 hidden h-6 w-px bg-cream/15 sm:block" />
@@ -694,6 +728,17 @@ function Dashboard({ session }: { session: Session }) {
         ) : activeTab === "crm" ? (
           <div className="mt-6">
             <GuestCrmPanel canEdit={canEditCrm} />
+          </div>
+        ) : activeTab === "maintenance" ? (
+          <div className="mt-6">
+            <MaintenanceTicketsPanel
+              reporter={staff?.name ?? "Staff"}
+              reporterStaffId={staff?.id ?? null}
+            />
+          </div>
+        ) : activeTab === "analytics" ? (
+          <div className="mt-6">
+            <AnalyticsDashboard />
           </div>
         ) : activeTab === "queue" ? (
           <>

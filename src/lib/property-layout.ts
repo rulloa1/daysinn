@@ -31,51 +31,51 @@ export type PropertyMapLocation = {
 };
 
 export const VERIFIED_MAP_LOCATIONS: readonly PropertyMapLocation[] = [
-  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
+  { name: "Pool", aliases: ["pool", "swimming"], left: 45.0, top: 45.0 },
   {
     name: "Stairs outside 158 / 258",
     aliases: ["stairs", "stairwell", "158", "258"],
-    left: 63,
-    top: 17.1,
+    left: 68.5,
+    top: 23.0,
   },
   {
     name: "Stairs between 157 / 159 and 257 / 259",
     aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
-    left: 71,
-    top: 19.1,
+    left: 79.5,
+    top: 23.0,
   },
   {
     name: "Upper-floor breezeway after 214",
     aliases: ["breezeway", "214", "upper floor"],
-    left: 39,
-    top: 52,
+    left: 36.2,
+    top: 59.8,
   },
   {
     name: "Front-entrance stairwell after 201",
     aliases: ["stairs", "stairwell", "front entrance", "201"],
-    left: 11,
-    top: 59,
+    left: 14.5,
+    top: 58.0,
   },
   {
     name: "Stairs between 132 / 130",
     aliases: ["stairs", "stairwell", "132", "130"],
-    left: 60.35,
-    top: 54.2,
+    left: 63.0,
+    top: 68.0,
   },
   {
     name: "Authorized Personnel",
     aliases: ["authorized", "personnel", "staff only"],
-    left: 19,
-    top: 54,
+    left: 19.0,
+    top: 68.0,
   },
   {
     name: "Lobby / Breakfast / Dining",
     aliases: ["lobby", "front desk", "breakfast", "dining"],
-    left: 15,
-    top: 60,
+    left: 15.0,
+    top: 70.0,
   },
-  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
-  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
+  { name: "Laundry", aliases: ["laundry", "storage"], left: 65.0, top: 50.0 },
+  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20.0, top: 20.0 },
 ];
 
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
@@ -172,8 +172,12 @@ export function frontBlock(floor: FloorKey): {
     upstairsLeft: isUpperFloor
       ? ["217", "215", "213", "211", "210", "209", "207", "205", "203", "201"]
       : [],
-    upstairsLeftBreezewayBefore: isUpperFloor ? "217" : undefined,
-    upstairsLeftStairwellAfter: isUpperFloor ? "201" : undefined,
+    ...(isUpperFloor
+      ? {
+          upstairsLeftBreezewayBefore: "217",
+          upstairsLeftStairwellAfter: "201",
+        }
+      : {}),
     services: [
       { kind: "space", label: "Authorized Personnel" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },

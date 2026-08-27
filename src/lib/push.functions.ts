@@ -15,7 +15,7 @@ type SubInput = {
 
 /** Store (or refresh) a housekeeping device subscription. */
 export const savePushSubscription = createServerFn({ method: "POST" })
-  .inputValidator((input: SubInput) => input)
+  .validator((input: SubInput) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("push_subscriptions").upsert(
       {
@@ -35,7 +35,7 @@ export const savePushSubscription = createServerFn({ method: "POST" })
 
 /** Remove a device subscription when the housekeeper turns phone alerts off. */
 export const removePushSubscription = createServerFn({ method: "POST" })
-  .inputValidator((input: { endpoint: string }) => input)
+  .validator((input: { endpoint: string }) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("push_subscriptions")

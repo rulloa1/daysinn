@@ -77,7 +77,7 @@ function toStay(row: Record<string, unknown>): GuestStay {
 }
 
 export const searchGuestProfiles = createServerFn({ method: "GET" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         query: z.string().trim().min(1).max(100),
@@ -103,7 +103,7 @@ export const searchGuestProfiles = createServerFn({ method: "GET" })
   });
 
 export const listGuestProfiles = createServerFn({ method: "GET" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -126,7 +126,7 @@ export const listGuestProfiles = createServerFn({ method: "GET" })
   });
 
 export const getGuestProfile = createServerFn({ method: "GET" })
-  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input ?? {}))
+  .validator((input) => z.object({ id: z.string().uuid() }).parse(input ?? {}))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("guest_profiles")
@@ -144,7 +144,7 @@ export const getGuestProfile = createServerFn({ method: "GET" })
   });
 
 export const createGuestProfile = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         name: z.string().trim().min(1).max(120),
@@ -176,7 +176,7 @@ export const createGuestProfile = createServerFn({ method: "POST" })
   });
 
 export const updateGuestProfile = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         id: z.string().uuid(),
@@ -210,7 +210,7 @@ export const updateGuestProfile = createServerFn({ method: "POST" })
   });
 
 export const addGuestStay = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         guest_profile_id: z.string().uuid(),
@@ -244,7 +244,7 @@ export const addGuestStay = createServerFn({ method: "POST" })
   });
 
 export const updateGuestStay = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         id: z.string().uuid(),
