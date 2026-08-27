@@ -121,9 +121,7 @@ function StaffPage() {
     );
   }
 
-  if (!session) {
-    return <SignIn />;
-  }
+  if (!session) return <SignIn />;
 
   return (
     <PasswordResetGate>
@@ -150,9 +148,9 @@ function SignIn() {
       mode === "signin"
         ? await supabase.auth.signInWithPassword(credentials)
         : await supabase.auth.signUp({
-            ...credentials,
-            options: { emailRedirectTo: `${window.location.origin}/staff` },
-          });
+          ...credentials,
+          options: { emailRedirectTo: `${window.location.origin}/staff` },
+        });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -229,8 +227,6 @@ function SignIn() {
 
 function Dashboard({ session }: { session: Session }) {
   const [rows, setRows] = useState<RequestRow[]>([]);
-<<<<<<< HEAD
-=======
   const [showWelcome, setShowWelcome] = useState(false);
   const [tourStep, setTourStep] = useState<number | null>(null);
 
@@ -315,7 +311,6 @@ Suggestions: ${feedbackText || "None"}`;
     );
     window.open(`mailto:feedback@daysinn.com?subject=${subject}&body=${body}`, "_blank");
   };
->>>>>>> aeea7dfefbab57cb460fa55c38b8a3a1d3e61c7c
   const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
   const roleLoading = role.loading;
@@ -596,15 +591,13 @@ Suggestions: ${feedbackText || "None"}`;
               type="button"
               variant={activeTab === "queue" ? "default" : "outline"}
               onClick={() => setActiveTab("queue")}
-              className={`${
-                activeTab === "queue"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              } ${
-                tourStep === 2
+              className={`${activeTab === "queue"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                } ${tourStep === 2
                   ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
                   : ""
-              }`}
+                }`}
             >
               <ListFilter className="mr-1.5 h-4 w-4" />
               Request queue ({rows.filter((r) => r.status !== "done").length})
@@ -614,15 +607,13 @@ Suggestions: ${feedbackText || "None"}`;
               type="button"
               variant={activeTab === "map" ? "default" : "outline"}
               onClick={() => setActiveTab("map")}
-              className={`${
-                activeTab === "map"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              } ${
-                tourStep === 1
+              className={`${activeTab === "map"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                } ${tourStep === 1
                   ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
                   : ""
-              }`}
+                }`}
             >
               <MapIcon className="mr-1.5 h-4 w-4" />
               Property map ({rooms.length} rooms)
@@ -632,15 +623,13 @@ Suggestions: ${feedbackText || "None"}`;
               type="button"
               variant={activeTab === "crm" ? "default" : "outline"}
               onClick={() => setActiveTab("crm")}
-              className={`${
-                activeTab === "crm"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              } ${
-                tourStep === 3
+              className={`${activeTab === "crm"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                } ${tourStep === 3
                   ? "ring-2 ring-amber ring-offset-2 ring-offset-ink animate-pulse"
                   : ""
-              }`}
+                }`}
             >
               <Users className="mr-1.5 h-4 w-4" />
               Guest CRM
@@ -753,11 +742,10 @@ Suggestions: ${feedbackText || "None"}`;
                     type="button"
                     onClick={() => setFilter(active ? "all" : status)}
                     aria-pressed={active}
-                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
-                      active
-                        ? "border-amber/70 bg-cream/[0.07]"
-                        : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-                    }`}
+                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${active
+                      ? "border-amber/70 bg-cream/[0.07]"
+                      : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+                      }`}
                   >
                     <p className="signage flex items-center gap-2 text-cream/60">
                       <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
@@ -963,11 +951,10 @@ Suggestions: ${feedbackText || "None"}`;
                           key={opt}
                           type="button"
                           onClick={() => setFeedbackAnswer(opt)}
-                          className={`flex-1 py-2 rounded-lg border font-semibold text-sm transition-all duration-150 ${
-                            feedbackAnswer === opt
-                              ? "border-amber bg-amber/15 text-amber"
-                              : "border-cream/15 bg-cream/[0.02] text-cream/70 hover:border-cream/35 hover:text-cream"
-                          }`}
+                          className={`flex-1 py-2 rounded-lg border font-semibold text-sm transition-all duration-150 ${feedbackAnswer === opt
+                            ? "border-amber bg-amber/15 text-amber"
+                            : "border-cream/15 bg-cream/[0.02] text-cream/70 hover:border-cream/35 hover:text-cream"
+                            }`}
                         >
                           {opt}
                         </button>
