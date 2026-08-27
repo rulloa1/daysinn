@@ -541,7 +541,6 @@ Suggestions: ${feedbackText || "None"}`;
   const claimManager = useServerFn(claimFirstManager);
   const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
   const [rooms, setRooms] = useState<MapRoom[]>([]);
-  const [mapFloor, setMapFloor] = useState<FloorView>("both");
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -955,33 +954,14 @@ Suggestions: ${feedbackText || "None"}`;
               Guest CRM
             </Button>
           </div>
-
-          {activeTab === "map" ? (
-            <div className="flex items-center gap-1.5">
-              {(["both", 1, 2] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setMapFloor(f)}
-                  className={`signage px-3 py-1.5 transition-colors duration-150 rounded border ${
-                    mapFloor === f
-                      ? "border-amber bg-amber text-ink font-bold"
-                      : "border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
-                  }`}
-                >
-                  {f === "both" ? "All rooms (Stacked)" : `Floor ${f}`}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
 
         {activeTab === "map" ? (
           <div className="mt-6 space-y-4">
             <FloorPlan
-              floor={mapFloor}
               rooms={rooms}
               openRequests={openRequestsByRoom}
+              activeRoomId={selectedRoomId}
               onSelect={(roomId) => setSelectedRoomId(roomId)}
             />
 

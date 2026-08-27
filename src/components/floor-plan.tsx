@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
-import type { FloorKey } from "@/lib/property-layout";
+import { Search } from "lucide-react";
+import { useState, useMemo } from "react";
 import propertyMapImage from "@/assets/property_map_final.png";
-
+import { type FloorKey } from "@/lib/property-layout";
 type RoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
 
@@ -14,33 +14,46 @@ export type MapRoom = {
 
 export type FloorView = FloorKey | "both";
 
-/** Solid background colors per status for high contrast over the photo */
+/** Colored translucent blocks mapping to the mockup */
+const OVERLAY_BG: Record<RoomStatus, string> = {
+  vacant_clean: "bg-emerald-500/60 text-white",
+  reserved: "bg-emerald-500/60 text-white",
+  vacant_dirty: "bg-amber-400/60 text-black",
+  occupied: "bg-rose-500/60 text-white",
+  occupied_dnd: "bg-purple-600/60 text-white border-2 border-rose-800",
+  out_of_order: "bg-slate-500/60 text-white",
+};
+
+/** Solid background colors per status for fallback buttons */
 const PILL_BG: Record<RoomStatus, string> = {
   vacant_clean: "bg-emerald-500 text-white border-emerald-700",
   vacant_dirty: "bg-amber-400 text-black border-amber-600",
-  occupied: "bg-blue-500 text-white border-blue-700",
+  occupied: "bg-rose-500 text-white border-rose-700",
   occupied_dnd: "bg-purple-600 text-white border-purple-800",
-  reserved: "bg-cyan-500 text-black border-cyan-700",
-  out_of_order: "bg-rose-600 text-white border-rose-800",
+  reserved: "bg-emerald-500 text-white border-emerald-700",
+  out_of_order: "bg-slate-500 text-white border-slate-700",
 };
 
 /** Status chip config for the stats/filter bar */
 const STATUS_CHIP: Record<RoomStatus, { label: string; active: string }> = {
-  vacant_clean: { label: "Clean",    active: "bg-emerald-500/25 text-emerald-300 border-emerald-500/50" },
-  vacant_dirty: { label: "Dirty",    active: "bg-amber-400/25  text-amber-300  border-amber-400/50" },
-  occupied:     { label: "Occupied", active: "bg-blue-500/25   text-blue-300   border-blue-500/50" },
-  occupied_dnd: { label: "DND",      active: "bg-purple-600/25 text-purple-300 border-purple-600/50" },
-  reserved:     { label: "Reserved", active: "bg-cyan-500/25   text-cyan-300   border-cyan-500/50" },
-  out_of_order: { label: "OOO",      active: "bg-rose-600/25   text-rose-300   border-rose-600/50" },
+  vacant_clean: {
+    label: "Clean",
+    active: "bg-emerald-500/25 text-emerald-300 border-emerald-500/50",
+  },
+  vacant_dirty: { label: "Dirty", active: "bg-amber-400/25  text-amber-300  border-amber-400/50" },
+  occupied: { label: "Occupied", active: "bg-blue-500/25   text-blue-300   border-blue-500/50" },
+  occupied_dnd: { label: "DND", active: "bg-purple-600/25 text-purple-300 border-purple-600/50" },
+  reserved: { label: "Reserved", active: "bg-cyan-500/25   text-cyan-300   border-cyan-500/50" },
+  out_of_order: { label: "OOO", active: "bg-rose-600/25   text-rose-300   border-rose-600/50" },
 };
 
 /** Two-to-three letter status abbreviation rendered inside each pill */
 const STATUS_ABBR: Record<RoomStatus, string> = {
   vacant_clean: "VC",
   vacant_dirty: "VD",
-  occupied:     "OCC",
+  occupied: "OCC",
   occupied_dnd: "DND",
-  reserved:     "RES",
+  reserved: "RES",
   out_of_order: "OOO",
 };
 
@@ -54,10 +67,10 @@ const STATUS_FILTER_ORDER: RoomStatus[] = [
 ];
 
 type Props = {
-  floor: FloorView;
   rooms: MapRoom[];
   openRequests?: Map<string, number> | undefined;
   dimmed?: Set<string> | undefined;
+  activeRoomId?: string | null | undefined;
   onSelect: (roomId: string) => void;
 };
 
@@ -252,7 +265,7 @@ const UNUSED_FIRST_FLOOR_SLOTS: Array<[number, number]> = [
 /** Filter rooms to the floors the user wants to see */
 function filterByFloor(rooms: MapRoom[], floor: FloorView): MapRoom[] {
   if (floor === "both") return rooms;
-  return rooms.filter((r) => {
+  return rooms.filter((r: MapRoom) => {
     const n = Number(r.number);
     return floor === 1 ? n < 200 : n >= 200;
   });
@@ -281,7 +294,11 @@ function StatsBar({
   if (entries.length === 0) return null;
 
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by room status">
+    <div
+      className="mb-3 flex flex-wrap items-center gap-1.5"
+      role="group"
+      aria-label="Filter by room status"
+    >
       {entries.map((status) => {
         const isActive = statusFilter === status;
         return (
@@ -297,8 +314,7 @@ function StatsBar({
                 : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 hover:bg-slate-700",
             ].join(" ")}
           >
-            {STATUS_CHIP[status].label}:{" "}
-            <span className="font-mono">{counts[status]}</span>
+            {STATUS_CHIP[status].label}: <span className="font-mono">{counts[status]}</span>
           </button>
         );
       })}
@@ -317,10 +333,38 @@ function StatsBar({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Props) {
+export function FloorPlan({ rooms, openRequests, dimmed, activeRoomId, onSelect }: Props) {
   const [statusFilter, setStatusFilter] = useState<RoomStatus | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFloor, setActiveFloor] = useState<FloorView>(1);
 
-  const visibleRooms = useMemo(() => filterByFloor(rooms, floor), [rooms, floor]);
+  const visibleRooms = useMemo(() => filterByFloor(rooms, activeFloor), [rooms, activeFloor]);
+
+  const searchLower = searchQuery.trim().toLowerCase();
+  const matchesSearch = useMemo(() => {
+    if (!searchLower) return null;
+    const set = new Set<string>();
+    for (const r of visibleRooms) {
+      if (
+        r.number.includes(searchLower) ||
+        (r.guest_name ?? "").toLowerCase().includes(searchLower)
+      ) {
+        set.add(r.number);
+      }
+    }
+    return set;
+  }, [visibleRooms, searchLower]);
+
+  const isFaded = (room: MapRoom) => {
+    if (dimmed?.size ? !dimmed.has(room.number) : false) return true;
+    if (statusFilter !== null && room.status !== statusFilter) return true;
+    if (matchesSearch && !matchesSearch.has(room.number)) return true;
+    return false;
+  };
+
+  const isHighlighted = (room: MapRoom) => {
+    return room.number === activeRoomId || (matchesSearch && matchesSearch.has(room.number));
+  };
 
   /** Map from room number → 1-based tab index for logical keyboard navigation. */
   const tabIndexByNumber = useMemo(() => {
@@ -331,129 +375,158 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onSelect }: Prop
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 shadow-2xl">
       {/* HEADER */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-          <span className="font-serif text-sm font-bold text-white tracking-wide">
-            Days Inn® Wildwood — Interactive Site Plan
-          </span>
-          <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-mono">
-            {floor === "both" ? "Floors 1 & 2" : `Floor ${floor}`}
-          </span>
+      <div className="mb-4 flex flex-col items-center gap-4">
+        <h2 className="font-serif text-lg font-bold text-white tracking-wide">
+          Days Inn Detailed Property Map
+        </h2>
+
+        {/* SEARCH BAR */}
+        <div className="relative w-full max-w-md">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-slate-500" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search rooms, facilities..."
+            className="w-full rounded-full border border-slate-700 bg-white px-10 py-2.5 text-sm text-slate-900 placeholder-slate-500 shadow-sm outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
-        {/* Status Legend */}
-        <div className="flex flex-wrap items-center gap-2.5 text-[10px]">
-          {(
-            [
-              ["bg-emerald-500", "Clean"],
-              ["bg-amber-400",   "Dirty"],
-              ["bg-blue-500",    "Occupied"],
-              ["bg-purple-600",  "DND"],
-              ["bg-rose-600",    "OOO"],
-              ["bg-cyan-500",    "Reserved"],
-            ] as const
-          ).map(([color, label]) => (
-            <span key={label} className="flex items-center gap-1">
-              <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-              {label}
-            </span>
-          ))}
+
+        {/* FLOOR TOGGLE */}
+        <div className="flex w-full max-w-sm rounded-lg border border-slate-700 bg-slate-200 p-1 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setActiveFloor(1)}
+            aria-pressed={activeFloor === 1}
+            className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+              activeFloor === 1
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            1st Floor
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFloor(2)}
+            aria-pressed={activeFloor === 2}
+            className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+              activeFloor === 2
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            2nd Floor
+          </button>
         </div>
       </div>
 
       {/* STATS / FILTER BAR */}
-      <StatsBar
-        rooms={visibleRooms}
-        statusFilter={statusFilter}
-        onFilter={setStatusFilter}
-      />
+      <StatsBar rooms={visibleRooms} statusFilter={statusFilter} onFilter={setStatusFilter} />
 
       {/* INTERACTIVE MAP IMAGES */}
-      <div className="space-y-8">
-        {(floor === "both" ? ([1, 2] as FloorKey[]) : ([floor] as FloorKey[])).map((f) => {
-          const floorRooms = filterByFloor(rooms, f);
+      <div className="relative w-full overflow-hidden rounded-xl border border-slate-700 bg-white">
+        <img
+          src={propertyMapImage}
+          alt={`Days Inn Wildwood Site Plan - Floor ${activeFloor}`}
+          className="block w-full select-none"
+          draggable={false}
+        />
+
+        {/* The two physical cells not occupied by the 110–135 range stay visibly unused. */}
+        {activeFloor !== 2 &&
+          UNUSED_FIRST_FLOOR_SLOTS.map(([left, top]) => (
+            <span
+              key={`unused-${left}-${top}`}
+              title="Unused physical room slot"
+              style={{ left: `${left}%`, top: `${top}%` }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded border border-slate-400/70 bg-slate-100/95 px-1 py-0.5 text-[7px] font-bold uppercase tracking-tight text-slate-600 shadow-sm"
+            >
+              Unused
+            </span>
+          ))}
+
+        {/* Overlay room rectangles at percentage positions */}
+        {visibleRooms.map((room: MapRoom) => {
+          const coords = ROOM_COORDS[room.number];
+          if (!coords) return null;
+          const [left, top] = coords;
+          const open = openRequests?.get(room.number) ?? 0;
+          const faded = isFaded(room);
+          const highlighted = isHighlighted(room);
+          const tabIdx = tabIndexByNumber.get(room.number) ?? 0;
+          const isHorizontalWing = left < 70 && top < 29;
+          const isVerticalWing = left >= 70 && top >= 29;
 
           return (
-            <div key={f} className="space-y-2">
-              {floor === "both" && (
-                <h3 className="text-sm font-bold tracking-wide text-slate-300 uppercase">
-                  Floor {f}
-                </h3>
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => onSelect(room.id)}
+              aria-label={`Room ${room.number}: ${room.guest_name ?? "Vacant"}, ${room.status.replace(/_/g, " ")}`}
+              title={`Room ${room.number} · ${room.guest_name ?? "Vacant"} (${room.status.replace(/_/g, " ")})`}
+              tabIndex={tabIdx}
+              style={{ left: `${left}%`, top: `${top}%` }}
+              className={[
+                "absolute -translate-x-1/2 -translate-y-1/2 z-10",
+                "flex items-center justify-center",
+                "rounded-sm",
+                isHorizontalWing ? "w-[4.2%] h-[4%]" : isVerticalWing ? "w-[3%] h-[3%]" : "w-[4%] h-[3.5%]",
+                "transition-all duration-100",
+                highlighted ? "hover:scale-[1.1] hover:z-30" : "hover:z-20",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
+                OVERLAY_BG[room.status],
+                faded
+                  ? "opacity-0 pointer-events-none"
+                  : highlighted
+                    ? "opacity-100 ring-2 ring-emerald-500 scale-110 z-20"
+                    : "opacity-100 cursor-pointer",
+              ].join(" ")}
+            >
+              <span className="text-[10px] font-bold leading-none font-sans drop-shadow-md">
+                {room.number}
+              </span>
+              {open > 0 && (
+                <>
+                  <span className="absolute -top-1.5 -right-1.5 h-3 w-3 animate-ping rounded-full bg-rose-500 opacity-75" />
+                  <span className="absolute -top-1.5 -right-1.5 grid h-3 w-3 place-items-center rounded-full bg-rose-600 text-[7px] font-black text-white shadow">
+                    {open}
+                  </span>
+                </>
               )}
-              <div className="relative w-full overflow-hidden rounded-xl border border-slate-700">
-                <img
-                  src={propertyMapImage}
-                  alt={`Days Inn Wildwood Site Plan - Floor ${f}`}
-                  className="block w-full select-none"
-                  draggable={false}
-                />
-
-                {/* The two physical cells not occupied by the 110–135 range stay visibly unused. */}
-                {f !== 2 &&
-                  UNUSED_FIRST_FLOOR_SLOTS.map(([left, top]) => (
-                    <span
-                      key={`unused-${left}-${top}`}
-                      title="Unused physical room slot"
-                      style={{ left: `${left}%`, top: `${top}%` }}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 rounded border border-slate-400/70 bg-slate-100/95 px-1 py-0.5 text-[7px] font-bold uppercase tracking-tight text-slate-600 shadow-sm"
-                    >
-                      Unused
-                    </span>
-                  ))}
-
-                {/* Overlay room pills at percentage positions */}
-                {floorRooms.map((room) => {
-                  const coords = ROOM_COORDS[room.number];
-                  if (!coords) return null;
-                  const [left, top] = coords;
-                  const open = openRequests?.get(room.number) ?? 0;
-                  const faded =
-                    (dimmed?.size ? !dimmed.has(room.number) : false) ||
-                    (statusFilter !== null && room.status !== statusFilter);
-                  const tabIdx = tabIndexByNumber.get(room.number) ?? 0;
-
-                  return (
-                    <button
-                      key={room.id}
-                      type="button"
-                      onClick={() => onSelect(room.id)}
-                      aria-label={`Room ${room.number}: ${room.guest_name ?? "Vacant"}, ${room.status.replace(/_/g, " ")}`}
-                      title={`Room ${room.number} · ${room.guest_name ?? "Vacant"} (${room.status.replace(/_/g, " ")})`}
-                      tabIndex={tabIdx}
-                      style={{ left: `${left}%`, top: `${top}%` }}
-                      className={[
-                        "absolute -translate-x-1/2 -translate-y-1/2 z-10",
-                        "flex flex-col items-center",
-                        "rounded border px-1 pt-0.5 pb-px",
-                        "shadow-md transition-all duration-100",
-                        "hover:scale-[1.4] hover:z-20",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                        PILL_BG[room.status],
-                        faded ? "opacity-20 pointer-events-none" : "opacity-90 cursor-pointer",
-                      ].join(" ")}
-                    >
-                      <span className="text-[9px] font-black leading-none font-mono">
-                        {room.number}
-                      </span>
-                      <span className="text-[6px] leading-none opacity-75 tracking-tight">
-                        {STATUS_ABBR[room.status]}
-                      </span>
-                      {open > 0 && (
-                        <>
-                          {/* Pulsing ring to draw attention to rooms with open requests */}
-                          <span className="absolute -top-1.5 -right-1.5 h-3 w-3 animate-ping rounded-full bg-rose-500 opacity-75" />
-                          <span className="absolute -top-1.5 -right-1.5 grid h-3 w-3 place-items-center rounded-full bg-rose-600 text-[7px] font-black text-white shadow">
-                            {open}
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            </button>
           );
         })}
+
+        {/* BOTTOM RIGHT LEGEND */}
+        <div className="absolute bottom-4 right-4 rounded-xl border border-slate-300 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
+          <div className="flex flex-col gap-2 text-xs font-medium text-slate-800">
+            <span className="flex items-center gap-2">
+              <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm" /> Available
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-3.5 w-3.5 rounded-full bg-rose-500 shadow-sm" /> Occupied
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-3.5 w-3.5 rounded-full bg-amber-400 shadow-sm" /> Dirty/Cleaning
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-3.5 w-3.5 rounded-full bg-slate-400 shadow-sm" /> Maintenance
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* FALLBACK: rooms without photo coordinates */}

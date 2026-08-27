@@ -231,7 +231,6 @@ function Board() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
   const [view, setView] = useState<"map" | "list" | "analytics">("map");
-  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">("both");
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
@@ -545,33 +544,15 @@ function Board() {
                 {mode === "map" ? "Property map" : mode === "list" ? "Room list" : "Analytics"}
               </button>
             ))}
-            {view === "map" ? (
-              <div className="ml-auto flex items-center gap-2">
-                {(["both", 1, 2] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setMapFloor(f)}
-                    aria-pressed={mapFloor === f}
-                    className={`signage border px-4 py-2 transition-colors duration-200 ${
-                      mapFloor === f
-                        ? "border-amber bg-amber/15 text-amber"
-                        : "border-cream/20 text-cream/55 hover:text-cream"
-                    }`}
-                  >
-                    {f === "both" ? "All rooms" : `Floor ${f}`}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            {/* Floor toggle removed because FloorPlan handles it internally now */}
           </div>
 
           {!loading && view === "map" ? (
             <FloorPlan
-              floor={mapFloor}
               rooms={rooms}
               openRequests={openCountByRoom}
               dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
+              activeRoomId={activeRoomId}
               onSelect={setActiveRoomId}
             />
           ) : null}
