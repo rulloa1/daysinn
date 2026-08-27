@@ -30,10 +30,20 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-export const isSupabaseConfigured = Boolean(
-  (import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"]) &&
-  (import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"]),
-);
+const DEFAULT_SUPABASE_URL = "https://jazrkvkzfpfuwzatsefb.supabase.co";
+const DEFAULT_SUPABASE_KEY = "sb_publishable_zQdf9p_QxRUvPRSgjdnA6Q_F2HOxjiP";
+
+const resolvedSupabaseUrl =
+  import.meta.env["VITE_SUPABASE_URL"] ||
+  process.env["SUPABASE_URL"] ||
+  DEFAULT_SUPABASE_URL;
+
+const resolvedSupabaseKey =
+  import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
+  process.env["SUPABASE_PUBLISHABLE_KEY"] ||
+  DEFAULT_SUPABASE_KEY;
+
+export const isSupabaseConfigured = Boolean(resolvedSupabaseUrl && resolvedSupabaseKey);
 
 type AppSupabaseClient = SupabaseClient<Database>;
 type AuthStateChangeCallback = Parameters<AppSupabaseClient["auth"]["onAuthStateChange"]>[0];
@@ -119,19 +129,18 @@ function createUnavailableSupabaseClient(): AppSupabaseClient {
 }
 
 function createSupabaseClient(): AppSupabaseClient {
-  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-  const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+  const SUPABASE_URL = resolvedSupabaseUrl;
+  const SUPABASE_PUBLISHABLE_KEY = resolvedSupabaseKey;
 
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     console.warn(
       "[Supabase] Live data is not configured. All operational data requests fail closed.",
     );
     return createUnavailableSupabaseClient();
   }
 
-  return createClient<Database>(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!, {
-    global: { fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY!) },
+  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    global: { fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY) },
     auth: {
       storage: brokeredPreviewStorage(),
       persistSession: true,
