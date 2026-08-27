@@ -11,6 +11,15 @@ export type FloorKey = 1 | 2;
 /** Room numbers confirmed not to exist at the Wildwood property. */
 export const OMITTED_ROOM_NUMBERS: ReadonlySet<string> = new Set(["237", "239"]);
 
+/** Shared exterior access points, keyed to the rooms immediately beside them. */
+export const STAIR_LOCATIONS = [
+  { label: "Stairs outside 158 / 258", outsideRooms: ["158", "258"] as const },
+  {
+    label: "Stairs between 157 / 159 and 257 / 259",
+    outsideRooms: ["157", "159", "257", "259"] as const,
+  },
+] as const;
+
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
@@ -49,8 +58,10 @@ export function westWing(floor: FloorKey): WingRow[] {
 /**
  * Horizontal guest wing, as shown in the supplied original wing drawing.
  *
- * The pool-facing ground-floor row reads from room 136 through room 162.
- * The ground-floor end row reads right to left from room 163 through room 137.
+ * The pool-facing ground-floor row reads from room 136 through room 162, with
+ * exterior stairs immediately outside rooms 158 and 258 and between rooms
+ * 157/159 and 257/259. The ground-floor end row reads right to left from room
+ * 163 through room 137.
  * Room 265 is the additional second-floor room beneath the terminal 263 cell.
  * Rooms 237 and 239 are not part of the property inventory and must not be
  * rendered in this wing. The drawing also shows stair access at the central

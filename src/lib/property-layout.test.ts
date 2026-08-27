@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { frontBlock, northBuilding, westWing } from "./property-layout";
+import { frontBlock, northBuilding, STAIR_LOCATIONS, westWing } from "./property-layout";
 import { sideForRoom, wingForRoom } from "./room-model";
 
 function roomRows(floor: 1 | 2) {
@@ -86,6 +86,16 @@ describe("authoritative property wing drawing", () => {
       "158",
       "160",
       "162",
+    ]);
+  });
+
+  it("records both confirmed exterior stair locations", () => {
+    expect(STAIR_LOCATIONS).toEqual([
+      { label: "Stairs outside 158 / 258", outsideRooms: ["158", "258"] },
+      {
+        label: "Stairs between 157 / 159 and 257 / 259",
+        outsideRooms: ["157", "159", "257", "259"],
+      },
     ]);
   });
 

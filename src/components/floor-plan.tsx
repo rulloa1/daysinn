@@ -44,6 +44,18 @@ type FacilityMarker = {
 const FACILITY_MARKERS: FacilityMarker[] = [
   { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
   {
+    name: "Stairs outside 158 / 258",
+    aliases: ["stairs", "stairwell", "158", "258"],
+    left: 63,
+    top: 17.1,
+  },
+  {
+    name: "Stairs between 157 / 159 and 257 / 259",
+    aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
+    left: 71,
+    top: 19.1,
+  },
+  {
     name: "Authorized Personnel",
     aliases: ["authorized", "personnel", "staff only"],
     left: 19,
