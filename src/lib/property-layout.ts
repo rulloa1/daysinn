@@ -18,6 +18,7 @@ export const STAIR_LOCATIONS = [
     label: "Stairs between 157 / 159 and 257 / 259",
     outsideRooms: ["157", "159", "257", "259"] as const,
   },
+  { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] as const },
 ] as const;
 
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
@@ -70,6 +71,7 @@ export function westWing(floor: FloorKey): WingRow[] {
 export function northBuilding(floor: FloorKey): {
   top: string[];
   bottom: string[];
+  topBreezewayAfter?: string;
 } {
   if (floor === 1) {
     return {
@@ -81,7 +83,11 @@ export function northBuilding(floor: FloorKey): {
   }
 
   return {
-    top: roomPair(236, 14).map(([even]) => even),
+    // Upper-floor, pool-facing row runs right to left and reaches a breezeway
+    // immediately after room 214. The following segment remains pending
+    // physical-layout confirmation.
+    top: ["200", "202", "204", "206", "208", "210", "212", "214"],
+    topBreezewayAfter: "214",
     bottom: [...roomPair(236, 14).map(([, odd]) => odd), "265"].filter(
       (number) => !OMITTED_ROOM_NUMBERS.has(number),
     ),
@@ -97,12 +103,19 @@ export type StripCell =
 /** Top-left lobby and administrative services block. */
 export function frontBlock(floor: FloorKey): {
   upstairsLeft: string[];
+  upstairsLeftBreezewayBefore?: string;
+  upstairsLeftStairwellAfter?: string;
   services: StripCell[];
   upstairsRight: string[];
 } {
   const isUpperFloor = floor === 2;
   return {
-    upstairsLeft: isUpperFloor ? ["201", "203", "205", "207", "209"] : [],
+    // Upper-floor front-entrance side reads from the breezeway to the stairwell.
+    upstairsLeft: isUpperFloor
+      ? ["217", "215", "213", "211", "210", "209", "207", "205", "203", "201"]
+      : [],
+    upstairsLeftBreezewayBefore: isUpperFloor ? "217" : undefined,
+    upstairsLeftStairwellAfter: isUpperFloor ? "201" : undefined,
     services: [
       { kind: "space", label: "Authorized Personnel" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },

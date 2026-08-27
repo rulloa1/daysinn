@@ -56,6 +56,18 @@ const FACILITY_MARKERS: FacilityMarker[] = [
     top: 19.1,
   },
   {
+    name: "Upper-floor breezeway after 214",
+    aliases: ["breezeway", "214", "upper floor"],
+    left: 39,
+    top: 52,
+  },
+  {
+    name: "Front-entrance stairwell after 201",
+    aliases: ["stairs", "stairwell", "front entrance", "201"],
+    left: 11,
+    top: 59,
+  },
+  {
     name: "Authorized Personnel",
     aliases: ["authorized", "personnel", "staff only"],
     left: 19,
@@ -81,6 +93,9 @@ const FACILITY_MARKERS: FacilityMarker[] = [
  *
  * - Ground-floor parking side: 109, 111, 113, …, 135.
  * - Upper-floor parking side: 209, 211, 213, …, 235.
+ * - Upper-floor pool-facing side: 200, 202, …, 214; then a breezeway.
+ * - Upper-floor front-entrance side: 217, 215, 213, 211, 210, 209, 207,
+ *   205, 203, 201; ending at the stairwell.
  * - Opposite ground-floor side: 134, 132, …, 118; then a breezeway;
  *   then 116, 114, 112, 110, 108, followed by authorized personnel and
  *   the lobby / breakfast / dining area.
