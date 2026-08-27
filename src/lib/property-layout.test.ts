@@ -114,16 +114,20 @@ describe("authoritative property wing drawing", () => {
 
   it("shares the verified access, breezeway, and service markers across map views", () => {
     expect(VERIFIED_MAP_LOCATIONS.map((location) => location.name)).toEqual([
-      "Pool",
-      "Stairs outside 158 / 258",
-      "Stairs between 157 / 159 and 257 / 259",
-      "Upper-floor breezeway after 214",
-      "Front-entrance stairwell after 201",
-      "Stairs between 132 / 130",
-      "Authorized Personnel",
-      "Lobby / Breakfast / Dining",
-      "Laundry",
-      "Truck parking",
+      "Swim Pool",
+      "Lobby / Registration / Breakfast",
+      "GM Office",
+      "Kitchen",
+      "Security",
+      "Laundry and Storage",
+      "Stairs (East Wing)",
+      "Stairs (North Breezeway)",
+      "Stairs (South Facility)",
+      "Pool Equipment",
+      "Truck Parking (Guest)",
+      "Back Parking",
+      "Front Parking",
+      "Main Entrance",
     ]);
   });
 
