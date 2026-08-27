@@ -384,7 +384,6 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
             className="block w-full select-none"
             draggable={false}
           />
-          />
 
           {matchingFacilities.map((facility) => (
             <span
