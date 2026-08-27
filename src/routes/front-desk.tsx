@@ -41,7 +41,6 @@ import {
   enqueueRoomStatusChange,
   readQueuedRoomStatusChanges,
   roomStatusQueueSummary,
-  useLiveRoomStatus
 } from "@/lib/room-status-sync";
 import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
