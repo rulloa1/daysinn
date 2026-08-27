@@ -648,7 +648,7 @@ Suggestions: ${feedbackText || "None"}`;
             </Sheet>
           </div>
         ) : activeTab === "crm" ? (
-          <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
+          <GuestCrmPanel canEdit={canEditCrm} />
         ) : (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -777,13 +777,11 @@ Suggestions: ${feedbackText || "None"}`;
                           <p className="signage text-cream/40">View only</p>
                         )}
                       </div>
-                      {demo ? null : (
-                        <RequestWorkflowPanel
-                          request={row}
-                          canEdit={canTriage}
-                          staff={staff ?? null}
-                        />
-                      )}
+                      <RequestWorkflowPanel
+                        request={row}
+                        canEdit={canTriage}
+                        staff={staff ?? null}
+                      />
                     </li>
                   );
                 })}
