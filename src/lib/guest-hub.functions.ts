@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { assertStaff } from "@/lib/roles.guard";
 import { isPastCheckout } from "@/lib/guest-access";
 import { verifyGuest } from "@/lib/guest-verify.server";
@@ -90,7 +90,7 @@ export const guestSendMessage = createServerFn({ method: "POST" })
 
 /** Staff-only: mint or rotate the digital room key PIN for a room. */
 export const issueDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input: unknown) =>
     z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
   )
@@ -125,7 +125,7 @@ export const issueDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only: clear a room key (checkout, lost phone, re-key). */
 export const clearDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input: unknown) =>
     z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
   )
@@ -150,7 +150,7 @@ export const clearDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only read of a room's current key, kept out of client table reads. */
 export const readDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input: unknown) =>
     z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
   )

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 export type GuestProfile = {
   id: string;
@@ -78,7 +78,7 @@ function toStay(row: Record<string, unknown>): GuestStay {
 }
 
 export const searchGuestProfiles = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -105,7 +105,7 @@ export const searchGuestProfiles = createServerFn({ method: "GET" })
   });
 
 export const listGuestProfiles = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -129,7 +129,7 @@ export const listGuestProfiles = createServerFn({ method: "GET" })
   });
 
 export const getGuestProfile = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input ?? {}))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -148,7 +148,7 @@ export const getGuestProfile = createServerFn({ method: "GET" })
   });
 
 export const createGuestProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -181,7 +181,7 @@ export const createGuestProfile = createServerFn({ method: "POST" })
   });
 
 export const updateGuestProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -216,7 +216,7 @@ export const updateGuestProfile = createServerFn({ method: "POST" })
   });
 
 export const addGuestStay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -251,7 +251,7 @@ export const addGuestStay = createServerFn({ method: "POST" })
   });
 
 export const updateGuestStay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({

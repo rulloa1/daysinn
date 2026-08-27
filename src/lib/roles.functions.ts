@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { assertManager } from "./roles.guard";
 
 export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
@@ -11,7 +11,7 @@ export type TeamMember = {
 };
 
 export const listTeam = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .handler(async ({ context }): Promise<TeamMember[]> => {
     await assertManager(context.supabase, context.userId);
 
@@ -33,7 +33,7 @@ export const listTeam = createServerFn({ method: "POST" })
   });
 
 export const setTeamRole = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input: { userId: string; role: AppRole }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
@@ -70,7 +70,7 @@ export const setTeamRole = createServerFn({ method: "POST" })
   });
 
 export const revokeTeamRole = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input: { userId: string }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
@@ -100,7 +100,7 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
   });
 
 export const claimFirstManager = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 const LOVABLE_AI_URL = "https://api.lovable.ai/v1/chat/completions";
 
@@ -36,7 +36,7 @@ When a staff member asks something that matches a tool, respond conversationally
 If no tool is needed, reply naturally and omit tool_calls. Keep replies short and helpful. Never ask the user to provide a request ID; if they mention a room number, you can list requests for that room first to find the right ID, or ask them to confirm.`;
 
 export const askOpsAssistant = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({

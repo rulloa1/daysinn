@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
-import { readPresentationMode } from "@/lib/presentation";
 import type { StaffIdentity, StaffMember } from "@/lib/ops";
 
 type IdentityOptions = {
@@ -35,34 +34,7 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
     setStaff(read(STORAGE_KEY));
   }, [STORAGE_KEY]);
 
-  const refresh = useCallback(async () => {
-    const isDemo = !isSupabaseConfigured || readPresentationMode();
-    if (isDemo) {
-      const mockMembers: StaffMember[] = [
-        { id: "demo-presenter", name: "Presenter", active: true, department: "front_desk" },
-        {
-          id: "demo-alice",
-          name: "Alice Smith (Housekeeper)",
-          active: true,
-          department: "housekeeping",
-        },
-        { id: "demo-bob", name: "Bob Jones (Front Desk)", active: true, department: "front_desk" },
-        {
-          id: "demo-charlie",
-          name: "Charlie Brown (Housekeeper)",
-          active: true,
-          department: "housekeeping",
-        },
-      ];
-      if (department) {
-        setMembers(mockMembers.filter((m) => m.department === department));
-      } else {
-        setMembers(mockMembers);
-      }
-      return;
-    }
-
-    try {
+  const refresh = useCallback(async () => {    try {
       if (department === "housekeeping") {
         // Housekeeping roster: always show housekeeping staff, and also include
         // front-desk staff who are currently assigned to rooms.
@@ -135,20 +107,7 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
       const trimmed = name.trim();
       if (!trimmed) return null;
 
-      const isDemo = !isSupabaseConfigured || readPresentationMode();
-      if (isDemo) {
-        const newMember: StaffMember = {
-          id: `demo-${Date.now()}`,
-          name: trimmed,
-          active: true,
-          department: department ?? "front_desk",
-        };
-        setMembers((prev) => [...prev, newMember]);
-        select({ id: newMember.id, name: newMember.name });
-        return newMember;
-      }
-
-      try {
+      if (!isSupabaseConfigured) return null;      try {
         const { data, error } = await supabase
           .from("staff_members")
           .insert({ name: trimmed, department: department ?? "front_desk" })

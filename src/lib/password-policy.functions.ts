@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { assertManager } from "./roles.guard";
 
 export const MIN_PASSWORD_LENGTH = 12;
@@ -11,7 +11,7 @@ export type ForceResetResult = { flagged: number; emailed: number };
  * password before it can work the board again, and send a reset email.
  */
 export const forceStaffPasswordReset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .handler(async ({ context }): Promise<ForceResetResult> => {
     await assertManager(context.supabase, context.userId);
 
@@ -62,7 +62,7 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
 
 /** Clear the reset flag once the signed-in user has set a new password. */
 export const completePasswordReset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);

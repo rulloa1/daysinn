@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { average } from "@/lib/ops";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -25,7 +25,7 @@ function toSerializable(records: unknown[]): SerializableRecord[] {
 }
 
 export const listRooms = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -46,7 +46,7 @@ export const listRooms = createServerFn({ method: "GET" })
   });
 
 export const listRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -67,7 +67,7 @@ export const listRequests = createServerFn({ method: "GET" })
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -105,7 +105,7 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) =>
     z
       .object({
@@ -148,7 +148,7 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  
   .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data: rooms, error: roomsError } = await context.supabase.rpc("rooms_board");
