@@ -10,9 +10,8 @@ export type TeamMember = {
   roles: AppRole[];
 };
 
-export const listTeam = createServerFn({ method: "POST" })
-  
-  .handler(async ({ context }): Promise<TeamMember[]> => {
+export const listTeam = createServerFn({ method: "POST" }).handler(
+  async ({ context }): Promise<TeamMember[]> => {
     await assertManager(context.supabase, context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -30,10 +29,10 @@ export const listTeam = createServerFn({ method: "POST" })
         .filter((r) => r.user_id === user.id)
         .map((r) => r.role),
     }));
-  });
+  },
+);
 
 export const setTeamRole = createServerFn({ method: "POST" })
-  
   .inputValidator((input: { userId: string; role: AppRole }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
@@ -70,7 +69,6 @@ export const setTeamRole = createServerFn({ method: "POST" })
   });
 
 export const revokeTeamRole = createServerFn({ method: "POST" })
-  
   .inputValidator((input: { userId: string }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
@@ -99,17 +97,18 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const claimFirstManager = createServerFn({ method: "POST" })
-  
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin
-      .from("user_roles")
-      .select("id", { count: "exact", head: true });
-    if ((count ?? 0) > 0) return { claimed: false };
-    const { error } = await supabaseAdmin
-      .from("user_roles")
-      .insert({ user_id: context.userId, role: "manager" });
-    if (error) throw error;
-    return { claimed: true };
-  });
+export const claimFirstManager = createServerFn({ method: "POST" }).handler(async ({ context }) => {
+  const userId = context.userId;
+  if (!userId) throw new Error("Authentication required");
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { count } = await supabaseAdmin
+    .from("user_roles")
+    .select("id", { count: "exact", head: true });
+  if ((count ?? 0) > 0) return { claimed: false };
+  const { error } = await supabaseAdmin
+    .from("user_roles")
+    .insert({ user_id: userId, role: "manager" });
+  if (error) throw error;
+  return { claimed: true };
+});
