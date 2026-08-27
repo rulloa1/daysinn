@@ -31,3 +31,7 @@ TypeScript validation passed. A local `/staff` load also correctly remains fail-
 ### Server-function fallback result
 
 The repaired handler was exercised through TanStack Start’s actual local server-function protocol with middleware initialization enabled and the AI key intentionally absent. It returned HTTP 200 and the explicit, non-operational fallback message: “Ops Assistant is temporarily unavailable. You can continue using the live room and request boards directly.” The server did not throw and no blank error page was returned. This verifies the failure mode that previously surfaced as `TypeError: fetch failed` now degrades safely.
+
+## Recheck after latest releases — 2026-08-27 EDT
+
+The public `/housekeeping` guard remains reachable and its internal sign-in link resolves to the intended `/staff` page. The deployed staff page still reports that the live data service is not configured, and the email/password controls remain disabled. Therefore no authenticated staff session, safe-room selection, room-status mutation, Front Desk real-time receipt, or restoration can be performed yet. This recheck made no data changes.
