@@ -148,9 +148,9 @@ function SignIn() {
       mode === "signin"
         ? await supabase.auth.signInWithPassword(credentials)
         : await supabase.auth.signUp({
-          ...credentials,
-          options: { emailRedirectTo: `${window.location.origin}/staff` },
-        });
+            ...credentials,
+            options: { emailRedirectTo: `${window.location.origin}/staff` },
+          });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -653,10 +653,11 @@ function Dashboard({ session }: { session: Session }) {
                     type="button"
                     onClick={() => setFilter(active ? "all" : status)}
                     aria-pressed={active}
-                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${active
-                      ? "border-amber/70 bg-cream/[0.07]"
-                      : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-                      }`}
+                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
+                      active
+                        ? "border-amber/70 bg-cream/[0.07]"
+                        : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+                    }`}
                   >
                     <p className="signage flex items-center gap-2 text-cream/60">
                       <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
@@ -790,8 +791,6 @@ function Dashboard({ session }: { session: Session }) {
             <InvitePanel />
           </div>
         ) : null}
-
-
       </div>
     </div>
   );
