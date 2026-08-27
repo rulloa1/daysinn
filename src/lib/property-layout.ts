@@ -172,8 +172,12 @@ export function frontBlock(floor: FloorKey): {
     upstairsLeft: isUpperFloor
       ? ["217", "215", "213", "211", "210", "209", "207", "205", "203", "201"]
       : [],
-    upstairsLeftBreezewayBefore: isUpperFloor ? "217" : undefined,
-    upstairsLeftStairwellAfter: isUpperFloor ? "201" : undefined,
+    ...(isUpperFloor
+      ? {
+          upstairsLeftBreezewayBefore: "217",
+          upstairsLeftStairwellAfter: "201",
+        }
+      : {}),
     services: [
       { kind: "space", label: "Authorized Personnel" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },

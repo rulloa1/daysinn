@@ -259,8 +259,9 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
 
   // Set default selected room for calibration
   useEffect(() => {
-    if (isCalibrating && !selectedCalibRoom && visibleRooms.length > 0) {
-      setSelectedCalibRoom(visibleRooms[0].number);
+    const firstVisibleRoom = visibleRooms[0];
+    if (isCalibrating && !selectedCalibRoom && firstVisibleRoom) {
+      setSelectedCalibRoom(firstVisibleRoom.number);
     }
   }, [isCalibrating, selectedCalibRoom, visibleRooms]);
 
