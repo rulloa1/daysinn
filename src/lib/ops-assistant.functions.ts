@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-
 const LOVABLE_AI_URL = "https://api.lovable.ai/v1/chat/completions";
 
 export type AssistantMessage = {
@@ -36,7 +35,6 @@ When a staff member asks something that matches a tool, respond conversationally
 If no tool is needed, reply naturally and omit tool_calls. Keep replies short and helpful. Never ask the user to provide a request ID; if they mention a room number, you can list requests for that room first to find the right ID, or ask them to confirm.`;
 
 export const askOpsAssistant = createServerFn({ method: "POST" })
-  
   .inputValidator((input) =>
     z
       .object({
@@ -63,7 +61,7 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${key}`,
-        "X-User-Id": context.userId,
+        "X-User-Id": context.userId ?? "anonymous",
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",

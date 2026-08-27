@@ -142,7 +142,6 @@ export const guestRequests = createServerFn({ method: "POST" })
  * short-lived one. Rotating on demand means printed or shared codes die.
  */
 export const rotateRoomQr = createServerFn({ method: "POST" })
-  
   .inputValidator((input: unknown) =>
     z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
   )
@@ -185,7 +184,6 @@ export const rotateRoomQr = createServerFn({ method: "POST" })
 
 /** Staff-only: kills every outstanding code for a room. */
 export const revokeRoomQr = createServerFn({ method: "POST" })
-  
   .inputValidator((input: unknown) =>
     z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
   )
