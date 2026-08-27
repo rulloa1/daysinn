@@ -1,5 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Search,
+  SlidersHorizontal,
+  Crosshair,
+  RotateCcw,
+  Save,
+  X,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Check,
+  Move,
+} from "lucide-react";
+import { toast } from "sonner";
 import { OMITTED_ROOM_NUMBERS, VERIFIED_MAP_LOCATIONS, type FloorKey } from "@/lib/property-layout";
 import propertyMapImage from "@/assets/property_map_3d.png";
 
@@ -14,6 +29,8 @@ export type MapRoom = {
 };
 
 export type FloorView = FloorKey | "both";
+
+const STORAGE_KEY = "daysinn_custom_room_coords";
 
 /** Solid background colors per status for high contrast over the photo */
 const PILL_BG: Record<RoomStatus, string> = {
@@ -35,28 +52,9 @@ type Props = {
 };
 
 /**
- * Percentage-based [left%, top%] coordinates for each room number.
- *
- * Calibrated against the official "Days Inn by Wyndham Wildwood I-75" site plan.
- * Image ~1024×640. Building map occupies roughly x:14%–87%, y:12%–88%.
- *
- * User-confirmed visible room rows (reading toward the lobby):
- *
- * - Ground-floor parking side: 109, 111, 113, …, 135.
- * - Upper-floor parking side: 209, 211, 213, …, 235.
- * - Upper-floor pool-facing side: 200, 202, …, 214; then a breezeway.
- * - Upper-floor front-entrance side: 217, 215, 213, 211, 210, 209, 207,
- *   205, 203, 201; ending at the stairwell.
- * - Opposite ground-floor side: 134, 132, then exterior stairs, then 130,
- *   …, 118; then a breezeway; then 116, 114, 112, 110, 108, followed by
- *   authorized personnel and
- *   the lobby / breakfast / dining area.
- *
- * Rooms 237 and 239 are not part of the property inventory.
- * The 1xx and 2xx overlays share physical locations; their positions are
- * slightly offset when both floors are displayed.
+ * Base percentage-based [left%, top%] coordinates for each room number.
  */
-const ROOM_COORDS: Record<string, [number, number]> = {
+const DEFAULT_ROOM_COORDS: Record<string, [number, number]> = {
   "100": [12.0, 46.0],
   "101": [12.0, 58.0],
   "102": [15.1, 46.5],
@@ -189,6 +187,18 @@ const ROOM_COORDS: Record<string, [number, number]> = {
   "265": [70.8, 7.2],
 };
 
+function loadStoredCoords(): Record<string, [number, number]> {
+  if (typeof window === "undefined") return DEFAULT_ROOM_COORDS;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_ROOM_COORDS;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_ROOM_COORDS, ...parsed };
+  } catch {
+    return DEFAULT_ROOM_COORDS;
+  }
+}
+
 /** Filter rooms to the floors the user wants to see */
 function filterByFloor(rooms: MapRoom[], floor: FloorView): MapRoom[] {
   return rooms.filter((r) => {
@@ -203,6 +213,17 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
   const [localFloor, setLocalFloor] = useState<FloorKey>(floor === "both" ? 1 : floor);
   const [query, setQuery] = useState("");
   const [housekeepingOnly, setHousekeepingOnly] = useState(false);
+
+  // Calibration state
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [roomCoords, setRoomCoords] = useState<Record<string, [number, number]>>(loadStoredCoords);
+  const [savedCoords, setSavedCoords] =
+    useState<Record<string, [number, number]>>(loadStoredCoords);
+  const [selectedCalibRoom, setSelectedCalibRoom] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (floor !== "both") setLocalFloor(floor);
@@ -235,6 +256,14 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
   );
 
   const floorRooms = useMemo(() => filterByFloor(rooms, activeFloor), [activeFloor, rooms]);
+
+  // Set default selected room for calibration
+  useEffect(() => {
+    if (isCalibrating && !selectedCalibRoom && visibleRooms.length > 0) {
+      setSelectedCalibRoom(visibleRooms[0].number);
+    }
+  }, [isCalibrating, selectedCalibRoom, visibleRooms]);
+
   const attentionSummary = useMemo(
     () => [
       {
@@ -266,6 +295,97 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
     else setLocalFloor(next);
   }
 
+  // Calibration helpers
+  const currentCoords = selectedCalibRoom ? roomCoords[selectedCalibRoom] : null;
+
+  function updateRoomPosition(roomNumber: string, left: number, top: number) {
+    const clampedLeft = Number(Math.max(1, Math.min(99, left)).toFixed(1));
+    const clampedTop = Number(Math.max(1, Math.min(99, top)).toFixed(1));
+    setRoomCoords((prev) => ({
+      ...prev,
+      [roomNumber]: [clampedLeft, clampedTop],
+    }));
+  }
+
+  function nudge(dx: number, dy: number) {
+    if (!selectedCalibRoom) return;
+    const current = roomCoords[selectedCalibRoom] ?? [50, 50];
+    updateRoomPosition(selectedCalibRoom, current[0] + dx, current[1] + dy);
+  }
+
+  function handlePointerDown(roomNumber: string, e: React.PointerEvent) {
+    if (!isCalibrating) return;
+    e.stopPropagation();
+    setSelectedCalibRoom(roomNumber);
+    setIsDragging(true);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!isCalibrating || !isDragging || !selectedCalibRoom || !mapContainerRef.current) return;
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    const leftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const topPercent = ((e.clientY - rect.top) / rect.height) * 100;
+    updateRoomPosition(selectedCalibRoom, leftPercent, topPercent);
+  }
+
+  function handlePointerUp(e: React.PointerEvent) {
+    if (isDragging) {
+      setIsDragging(false);
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // Ignored
+      }
+    }
+  }
+
+  function saveCalibration() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(roomCoords));
+    }
+    setSavedCoords(roomCoords);
+    setIsCalibrating(false);
+    toast.success("Room positions saved successfully!");
+  }
+
+  function cancelCalibration() {
+    setRoomCoords(savedCoords);
+    setIsCalibrating(false);
+    toast.message("Calibration canceled.");
+  }
+
+  function resetSelectedRoom() {
+    if (!selectedCalibRoom) return;
+    const defaultPos = DEFAULT_ROOM_COORDS[selectedCalibRoom];
+    if (defaultPos) {
+      setRoomCoords((prev) => ({
+        ...prev,
+        [selectedCalibRoom]: defaultPos,
+      }));
+      toast.info(`Room ${selectedCalibRoom} reset to default.`);
+    } else {
+      toast.error(`No default coordinate for room ${selectedCalibRoom}.`);
+    }
+  }
+
+  function resetAllRooms() {
+    setRoomCoords(DEFAULT_ROOM_COORDS);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+    setSavedCoords(DEFAULT_ROOM_COORDS);
+    toast.info("All rooms reset to default coordinates.");
+  }
+
+  function copyCoordsJson() {
+    const json = JSON.stringify(roomCoords, null, 2);
+    navigator.clipboard.writeText(json);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Coordinates JSON copied to clipboard!");
+  }
+
   return (
     <section className="overflow-hidden rounded-[1.75rem] border border-slate-300 bg-[#f5f3ee] text-slate-950 shadow-2xl shadow-slate-950/20">
       <header className="border-b border-slate-200 bg-white px-4 pb-4 pt-5 sm:px-6">
@@ -278,17 +398,156 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
               Detailed property map
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Tap a room for its live operational details.
+              {isCalibrating
+                ? "Drag room markers onto precise roof-level spots or select a room below."
+                : "Tap a room for its live operational details."}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600"></span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (isCalibrating) cancelCalibration();
+                else setIsCalibrating(true);
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                isCalibrating
+                  ? "border-amber-500 bg-amber-400 text-slate-950 shadow-sm"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+              }`}
+            >
+              <Crosshair className="h-3.5 w-3.5" />
+              {isCalibrating ? "Exit Calibration" : "Calibrate Markers"}
+            </button>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600"></span>
+              </span>
+              Live status
             </span>
-            Live room status
-          </span>
+          </div>
         </div>
+
+        {/* Calibration Toolbar */}
+        {isCalibrating && (
+          <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50/80 p-3 sm:p-4 text-slate-900 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <span>Room:</span>
+                  <select
+                    value={selectedCalibRoom}
+                    onChange={(e) => setSelectedCalibRoom(e.target.value)}
+                    className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    {visibleRooms.map((r) => (
+                      <option key={r.id} value={r.number}>
+                        Room {r.number}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {currentCoords && (
+                  <div className="flex items-center gap-2 rounded-lg bg-white/80 px-2.5 py-1 text-xs font-mono font-bold text-slate-800 border border-amber-200">
+                    <span>X: {currentCoords[0]}%</span>
+                    <span className="text-slate-300">|</span>
+                    <span>Y: {currentCoords[1]}%</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Nudge Direction Pad */}
+              <div className="flex items-center gap-1 bg-white/80 p-1 rounded-lg border border-amber-200">
+                <button
+                  type="button"
+                  title="Nudge Left"
+                  onClick={() => nudge(-0.2, 0)}
+                  className="rounded p-1 hover:bg-amber-100 text-slate-700"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    type="button"
+                    title="Nudge Up"
+                    onClick={() => nudge(0, -0.2)}
+                    className="rounded p-0.5 hover:bg-amber-100 text-slate-700"
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Nudge Down"
+                    onClick={() => nudge(0, 0.2)}
+                    className="rounded p-0.5 hover:bg-amber-100 text-slate-700"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  title="Nudge Right"
+                  onClick={() => nudge(0.2, 0)}
+                  className="rounded p-1 hover:bg-amber-100 text-slate-700"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={resetSelectedRoom}
+                  title="Reset selected room to default"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset Room
+                </button>
+                <button
+                  type="button"
+                  onClick={resetAllRooms}
+                  title="Reset all rooms to default"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                >
+                  Reset All
+                </button>
+                <button
+                  type="button"
+                  onClick={copyCoordsJson}
+                  title="Copy full JSON"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  {copied ? (
+                    <Check className="h-3 w-3 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  {copied ? "Copied" : "Copy JSON"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelCalibration}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  <X className="h-3 w-3" />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveCalibration}
+                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+                >
+                  <Save className="h-3 w-3" />
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div
           className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4"
@@ -365,12 +624,19 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
         </div>
       </header>
 
-      <div className="relative bg-slate-800 p-2 sm:p-3">
-        <div className="relative w-full overflow-hidden rounded-2xl border border-slate-700">
+      <div className="relative overflow-x-auto bg-slate-800 p-2 sm:p-3 [scrollbar-width:none]">
+        <div
+          ref={mapContainerRef}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          className={`relative min-w-[540px] overflow-hidden rounded-2xl border border-slate-700 sm:min-w-full ${
+            isCalibrating ? "cursor-crosshair select-none" : ""
+          }`}
+        >
           <img
             src={propertyMapImage}
             alt="Days Inn Wildwood detailed property map"
-            className="block w-full select-none"
+            className="block w-full select-none pointer-events-none"
             draggable={false}
           />
 
@@ -386,30 +652,48 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
 
           {/* Overlay room pills at percentage positions */}
           {visibleRooms.map((room) => {
-            const coords = ROOM_COORDS[room.number];
+            const coords = roomCoords[room.number] ?? DEFAULT_ROOM_COORDS[room.number];
             if (!coords) return null;
             const [left, top] = coords;
             const open = openRequests?.get(room.number) ?? 0;
             const faded = dimmed?.size ? !dimmed.has(room.number) : false;
+            const isSelectedForCalib = isCalibrating && selectedCalibRoom === room.number;
 
             return (
               <button
                 key={room.id}
                 type="button"
-                onClick={() => onSelect(room.id)}
+                onPointerDown={(e) => handlePointerDown(room.number, e)}
+                onClick={() => {
+                  if (isCalibrating) {
+                    setSelectedCalibRoom(room.number);
+                  } else {
+                    onSelect(room.id);
+                  }
+                }}
                 title={`Room ${room.number} · ${room.guest_name ?? "Vacant"} (${room.status.replace(/_/g, " ")})`}
                 style={{ left: `${left}%`, top: `${top}%` }}
                 className={[
-                  "absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded border px-1 py-0.5 font-mono text-[7px] font-black leading-none shadow-md transition-all duration-500 sm:text-[8px]",
-                  "hover:z-30 hover:scale-[1.45] focus:z-30 focus:scale-[1.45] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  PILL_BG[room.status],
-                  faded ? "cursor-default opacity-20" : "cursor-pointer opacity-95",
+                  "absolute -translate-x-1/2 -translate-y-1/2 rounded border px-1.5 py-0.5 font-mono font-black leading-none shadow-md transition-transform duration-100",
+                  isSelectedForCalib
+                    ? "z-40 scale-150 ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-900 bg-amber-400 text-slate-950 cursor-grab active:cursor-grabbing shadow-2xl"
+                    : isCalibrating
+                      ? "z-20 cursor-grab hover:scale-125 opacity-90"
+                      : "z-10 hover:z-30 hover:scale-[1.45] focus:z-30 focus:scale-[1.45] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                  !isSelectedForCalib && PILL_BG[room.status],
+                  faded && !isCalibrating ? "cursor-default opacity-20" : "opacity-95",
+                  "text-[7.5px] sm:text-[8.5px]",
                 ].join(" ")}
               >
                 {room.number}
-                {open > 0 && (
+                {open > 0 && !isCalibrating && (
                   <span className="absolute -right-1.5 -top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-slate-950 text-[7px] font-black text-white shadow ring-1 ring-white">
                     {open}
+                  </span>
+                )}
+                {isSelectedForCalib && (
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-950 px-1.5 py-0.5 text-[8px] font-bold text-amber-300 shadow ring-1 ring-white/20">
+                    {left}%, {top}%
                   </span>
                 )}
               </button>
@@ -448,7 +732,9 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
 
       {/* FALLBACK: rooms without photo coordinates */}
       {(() => {
-        const unmapped = visibleRooms.filter((r) => !ROOM_COORDS[r.number]);
+        const unmapped = visibleRooms.filter(
+          (r) => !roomCoords[r.number] && !DEFAULT_ROOM_COORDS[r.number],
+        );
         if (!unmapped.length) return null;
         return (
           <div className="border-t border-slate-200 bg-white px-4 py-4">
