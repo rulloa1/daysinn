@@ -365,8 +365,8 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
         </div>
       </header>
 
-      <div className="relative bg-slate-800 p-2 sm:p-3">
-        <div className="relative w-full overflow-hidden rounded-2xl border border-slate-700">
+      <div className="relative overflow-x-auto bg-slate-800 p-2 sm:p-3 [scrollbar-width:none]">
+        <div className="relative min-w-[540px] overflow-hidden rounded-2xl border border-slate-700 sm:min-w-full">
           <img
             src={propertyMapImage}
             alt="Days Inn Wildwood detailed property map"
@@ -400,7 +400,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
                 title={`Room ${room.number} · ${room.guest_name ?? "Vacant"} (${room.status.replace(/_/g, " ")})`}
                 style={{ left: `${left}%`, top: `${top}%` }}
                 className={[
-                  "absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded border px-1 py-0.5 font-mono text-[7px] font-black leading-none shadow-md transition-all duration-500 sm:text-[8px]",
+                  "absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded border px-1 py-0.5 font-mono text-[7.5px] font-black leading-none shadow-md transition-all duration-300 sm:text-[8.5px]",
                   "hover:z-30 hover:scale-[1.45] focus:z-30 focus:scale-[1.45] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
                   PILL_BG[room.status],
                   faded ? "cursor-default opacity-20" : "cursor-pointer opacity-95",

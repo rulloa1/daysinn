@@ -35,6 +35,8 @@ import {
   FileText,
   Bell,
   Play,
+  Calendar,
+  UserPlus,
 } from "lucide-react";
 
 type RequestRow = {
@@ -236,7 +238,9 @@ function Dashboard({ session }: { session: Session }) {
   const canEditCrm = isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
-  const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
+  const [activeTab, setActiveTab] = useState<
+    "queue" | "map" | "crm" | "schedules" | "assignments" | "team"
+  >("queue");
   const [rooms, setRooms] = useState<MapRoom[]>([]);
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -502,17 +506,17 @@ function Dashboard({ session }: { session: Session }) {
         ) : null}
 
         {/* Primary Dashboard Tabs */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none]">
+          <div className="flex min-w-max items-center gap-2 border-b border-cream/15 pb-4">
             <Button
               type="button"
               variant={activeTab === "queue" ? "default" : "outline"}
               onClick={() => setActiveTab("queue")}
-              className={
+              className={`min-h-11 sm:min-h-9 ${
                 activeTab === "queue"
                   ? "bg-amber font-bold text-ink hover:bg-amber/90"
                   : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }
+              }`}
             >
               <ListFilter className="mr-1.5 h-4 w-4" />
               Request queue ({rows.filter((r) => r.status !== "done").length})
@@ -522,29 +526,76 @@ function Dashboard({ session }: { session: Session }) {
               type="button"
               variant={activeTab === "map" ? "default" : "outline"}
               onClick={() => setActiveTab("map")}
-              className={
+              className={`min-h-11 sm:min-h-9 ${
                 activeTab === "map"
                   ? "bg-amber font-bold text-ink hover:bg-amber/90"
                   : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }
+              }`}
             >
               <MapIcon className="mr-1.5 h-4 w-4" />
-              Property map ({rooms.length} rooms)
+              Property map ({rooms.length})
             </Button>
 
             <Button
               type="button"
               variant={activeTab === "crm" ? "default" : "outline"}
               onClick={() => setActiveTab("crm")}
-              className={
+              className={`min-h-11 sm:min-h-9 ${
                 activeTab === "crm"
                   ? "bg-amber font-bold text-ink hover:bg-amber/90"
                   : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }
+              }`}
             >
               <Users className="mr-1.5 h-4 w-4" />
               Guest CRM
             </Button>
+
+            {isManager ? (
+              <>
+                <div className="mx-1 hidden h-6 w-px bg-cream/15 sm:block" />
+                <Button
+                  type="button"
+                  variant={activeTab === "schedules" ? "default" : "outline"}
+                  onClick={() => setActiveTab("schedules")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "schedules"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <Calendar className="mr-1.5 h-4 w-4" />
+                  Schedules
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={activeTab === "assignments" ? "default" : "outline"}
+                  onClick={() => setActiveTab("assignments")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "assignments"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <ClipboardCheck className="mr-1.5 h-4 w-4" />
+                  Assignments
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={activeTab === "team" ? "default" : "outline"}
+                  onClick={() => setActiveTab("team")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "team"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <UserPlus className="mr-1.5 h-4 w-4" />
+                  Team & Invites
+                </Button>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -781,12 +832,16 @@ function Dashboard({ session }: { session: Session }) {
               </ul>
             )}
           </>
-        )}
-
-        {isManager ? (
-          <div>
+        ) : activeTab === "schedules" ? (
+          <div className="mt-6">
             <ScheduleBoard />
+          </div>
+        ) : activeTab === "assignments" ? (
+          <div className="mt-6">
             <AssignmentBoard />
+          </div>
+        ) : activeTab === "team" ? (
+          <div className="mt-6 space-y-6">
             <TeamPanel />
             <InvitePanel />
           </div>
