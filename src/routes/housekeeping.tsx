@@ -21,7 +21,6 @@ import {
 } from "@/lib/room-status-sync";
 import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
-import { PRESENTER_IDENTITY, usePresentationMode } from "@/lib/presentation";
 import {
   enableDevicePush,
   pushPermission,
@@ -30,7 +29,6 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
-import { frontBlock, northBuilding, westWing } from "@/lib/property-layout";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
@@ -135,88 +133,6 @@ const PRIORITY: RoomStatus[] = [
   "out_of_order",
 ];
 
-function generateDemoRooms(): RoomRow[] {
-  const list: RoomRow[] = [];
-
-  const addRoom = (num: string, floor: number) => {
-    let status: RoomStatus = "vacant_clean";
-    let guestName: string | null = null;
-    let dnd = false;
-    const extended = false;
-    let assignedStaff: string | null = null;
-    let assignedName: string | null = null;
-
-    const n = Number(num);
-    if (isNaN(n)) return;
-
-    if (n % 7 === 0) {
-      status = "vacant_dirty";
-    } else if (n % 5 === 0) {
-      status = "occupied";
-      guestName = "Guest " + num;
-      if (n % 15 === 0) dnd = true;
-    } else if (n % 9 === 0) {
-      status = "reserved";
-    } else if (n % 13 === 0) {
-      status = "out_of_order";
-    }
-
-    if (n === 115 || n === 120 || n === 201) {
-      assignedStaff = "00000000-0000-0000-0000-000000000000";
-      assignedName = "Presenter";
-      status = "vacant_dirty";
-    }
-
-    list.push({
-      id: `r-${num}`,
-      number: num,
-      floor,
-      status,
-      guest_name: guestName,
-      check_out: guestName ? "11:00 AM" : null,
-      notes: null,
-      dnd,
-      extended_stay: extended,
-      updated_at: new Date().toISOString(),
-      assigned_staff_id: assignedStaff,
-      assigned_name: assignedName,
-      hk_stage: null,
-      priority: null,
-      linen_change: null,
-    });
-  };
-
-  for (const floor of [1, 2] as const) {
-    const fb = frontBlock(floor);
-    fb.upstairsLeft.forEach((num) => addRoom(num, floor));
-    fb.upstairsRight.forEach((num) => addRoom(num, floor));
-    fb.services.forEach((cell) => {
-      if (cell.kind === "room") {
-        addRoom(cell.number, floor);
-      }
-    });
-
-    const ww = westWing(floor);
-    ww.forEach((row) => {
-      if (row.kind === "rooms") {
-        addRoom(row.outer, floor);
-        addRoom(row.inner, floor);
-      }
-    });
-
-    const nb = northBuilding(floor);
-    nb.top.forEach((num) => addRoom(num, floor));
-    nb.bottom.forEach((num) => addRoom(num, floor));
-  }
-
-  const unique = new Map<string, RoomRow>();
-  for (const item of list) {
-    unique.set(item.number, item);
-  }
-
-  return Array.from(unique.values()).sort((a, b) => a.number.localeCompare(b.number));
-}
-
 export const Route = createFileRoute("/housekeeping")({
   head: () => ({
     meta: [
@@ -247,7 +163,6 @@ function stamp(iso: string) {
 }
 
 function HousekeepingPage() {
-  const presenting = usePresentationMode();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -268,7 +183,7 @@ function HousekeepingPage() {
     );
   }
 
-  if (!session && !presenting) {
+  if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
         <div className="w-full max-w-sm">
@@ -291,18 +206,14 @@ function HousekeepingPage() {
     );
   }
 
-  return <Housekeeping presenting={presenting} />;
+  return <Housekeeping />;
 }
 
-function Housekeeping({ presenting }: { presenting: boolean }) {
+function Housekeeping() {
   const { members, staff, select, addMember } = useStaffIdentity({
     department: "housekeeping",
     storageKey: "daysinn.housekeeping.identity",
   });
-
-  if (!staff && presenting) {
-    return <HousekeepingBoard staff={PRESENTER_IDENTITY} onSignOut={() => select(null)} />;
-  }
 
   if (!staff) {
     return <HousekeeperLogin members={members} onSelect={select} onAdd={addMember} />;
@@ -441,7 +352,6 @@ function HousekeepingBoard({
   staff: NonNullable<StaffIdentity>;
   onSignOut: () => void;
 }) {
-  const presenting = usePresentationMode();
   const [allRooms, setAllRooms] = useState<RoomRow[]>([]);
   const [supervisor, setSupervisor] = useState(false);
   const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
@@ -503,16 +413,6 @@ function HousekeepingBoard({
     let active = true;
 
     async function load() {
-      const isDemo = presenting || !isSupabaseConfigured;
-      if (isDemo) {
-        if (active) {
-          setAllRooms(generateDemoRooms());
-          setLoading(false);
-          setOpenIssues([]);
-        }
-        return;
-      }
-
       const { data, error } = await supabase
         .from("rooms")
         .select(
@@ -587,7 +487,7 @@ function HousekeepingBoard({
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [presenting]);
+  }, []);
 
   function toggleAlerts() {
     setAlertsOn((v) => {
@@ -681,7 +581,7 @@ function HousekeepingBoard({
   }, []);
 
   const flushQueuedRoomStatusChanges = useCallback(async () => {
-    if (presenting || !isSupabaseConfigured) return { synced: 0, conflicts: 0 };
+    if (!isSupabaseConfigured) return { synced: 0, conflicts: 0 };
     let synced = 0;
     let conflicts = 0;
     for (const change of readQueuedRoomStatusChanges()) {
@@ -692,16 +592,16 @@ function HousekeepingBoard({
     }
     refreshSyncSummary();
     return { synced, conflicts };
-  }, [presenting, refreshSyncSummary]);
+  }, [refreshSyncSummary]);
 
   useEffect(() => {
     refreshSyncSummary();
-    if (presenting || !isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) return;
     void flushQueuedRoomStatusChanges();
     const retry = () => void flushQueuedRoomStatusChanges();
     window.addEventListener("online", retry);
     return () => window.removeEventListener("online", retry);
-  }, [flushQueuedRoomStatusChanges, presenting, refreshSyncSummary]);
+  }, [flushQueuedRoomStatusChanges, refreshSyncSummary]);
 
   async function setAssignment(room: RoomRow, toMe: boolean) {
     if (!canTriage) {
@@ -727,11 +627,9 @@ function HousekeepingBoard({
           : r,
       ),
     );
-    const isDemo = presenting || !isSupabaseConfigured;
-    if (isDemo) {
-      toast.success(
-        toMe ? `Room ${room.number} assigned to you` : `Room ${room.number} unassigned`,
-      );
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
       return;
     }
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
@@ -751,13 +649,9 @@ function HousekeepingBoard({
     }
     const previous = allRooms;
     setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, hk_stage: stage } : r)));
-    const isDemo = presenting || !isSupabaseConfigured;
-    if (isDemo) {
-      toast.success(
-        stage === null
-          ? `Room ${room.number} stage cleared`
-          : `Room ${room.number} · ${stage === "in_progress" ? "In progress" : "Inspected"}`,
-      );
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
       return;
     }
     const { error } = await supabase.from("rooms").update({ hk_stage: stage }).eq("id", room.id);
@@ -777,11 +671,18 @@ function HousekeepingBoard({
   async function toggleLinen(room: RoomRow) {
     if (!canTriage) return;
     const next = !room.linen_change;
+    const previous = allRooms;
     setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, linen_change: next } : r)));
-    const isDemo = presenting || !isSupabaseConfigured;
-    if (isDemo) return;
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
+      return;
+    }
     const { error } = await supabase.from("rooms").update({ linen_change: next }).eq("id", room.id);
-    if (error) toast.error("Couldn't update the linen flag.");
+    if (error) {
+      setAllRooms(previous);
+      toast.error("Couldn't update the linen flag.");
+    }
   }
 
   /** Quick status change from the housekeeping board. */
@@ -797,9 +698,9 @@ function HousekeepingBoard({
         r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
       ),
     );
-    const isDemo = presenting || !isSupabaseConfigured;
-    if (isDemo) {
-      toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
       return;
     }
 

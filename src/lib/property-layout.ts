@@ -8,6 +8,76 @@
 
 export type FloorKey = 1 | 2;
 
+/** Room numbers confirmed not to exist at the Wildwood property. */
+export const OMITTED_ROOM_NUMBERS: ReadonlySet<string> = new Set(["237", "239"]);
+
+/** Shared exterior access points, keyed to the rooms immediately beside them. */
+export const STAIR_LOCATIONS = [
+  { label: "Stairs outside 158 / 258", outsideRooms: ["158", "258"] as const },
+  {
+    label: "Stairs between 157 / 159 and 257 / 259",
+    outsideRooms: ["157", "159", "257", "259"] as const,
+  },
+  { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] as const },
+  { label: "Stairs between 132 / 130", outsideRooms: ["132", "130"] as const },
+] as const;
+
+/** Verified landmarks shared by each interactive property-map view. */
+export type PropertyMapLocation = {
+  name: string;
+  aliases: readonly string[];
+  left: number;
+  top: number;
+};
+
+export const VERIFIED_MAP_LOCATIONS: readonly PropertyMapLocation[] = [
+  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
+  {
+    name: "Stairs outside 158 / 258",
+    aliases: ["stairs", "stairwell", "158", "258"],
+    left: 63,
+    top: 17.1,
+  },
+  {
+    name: "Stairs between 157 / 159 and 257 / 259",
+    aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
+    left: 71,
+    top: 19.1,
+  },
+  {
+    name: "Upper-floor breezeway after 214",
+    aliases: ["breezeway", "214", "upper floor"],
+    left: 39,
+    top: 52,
+  },
+  {
+    name: "Front-entrance stairwell after 201",
+    aliases: ["stairs", "stairwell", "front entrance", "201"],
+    left: 11,
+    top: 59,
+  },
+  {
+    name: "Stairs between 132 / 130",
+    aliases: ["stairs", "stairwell", "132", "130"],
+    left: 60.35,
+    top: 54.2,
+  },
+  {
+    name: "Authorized Personnel",
+    aliases: ["authorized", "personnel", "staff only"],
+    left: 19,
+    top: 54,
+  },
+  {
+    name: "Lobby / Breakfast / Dining",
+    aliases: ["lobby", "front desk", "breakfast", "dining"],
+    left: 15,
+    top: 60,
+  },
+  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
+  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
+];
+
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
 export type WingRow =
@@ -24,42 +94,61 @@ function roomPair(start: number, count: number): Array<[string, string]> {
 /**
  * Vertical guest wing.
  *
- * The first-floor sequence is 110–135; the corresponding second-floor
- * sequence is 210–235. The breezeway separates the upper and lower sections.
+ * The visible parking-side rows begin at rooms 109 and 209. Their paired
+ * courtyard-side rooms are 108 and 208, respectively, and the rows end at
+ * rooms 135 and 235. Exterior stairs sit between rooms 132 and 130. The
+ * breezeway separates the upper and lower sections.
  */
 export function westWing(floor: FloorKey): WingRow[] {
-  const pairs = floor === 1 ? roomPair(110, 13) : roomPair(210, 13);
+  const base = floor === 1 ? 108 : 208;
+  const courtyardSide = Array.from({ length: 14 }, (_, index) => String(base + 26 - index * 2));
   const rows: WingRow[] = [];
 
-  pairs.forEach(([outer, inner], index) => {
-    if (index === 4) rows.push({ kind: "divider", label: "Breezeway // Stairs" });
+  courtyardSide.forEach((outer, index) => {
+    // Rooms 134–118 come before the breezeway; 116–108 follow it.
+    if (index === 9) rows.push({ kind: "divider", label: "Breezeway" });
+    const inner = String(base + 1 + index * 2);
     rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
   });
 
-  rows.push({ kind: "divider", label: "Breezeway" });
   return rows;
 }
 
 /**
  * Horizontal guest wing, as shown in the supplied original wing drawing.
  *
+ * The pool-facing ground-floor row reads from room 136 through room 162, with
+ * exterior stairs immediately outside rooms 158 and 258 and between rooms
+ * 157/159 and 257/259. The ground-floor end row reads right to left from room
+ * 163 through room 137.
  * Room 265 is the additional second-floor room beneath the terminal 263 cell.
- * The drawing also shows stair access at the central split and at the wing end.
+ * Rooms 237 and 239 are not part of the property inventory and must not be
+ * rendered in this wing. The drawing also shows stair access at the central
+ * split and at the wing end.
  */
 export function northBuilding(floor: FloorKey): {
   top: string[];
   bottom: string[];
+  topBreezewayAfter?: string;
 } {
   if (floor === 1) {
     return {
       top: roomPair(136, 14).map(([even]) => even),
-      bottom: roomPair(136, 14).map(([, odd]) => odd),
+      bottom: roomPair(136, 14)
+        .map(([, odd]) => odd)
+        .reverse(),
     };
   }
 
   return {
-    top: roomPair(236, 14).map(([even]) => even),
-    bottom: [...roomPair(236, 14).map(([, odd]) => odd), "265"],
+    // Upper-floor, pool-facing row runs right to left and reaches a breezeway
+    // immediately after room 214. The following segment remains pending
+    // physical-layout confirmation.
+    top: ["200", "202", "204", "206", "208", "210", "212", "214"],
+    topBreezewayAfter: "214",
+    bottom: [...roomPair(236, 14).map(([, odd]) => odd), "265"].filter(
+      (number) => !OMITTED_ROOM_NUMBERS.has(number),
+    ),
   };
 }
 
@@ -72,19 +161,24 @@ export type StripCell =
 /** Top-left lobby and administrative services block. */
 export function frontBlock(floor: FloorKey): {
   upstairsLeft: string[];
+  upstairsLeftBreezewayBefore?: string;
+  upstairsLeftStairwellAfter?: string;
   services: StripCell[];
   upstairsRight: string[];
 } {
+  const isUpperFloor = floor === 2;
   return {
-    upstairsLeft: ["201", "203", "205", "207", "209"],
+    // Upper-floor front-entrance side reads from the breezeway to the stairwell.
+    upstairsLeft: isUpperFloor
+      ? ["217", "215", "213", "211", "210", "209", "207", "205", "203", "201"]
+      : [],
+    upstairsLeftBreezewayBefore: isUpperFloor ? "217" : undefined,
+    upstairsLeftStairwellAfter: isUpperFloor ? "201" : undefined,
     services: [
-      { kind: "space", label: "GM Office" },
-      { kind: "space", label: "Kitchen" },
-      { kind: "space", label: "Lobby / Registration / Breakfast", wide: true },
-      { kind: "space", label: "Security" },
-      { kind: "room", number: floor === 2 ? "208" : "108" },
+      { kind: "space", label: "Authorized Personnel" },
+      { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },
     ],
-    upstairsRight: ["200", "202", "204", "206", "208"],
+    upstairsRight: isUpperFloor ? ["200", "202", "204", "206", "208"] : [],
   };
 }
 

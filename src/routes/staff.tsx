@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { readPresentationMode, setPresentationMode } from "@/lib/presentation";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
@@ -123,7 +122,7 @@ function StaffPage() {
   }
 
   if (!session) {
-    return <SignIn onDemo={() => {}} session={session} />;
+    return <SignIn />;
   }
 
   return (
@@ -133,12 +132,190 @@ function StaffPage() {
   );
 }
 
-function Dashboard({
-  session = null,
-}: {
-  session?: Session | null;
-}) {
+function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!isSupabaseConfigured) {
+      toast.error("The live data service is not configured. Please contact an administrator.");
+      return;
+    }
+    setBusy(true);
+    const credentials = { email: email.trim(), password };
+    const { error } =
+      mode === "signin"
+        ? await supabase.auth.signInWithPassword(credentials)
+        : await supabase.auth.signUp({
+            ...credentials,
+            options: { emailRedirectTo: `${window.location.origin}/staff` },
+          });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (mode === "signup") toast.success("Check your email to confirm the account.");
+  }
+
+  return (
+    <main className="ops-surface flex min-h-screen items-center justify-center bg-ink px-6 py-12 text-cream">
+      <section className="w-full max-w-md border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
+        <BrandLockup tone="cream" />
+        <p className="signage mt-8 text-cream/60">Operations portal</p>
+        <h1 className="mt-2 text-3xl">Staff sign in</h1>
+        <p className="mt-2 text-sm leading-relaxed text-cream/60">
+          Sign in to access the live room status, housekeeping, and guest-service boards.
+        </p>
+        {!isSupabaseConfigured ? (
+          <p className="mt-4 border border-status-dirty/60 bg-status-dirty/10 p-3 text-sm text-status-dirty">
+            The live data service is not configured.
+          </p>
+        ) : null}
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@daysinn.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={!isSupabaseConfigured}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={!isSupabaseConfigured}
+              minLength={6}
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={busy || !isSupabaseConfigured}
+            className="w-full bg-amber font-bold text-ink hover:bg-amber/90"
+          >
+            {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
+          </Button>
+        </form>
+        {isSupabaseConfigured ? (
+          <button
+            type="button"
+            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            className="mt-5 w-full text-center text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
+          >
+            {mode === "signin"
+              ? "Need a staff account? Create one"
+              : "Already have an account? Sign in"}
+          </button>
+        ) : null}
+        <Link to="/" className="signage mt-7 inline-block text-cream/50 hover:text-amber">
+          ← Guest view
+        </Link>
+      </section>
+    </main>
+  );
+}
+
+function Dashboard({ session }: { session: Session }) {
   const [rows, setRows] = useState<RequestRow[]>([]);
+<<<<<<< HEAD
+=======
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [tourStep, setTourStep] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (tourStep === 1) {
+      setActiveTab("map");
+    } else if (tourStep === 2) {
+      setActiveTab("queue");
+    } else if (tourStep === 3) {
+      setActiveTab("crm");
+    }
+  }, [tourStep]);
+
+  useEffect(() => {
+    if (tourStep === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTourStep(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [tourStep]);
+
+  const handleStartTour = () => {
+    setShowWelcome(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("daysinn.tour.dismissed", "1");
+    }
+    setTourStep(1);
+  };
+
+  const handleSkipTour = () => {
+    setShowWelcome(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("daysinn.tour.dismissed", "1");
+    }
+  };
+
+  const handleNextStep = () => {
+    if (tourStep !== null) {
+      if (tourStep < 4) {
+        setTourStep(tourStep + 1);
+      } else {
+        setTourStep(null);
+      }
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (tourStep !== null && tourStep > 1) {
+      setTourStep(tourStep - 1);
+    }
+  };
+
+  const [feedbackAnswer, setFeedbackAnswer] = useState<"Yes" | "Maybe" | "No" | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const submitFeedback = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!feedbackAnswer) {
+      toast.error("Please select an answer.");
+      return;
+    }
+    setFeedbackSubmitted(true);
+    toast.success("Thank you for your feedback!");
+  };
+
+  const copyFeedback = () => {
+    const text = `DaysInn Staff Portal Feedback:
+Would this make daily operations easier? ${feedbackAnswer}
+Suggestions: ${feedbackText || "None"}`;
+    navigator.clipboard.writeText(text);
+    toast.success("Feedback copied to clipboard!");
+  };
+
+  const emailFeedback = () => {
+    const subject = encodeURIComponent("DaysInn staff portal feedback");
+    const body = encodeURIComponent(
+      `Would this make daily operations easier? ${feedbackAnswer}\nSuggestions: ${feedbackText || "None"}`,
+    );
+    window.open(`mailto:feedback@daysinn.com?subject=${subject}&body=${body}`, "_blank");
+  };
+>>>>>>> aeea7dfefbab57cb460fa55c38b8a3a1d3e61c7c
   const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
   const roleLoading = role.loading;
@@ -158,7 +335,6 @@ function Dashboard({
   useEffect(() => {
     let active = true;
     async function loadRooms() {
-
       const { data } = await supabase
         .from("rooms")
         .select("id, number, floor, status, guest_name")
@@ -201,7 +377,6 @@ function Dashboard({
   }, [selectedRoom, rows]);
 
   useEffect(() => {
-
     let active = true;
     async function load() {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
@@ -290,9 +465,7 @@ function Dashboard({
   return (
     <div className="ops-surface min-h-screen bg-ink pb-16 text-cream">
       <div className="px-6 md:px-12">
-        <header
-          className="top-0 sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12"
-        >
+        <header className="top-0 sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
           <div className="flex min-w-0 items-center gap-5">
             <BrandLockup tone="cream" />
             <div className="hidden h-8 w-px bg-cream/15 md:block" />

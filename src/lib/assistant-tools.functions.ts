@@ -25,7 +25,6 @@ function toSerializable(records: unknown[]): SerializableRecord[] {
 }
 
 export const listRooms = createServerFn({ method: "GET" })
-  
   .inputValidator((input) =>
     z
       .object({
@@ -46,7 +45,6 @@ export const listRooms = createServerFn({ method: "GET" })
   });
 
 export const listRequests = createServerFn({ method: "GET" })
-  
   .inputValidator((input) =>
     z
       .object({
@@ -67,7 +65,6 @@ export const listRequests = createServerFn({ method: "GET" })
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
-  
   .inputValidator((input) =>
     z
       .object({
@@ -105,7 +102,6 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
-  
   .inputValidator((input) =>
     z
       .object({
@@ -140,7 +136,8 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
         status_to: data.status,
         body: data.note,
         author_staff_id: context.userId,
-        author_name: context.claims?.email ?? "Assistant",
+        author_name:
+          typeof context.claims?.["email"] === "string" ? context.claims["email"] : "Assistant",
       });
     }
 
@@ -148,7 +145,6 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
-  
   .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data: rooms, error: roomsError } = await context.supabase.rpc("rooms_board");

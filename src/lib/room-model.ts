@@ -31,7 +31,7 @@ export type DbRoomRow = {
 function isVerticalWing(number: string) {
   const value = Number(number);
   if (!Number.isFinite(value)) return false;
-  return value < 200 ? value >= 110 && value <= 135 : value >= 210 && value <= 235;
+  return value < 200 ? value >= 108 && value <= 135 : value >= 208 && value <= 235;
 }
 
 /** Wing derived from the physical layout when the column is not yet set. */

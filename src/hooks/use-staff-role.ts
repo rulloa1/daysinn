@@ -8,12 +8,17 @@ export function useStaffRole() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setRoles([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) {
-        setRoles(["manager"]);
+        setRoles([]);
         setLoading(false);
         return;
       }

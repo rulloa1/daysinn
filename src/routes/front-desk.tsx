@@ -35,7 +35,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
-import { usePresentationMode } from "@/lib/presentation";
 import {
   createQueuedRoomStatusChange,
   enqueueRoomStatusChange,
@@ -184,7 +183,6 @@ function stamp(iso: string) {
 }
 
 function FrontDeskPage() {
-  const presenting = usePresentationMode();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -205,7 +203,7 @@ function FrontDeskPage() {
     );
   }
 
-  if (!session && !presenting) {
+  if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
         <div className="w-full max-w-sm">
@@ -232,7 +230,6 @@ function FrontDeskPage() {
 }
 
 function Board() {
-  const presenting = usePresentationMode();
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
@@ -413,7 +410,7 @@ function Board() {
   }, []);
 
   const flushQueuedRoomStatusChanges = useCallback(async () => {
-    if (presenting || !isSupabaseConfigured) return { synced: 0, conflicts: 0 };
+    if (!isSupabaseConfigured) return { synced: 0, conflicts: 0 };
     let synced = 0;
     let conflicts = 0;
     for (const change of readQueuedRoomStatusChanges()) {
@@ -424,16 +421,16 @@ function Board() {
     }
     refreshSyncSummary();
     return { synced, conflicts };
-  }, [presenting, refreshSyncSummary]);
+  }, [refreshSyncSummary]);
 
   useEffect(() => {
     refreshSyncSummary();
-    if (presenting || !isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) return;
     void flushQueuedRoomStatusChanges();
     const retry = () => void flushQueuedRoomStatusChanges();
     window.addEventListener("online", retry);
     return () => window.removeEventListener("online", retry);
-  }, [flushQueuedRoomStatusChanges, presenting, refreshSyncSummary]);
+  }, [flushQueuedRoomStatusChanges, refreshSyncSummary]);
 
   async function saveRoom(room: RoomRow, patch: RoomPatch) {
     if (!canTriage) {
@@ -446,7 +443,19 @@ function Board() {
         r.id === room.id ? { ...r, ...patch, updated_at: new Date().toISOString() } : r,
       ),
     );
-    if (patch.status && patch.status !== room.status && !presenting && isSupabaseConfigured) {
+    if (!isSupabaseConfigured) {
+      setRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
+      return;
+    }
+
+    if (patch.status && patch.status !== room.status) {
+      if (!staff) {
+        setRooms(previous);
+        toast.error("Select the staff member on desk before changing a room status.");
+        return;
+      }
+
       const change = createQueuedRoomStatusChange({
         roomId: room.id,
         roomNumber: room.number,
@@ -504,6 +513,12 @@ function Board() {
         <div className="flex flex-wrap items-center gap-4">
           <StaffPicker members={members} staff={staff} onSelect={select} onAdd={addMember} />
           <MetricsExportButton />
+          <Link
+            to="/live-room-status"
+            className="signage text-amber transition-colors duration-200 hover:text-cream"
+          >
+            Live room status
+          </Link>
           <Link
             to="/staff"
             className="signage text-cream/60 transition-colors duration-200 hover:text-amber"

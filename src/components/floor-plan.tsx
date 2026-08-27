@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import type { FloorKey } from "@/lib/property-layout";
+import { OMITTED_ROOM_NUMBERS, VERIFIED_MAP_LOCATIONS, type FloorKey } from "@/lib/property-layout";
 import propertyMapImage from "@/assets/property_map_3d.png";
 
 type RoomStatus =
@@ -34,41 +34,27 @@ type Props = {
   onSelect: (roomId: string) => void;
 };
 
-type FacilityMarker = {
-  name: string;
-  aliases: string[];
-  left: number;
-  top: number;
-};
-
-const FACILITY_MARKERS: FacilityMarker[] = [
-  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
-  { name: "Lobby", aliases: ["lobby", "front desk", "breakfast"], left: 15, top: 60 },
-  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
-  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
-];
-
 /**
  * Percentage-based [left%, top%] coordinates for each room number.
  *
  * Calibrated against the official "Days Inn by Wyndham Wildwood I-75" site plan.
  * Image ~1024×640. Building map occupies roughly x:14%–87%, y:12%–88%.
  *
- * Layout (0,0 = top-left corner of the full image):
+ * User-confirmed visible room rows (reading toward the lobby):
  *
- *  BACK PARKING (top edge)
- *  ┌─────────────────────────────────────────────────────────────────┐  ← y≈14%
- *  │ Lobby │ 201 203 205 207 209 211 213 215 217 219 221 223 225 227 229 233 │ ← floor 1 top row
- *  │ block │ 202 204 206 208 210 212 214 216 218 220 222 224 228 230 232 234 │ ← floor 1 bot row
- *  ├───────┤  (north horizontal wing)                                        ← y≈28%
- *  │101 102│
- *  │103 104│   SWIMMING POOL          COURTYARD (grass)
- *  │ ...   │
- *  │133 134│
- *  └───────┘  ← y≈88%
- *  FRONT PARKING / MAIN ENTRANCE (bottom edge)
+ * - Ground-floor parking side: 109, 111, 113, …, 135.
+ * - Upper-floor parking side: 209, 211, 213, …, 235.
+ * - Upper-floor pool-facing side: 200, 202, …, 214; then a breezeway.
+ * - Upper-floor front-entrance side: 217, 215, 213, 211, 210, 209, 207,
+ *   205, 203, 201; ending at the stairwell.
+ * - Opposite ground-floor side: 134, 132, then exterior stairs, then 130,
+ *   …, 118; then a breezeway; then 116, 114, 112, 110, 108, followed by
+ *   authorized personnel and
+ *   the lobby / breakfast / dining area.
  *
- * 1xx = floor 1, 2xx = floor 2 (same physical location, +1.5% y offset in "both" view).
+ * Rooms 237 and 239 are not part of the property inventory.
+ * The 1xx and 2xx overlays share physical locations; their positions are
+ * slightly offset when both floors are displayed.
  */
 const ROOM_COORDS: Record<string, [number, number]> = {
   "100": [12.0, 46.0],
@@ -174,9 +160,7 @@ const ROOM_COORDS: Record<string, [number, number]> = {
   "234": [65.8, 56.2],
   "235": [70.8, 69.2],
   "236": [65.8, 56.2],
-  "237": [73.8, 57.2],
   "238": [65.6, 52.7],
-  "239": [73.6, 53.6],
   "240": [65.4, 49.2],
   "241": [73.4, 50.1],
   "242": [65.2, 45.7],
@@ -207,8 +191,9 @@ const ROOM_COORDS: Record<string, [number, number]> = {
 
 /** Filter rooms to the floors the user wants to see */
 function filterByFloor(rooms: MapRoom[], floor: FloorView): MapRoom[] {
-  if (floor === "both") return rooms;
   return rooms.filter((r) => {
+    if (OMITTED_ROOM_NUMBERS.has(r.number)) return false;
+    if (floor === "both") return true;
     const n = Number(r.number);
     return floor === 1 ? n < 200 : n >= 200;
   });
@@ -229,7 +214,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
   const matchingFacilities = useMemo(
     () =>
       normalizedQuery
-        ? FACILITY_MARKERS.filter((facility) =>
+        ? VERIFIED_MAP_LOCATIONS.filter((facility) =>
             [facility.name, ...facility.aliases].some((term) => term.includes(normalizedQuery)),
           )
         : [],
