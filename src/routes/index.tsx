@@ -42,23 +42,33 @@ import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
 import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
 import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import { requestSchema } from "@/lib/request-schema";
-import { BOOKING_URL, FranchiseDisclaimer, FranchiseLegal } from "@/components/franchise-footer";
+import {
+  BOOKING_URL,
+  FranchiseDisclaimer,
+  FranchiseLegal,
+  WYNDHAM_REWARDS_EARN_URL,
+  WYNDHAM_REWARDS_JOIN_URL,
+  WYNDHAM_REWARDS_TERMS_URL,
+} from "@/components/franchise-footer";
 
 const REWARDS = [
   {
-    title: "Wyndham Rewards® Member Rates",
-    body: "Exclusive member-only pricing when you book direct through Wyndham.",
-    badge: "Best Rate Guarantee",
+    title: "Member rates & offers",
+    body: "Join or sign in on Wyndham.com to see currently available Wyndham Rewards® member offers.",
+    badge: "Official booking",
+    href: WYNDHAM_REWARDS_JOIN_URL,
   },
   {
-    title: "10 Points Per Dollar",
-    body: "Earn 10 points per dollar spent or 1,000 points on direct qualifying stays — whichever is more.",
-    badge: "Direct Bookings",
+    title: "Earn points on qualifying stays",
+    body: "At most participating Wyndham Hotels & Resorts, earn 10 points per dollar or 1,000 points per qualified stay—whichever is more.",
+    badge: "Program earning",
+    href: WYNDHAM_REWARDS_EARN_URL,
   },
   {
-    title: "Free Wi-Fi & Daybreak® Breakfast",
-    body: "Complimentary high-speed Wi-Fi property-wide plus hot Daybreak® breakfast daily.",
-    badge: "Complimentary",
+    title: "Review program terms",
+    body: "Member benefits, qualifying stays, and redemption options are subject to the current Wyndham Rewards program terms.",
+    badge: "Terms apply",
+    href: WYNDHAM_REWARDS_TERMS_URL,
   },
 ];
 
@@ -226,8 +236,8 @@ const FAQS = [
     a: "Free on-site parking is available, including oversized spaces for trucks and RVs on a first-come basis.",
   },
   {
-    q: "What is the best rate?",
-    a: "Booking direct through Wyndham gets you member rates and Wyndham Rewards® points on qualifying stays.",
+    q: "How do Wyndham Rewards member rates and points work?",
+    a: "Use the official Wyndham booking flow to view current member offers. Wyndham Rewards points are earned on qualifying stays at participating properties; program terms apply.",
   },
 ];
 
@@ -633,12 +643,14 @@ function GuestView() {
                           </p>
                           {open ? (
                             <p className="mt-1 text-xs font-bold text-amber">
-                              From ${Number(row.nightly_rate).toFixed(0)}/night
+                              Estimated from ${Number(row.nightly_rate).toFixed(0)}/night before
+                              taxes and fees
                               {nights > 1 ? (
                                 <span className="font-medium text-slate-200/80">
                                   {" "}
-                                  · ${(Number(row.nightly_rate) * nights).toFixed(0)} for {nights}{" "}
-                                  nights
+                                  · estimated ${(Number(row.nightly_rate) * nights).toFixed(
+                                    0,
+                                  )} for {nights} nights
                                 </span>
                               ) : null}
                             </p>
@@ -651,7 +663,7 @@ function GuestView() {
                             rel="noreferrer"
                             className="spring-hover shrink-0 rounded-xl bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-md"
                           >
-                            Book ↗
+                            Continue to Wyndham ↗
                           </a>
                         ) : (
                           <a
@@ -669,8 +681,9 @@ function GuestView() {
             ) : null}
 
             <p className="mt-2 text-[11px] text-slate-300/80">
-              Live availability from our front desk. Booking completes on the official Wyndham site
-              with your selected dates.
+              Availability and price shown here are an indicative property snapshot. Final room
+              type, availability, rate, taxes, fees, cancellation terms, and Wyndham Rewards
+              eligibility are confirmed during booking on Wyndham.com.
             </p>
           </div>
         </section>
@@ -961,17 +974,31 @@ function GuestView() {
                 <ShieldCheck className="h-3.5 w-3.5" /> Wyndham Rewards® Member Benefits
               </span>
               <h2 className="mt-2 font-serif text-2xl font-bold text-white md:text-3xl">
-                Book direct. Earn points on every stay.
+                Book through Wyndham. Earn points on qualifying stays.
               </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300/85">
+                Sign in to Wyndham Rewards® during official booking to see eligible member offers
+                and earn points where program requirements are met.
+              </p>
             </div>
-            <a
-              href={BOOKING_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="spring-hover rounded-xl bg-accent px-5 py-2.5 text-xs font-bold text-accent-foreground shadow-md hover:brightness-105"
-            >
-              Check direct rates ↗
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={BOOKING_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="spring-hover rounded-xl bg-accent px-5 py-2.5 text-xs font-bold text-accent-foreground shadow-md hover:brightness-105"
+              >
+                Book on Wyndham.com ↗
+              </a>
+              <a
+                href={WYNDHAM_REWARDS_JOIN_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border border-white/30 px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-white/10"
+              >
+                Join Wyndham Rewards ↗
+              </a>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-3.5 md:grid-cols-3">
@@ -983,7 +1010,14 @@ function GuestView() {
                 <span className="rounded-md bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-amber">
                   {perk.badge}
                 </span>
-                <h3 className="mt-2.5 font-serif text-base font-bold text-white">{perk.title}</h3>
+                <a
+                  href={perk.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2.5 block font-serif text-base font-bold text-white underline-offset-4 hover:text-amber hover:underline"
+                >
+                  {perk.title} ↗
+                </a>
                 <p className="mt-1.5 text-xs text-slate-300/80 leading-relaxed">{perk.body}</p>
               </article>
             ))}
