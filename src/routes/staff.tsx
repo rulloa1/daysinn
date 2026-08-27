@@ -692,8 +692,10 @@ function Dashboard({ session }: { session: Session }) {
             </Sheet>
           </div>
         ) : activeTab === "crm" ? (
-          <GuestCrmPanel canEdit={canEditCrm} />
-        ) : (
+          <div className="mt-6">
+            <GuestCrmPanel canEdit={canEditCrm} />
+          </div>
+        ) : activeTab === "queue" ? (
           <>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {STATUSES.map((status) => {
