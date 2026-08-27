@@ -1,11 +1,25 @@
 export const BOOKING_URL =
   "https://www.wyndhamhotels.com/days-inn/wildwood-florida/days-inn-wildwood-i-75/overview";
 
+export const WYNDHAM_REWARDS_JOIN_URL = "https://www.wyndhamhotels.com/wyndham-rewards";
+export const WYNDHAM_REWARDS_EARN_URL = "https://www.wyndhamhotels.com/wyndham-rewards/earn";
+export const WYNDHAM_REWARDS_TERMS_URL = "https://www.wyndhamhotels.com/wyndham-rewards/terms";
+
 export function FranchiseDisclaimer({ className }: { className?: string }) {
   return (
     <p className={className ?? "mt-3 text-[11px] leading-relaxed text-muted-foreground"}>
-      Must be a Wyndham Rewards® member at booking/check-in. Benefits subject to availability and
-      Wyndham Rewards program terms.
+      Wyndham Rewards® membership is required for member-only rates and eligible point earning.
+      Points are earned on qualifying stays at participating properties, subject to the{" "}
+      <a
+        href={WYNDHAM_REWARDS_TERMS_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2 hover:opacity-80"
+      >
+        Wyndham Rewards Terms & Conditions
+      </a>
+      . Final availability, rate, taxes, fees, cancellation terms, and eligibility are confirmed on
+      Wyndham.com.
     </p>
   );
 }

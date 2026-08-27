@@ -43,9 +43,9 @@ export async function logRoomStatusChange(input: {
   staff: StaffIdentity;
 }) {
   const changedAt = new Date();
-  const previous = input.previousChangedAt ? new Date(input.previousChangedAt) : null;
-  const duration = previous
-    ? Math.max(0, Math.round((changedAt.getTime() - previous.getTime()) / 1000))
+  const previousChangedAt = input.previousChangedAt ? Date.parse(input.previousChangedAt) : NaN;
+  const duration = Number.isFinite(previousChangedAt)
+    ? Math.max(0, Math.round((changedAt.getTime() - previousChangedAt) / 1000))
     : null;
 
   const { data: userData } = await supabase.auth.getUser();

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { assertManager } from "./roles.guard";
 
 export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
@@ -57,9 +57,8 @@ function normalizeEmail(value: unknown) {
   return value.trim().toLowerCase();
 }
 
-export const listStaffInvites = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<StaffInvite[]> => {
+export const listStaffInvites = createServerFn({ method: "POST" }).handler(
+  async ({ context }): Promise<StaffInvite[]> => {
     await assertManager(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("staff_invites")
@@ -69,10 +68,10 @@ export const listStaffInvites = createServerFn({ method: "POST" })
       .order("created_at", { ascending: true });
     if (error) throw error;
     return ((data ?? []) as InviteRow[]).map(toInvite);
-  });
+  },
+);
 
 export const sendStaffInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: { name: string; email: string; role?: AppRole; inviteId?: string }) => {
     if (typeof input?.name !== "string" || !input.name.trim()) {
       throw new Error("A name is required");
@@ -217,7 +216,6 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
   });
 
 export const revokeStaffInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: { inviteId: string }) => {
     if (typeof input?.inviteId !== "string" || !input.inviteId) {
       throw new Error("An invite is required");

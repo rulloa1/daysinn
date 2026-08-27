@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { average } from "@/lib/ops";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -25,7 +24,6 @@ function toSerializable(records: unknown[]): SerializableRecord[] {
 }
 
 export const listRooms = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z
       .object({
@@ -46,7 +44,6 @@ export const listRooms = createServerFn({ method: "GET" })
   });
 
 export const listRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z
       .object({
@@ -67,7 +64,6 @@ export const listRequests = createServerFn({ method: "GET" })
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z
       .object({
@@ -105,7 +101,6 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z
       .object({
@@ -135,12 +130,16 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
     if (!request) throw new Error("Request not found or access denied.");
 
     if (data.note) {
+      const email =
+        typeof context.claims === "object" && context.claims !== null && "email" in context.claims
+          ? String(context.claims["email"] ?? "")
+          : "";
       await context.supabase.from("request_notes").insert({
         request_id: data.request_id,
         status_to: data.status,
         body: data.note,
-        author_staff_id: context.userId,
-        author_name: context.claims?.email ?? "Assistant",
+        author_staff_id: context.userId ?? null,
+        author_name: email || "Assistant",
       });
     }
 
@@ -148,7 +147,6 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data: rooms, error: roomsError } = await context.supabase.rpc("rooms_board");

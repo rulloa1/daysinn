@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { assertManager } from "./roles.guard";
 
 export const MIN_PASSWORD_LENGTH = 12;
@@ -10,10 +10,11 @@ export type ForceResetResult = { flagged: number; emailed: number };
  * Manager-only: mark every account that holds a team role as needing a new
  * password before it can work the board again, and send a reset email.
  */
-export const forceStaffPasswordReset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ForceResetResult> => {
-    await assertManager(context.supabase, context.userId);
+export const forceStaffPasswordReset = createServerFn({ method: "POST" }).handler(
+  async ({ context }): Promise<ForceResetResult> => {
+    const userId = context.userId;
+    if (!userId) throw new Error("Authentication required");
+    await assertManager(context.supabase, userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { recordAudit } = await import("@/lib/audit.server");
@@ -53,24 +54,27 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" })
     await recordAudit({
       entity: "auth",
       action: "password_reset_forced",
-      actorUserId: context.userId,
+      actorUserId: userId,
       detail: { flagged, emailed },
     });
 
     return { flagged, emailed };
-  });
+  },
+);
 
 /** Clear the reset flag once the signed-in user has set a new password. */
-export const completePasswordReset = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+export const completePasswordReset = createServerFn({ method: "POST" }).handler(
+  async ({ context }) => {
+    const userId = context.userId;
+    if (!userId) throw new Error("Authentication required");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(userId);
     const metadata = { ...(userRes?.user?.user_metadata ?? {}) } as Record<string, unknown>;
     delete metadata["password_reset_required"];
     metadata["password_reset_completed_at"] = new Date().toISOString();
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(context.userId, {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: metadata,
     });
     if (error) throw error;
@@ -79,8 +83,9 @@ export const completePasswordReset = createServerFn({ method: "POST" })
     await recordAudit({
       entity: "auth",
       action: "password_reset_completed",
-      actorUserId: context.userId,
+      actorUserId: userId,
     });
 
     return { ok: true };
-  });
+  },
+);

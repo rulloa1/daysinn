@@ -79,10 +79,15 @@ export function RequestWorkflowPanel({
 
   async function move(status: string) {
     setBusy(true);
-    const { error } = await advanceRequest(request, status, staff, draft);
+    const { error, updated } = await advanceRequest(request, status, staff, draft);
     setBusy(false);
     if (error) {
-      toast.error("Update failed — your role may not allow this.");
+      if (updated) {
+        setDraft("");
+        toast.warning("Status updated, but its timeline entry could not be saved.");
+      } else {
+        toast.error("Update failed — your role may not allow this.");
+      }
       return;
     }
     setDraft("");

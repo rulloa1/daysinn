@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { readPresentationMode, setPresentationMode } from "@/lib/presentation";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { SystemStatus } from "@/components/system-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,20 @@ import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
-import { Menu, Map as MapIcon, ListFilter, Users, Wrench, BarChart3 } from "lucide-react";
+import {
+  Menu,
+  Map as MapIcon,
+  ListFilter,
+  Users,
+  ClipboardCheck,
+  FileText,
+  Bell,
+  Play,
+  Calendar,
+  UserPlus,
+  Wrench,
+  BarChart3,
+} from "lucide-react";
 
 type RequestRow = {
   id: string;
@@ -70,30 +83,8 @@ function timeAgo(iso: string) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-type StaffSearch = {
-  demo?: boolean;
-  present?: boolean;
-};
-
 export const Route = createFileRoute("/staff")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): StaffSearch => {
-    const rawDemo = search["demo"];
-    const rawPresent = search["present"];
-    const isDemo =
-      rawDemo === true ||
-      rawDemo === "true" ||
-      rawDemo === "1" ||
-      rawPresent === true ||
-      rawPresent === "true" ||
-      rawPresent === "1";
-    const isPresent = rawPresent === true || rawPresent === "true" || rawPresent === "1";
-
-    return {
-      ...(isDemo ? { demo: true } : {}),
-      ...(isPresent ? { present: true } : {}),
-    };
-  },
   head: () => ({
     meta: [
       { title: "Staff Dashboard — Days Inn Hub" },
@@ -113,58 +104,9 @@ export const Route = createFileRoute("/staff")({
   component: StaffPage,
 });
 
-const DEMO_ROWS: RequestRow[] = [
-  {
-    id: "demo-1",
-    room: "214",
-    guest_name: "M. Alvarez",
-    type: "Extra towels",
-    details: "Two bath towels, please — no rush.",
-    status: "new",
-    created_at: new Date(Date.now() - 4 * 60000).toISOString(),
-  },
-  {
-    id: "demo-2",
-    room: "118",
-    guest_name: "J. Whitfield",
-    type: "Maintenance",
-    details: "The AC unit is rattling when it kicks on.",
-    status: "new",
-    created_at: new Date(Date.now() - 21 * 60000).toISOString(),
-  },
-  {
-    id: "demo-3",
-    room: "307",
-    guest_name: null,
-    type: "Housekeeping",
-    details: "Room refresh after 2pm if possible.",
-    status: "in_progress",
-    created_at: new Date(Date.now() - 58 * 60000).toISOString(),
-  },
-  {
-    id: "demo-4",
-    room: "102",
-    guest_name: "R. Ulloa",
-    type: "Front desk question",
-    details: "What time does the shuttle run to the airport?",
-    status: "done",
-    created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
-  },
-];
-
 function StaffPage() {
-  const { demo: demoParam, present: presentParam } = useSearch({ from: "/staff" });
-  const navigate = useNavigate({ from: "/staff" });
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [demo, setDemo] = useState(Boolean(demoParam || presentParam));
-  const present = Boolean(demo && presentParam);
-
-  useEffect(() => {
-    const remembered = readPresentationMode();
-    if (demoParam || presentParam) setPresentationMode(true);
-    setDemo(Boolean(demoParam || presentParam) || remembered);
-  }, [demoParam, presentParam]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -185,23 +127,16 @@ function StaffPage() {
     );
   }
 
-  const exitDemo = () => {
-    setPresentationMode(false);
-    setDemo(false);
-    void navigate({ to: "/staff", search: {} });
-  };
+  if (!session) return <SignIn />;
 
-  if (session)
-    return (
-      <PasswordResetGate>
-        <Dashboard />
-      </PasswordResetGate>
-    );
-  if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} />;
-  return <SignIn onDemo={() => setDemo(true)} />;
+  return (
+    <PasswordResetGate>
+      <Dashboard session={session} />
+    </PasswordResetGate>
+  );
 }
 
-function SignIn({ onDemo }: { onDemo: () => void }) {
+function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -209,6 +144,10 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!isSupabaseConfigured) {
+      toast.error("The live data service is not configured. Please contact an administrator.");
+      return;
+    }
     setBusy(true);
     const credentials = { email: email.trim(), password };
     const { error } =
@@ -223,38 +162,33 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
       toast.error(error.message);
       return;
     }
-    if (mode === "signup") {
-      toast.success("Check your email to confirm the account.");
-    }
+    if (mode === "signup") toast.success("Check your email to confirm the account.");
   }
 
   return (
-    <div className="ops-surface flex min-h-screen flex-col items-center justify-center gap-6 bg-ink px-6 py-12 text-cream">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-between gap-4">
-          <BrandLockup tone="cream" />
-          <Link
-            to="/"
-            className="signage shrink-0 text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            ← Guest view
-          </Link>
-        </div>
-      </div>
-
-      <div className="w-full max-w-md rounded-2xl border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
-        <h1 className="text-4xl leading-tight">Staff sign in</h1>
-        <p className="mt-2 text-sm text-cream/60">
-          A cleaner queue means a calmer shift. Sign in to work the board.
+    <main className="ops-surface flex min-h-screen items-center justify-center bg-ink px-6 py-12 text-cream">
+      <section className="w-full max-w-md border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
+        <BrandLockup tone="cream" />
+        <p className="signage mt-8 text-cream/60">Operations portal</p>
+        <h1 className="mt-2 text-3xl">Staff sign in</h1>
+        <p className="mt-2 text-sm leading-relaxed text-cream/60">
+          Sign in to access the live room status, housekeeping, and guest-service boards.
         </p>
+        {!isSupabaseConfigured ? (
+          <p className="mt-4 border border-status-dirty/60 bg-status-dirty/10 p-3 text-sm text-status-dirty">
+            The live data service is not configured.
+          </p>
+        ) : null}
         <form onSubmit={submit} className="mt-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
+              placeholder="name@daysinn.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              disabled={!isSupabaseConfigured}
               required
             />
           </div>
@@ -264,85 +198,55 @@ function SignIn({ onDemo }: { onDemo: () => void }) {
               id="password"
               type="password"
               value={password}
-              minLength={6}
               onChange={(event) => setPassword(event.target.value)}
+              disabled={!isSupabaseConfigured}
+              minLength={6}
               required
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-amber text-ink hover:bg-amber/90"
-            disabled={busy}
+            disabled={busy || !isSupabaseConfigured}
+            className="w-full bg-amber font-bold text-ink hover:bg-amber/90"
           >
             {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
-        <div className="mt-5 text-center">
+        {isSupabaseConfigured ? (
           <button
             type="button"
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
+            className="mt-5 w-full text-center text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
           >
             {mode === "signin"
               ? "Need a staff account? Create one"
               : "Already have an account? Sign in"}
           </button>
-        </div>
-      </div>
-
-      <div className="w-full max-w-md rounded-2xl border border-cream/10 p-6">
-        <p className="signage flex items-center gap-2 text-cream/50">
-          <span aria-hidden className="h-3 w-[3px] bg-amber" />
-          Presenting?
-        </p>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button
-            type="button"
-            variant="outline"
-            className="flex-1 border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-            onClick={onDemo}
-          >
-            Open demo view
-          </Button>
-          <Link
-            to="/staff"
-            search={{ demo: true, present: true }}
-            className="signage text-sm text-cream/50 transition-colors duration-200 hover:text-amber"
-          >
-            Presentation mode →
-          </Link>
-        </div>
-        <p className="mt-3 text-xs text-cream/40">
-          Sample requests only — no real guest data, nothing is saved.
-        </p>
-      </div>
-    </div>
+        ) : null}
+        <Link to="/" className="signage mt-7 inline-block text-cream/50 hover:text-amber">
+          ← Guest view
+        </Link>
+      </section>
+    </main>
   );
 }
 
-function Dashboard({
-  demo = false,
-  present = false,
-  onExitDemo,
-}: {
-  demo?: boolean;
-  present?: boolean;
-  onExitDemo?: () => void;
-}) {
-  const [rows, setRows] = useState<RequestRow[]>(demo ? DEMO_ROWS : []);
+function Dashboard({ session }: { session: Session }) {
+  const [rows, setRows] = useState<RequestRow[]>([]);
+
   const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
-  const roleLoading = demo ? false : role.loading;
-  const isManager = demo ? false : role.isManager;
-  const canTriage = demo ? true : role.canTriage;
-  const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
+  const roleLoading = role.loading;
+  const isManager = role.isManager;
+  const canTriage = role.canTriage;
+  const canEditCrm = isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
-  const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm" | "maintenance" | "analytics">(
-    "queue",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "queue" | "map" | "crm" | "maintenance" | "analytics" | "schedules" | "assignments" | "team"
+  >("queue");
   const [rooms, setRooms] = useState<MapRoom[]>([]);
-  const [mapFloor, setMapFloor] = useState<FloorView>("both");
+  const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -351,19 +255,6 @@ function Dashboard({
   useEffect(() => {
     let active = true;
     async function loadRooms() {
-      if (demo) {
-        const demoRooms: MapRoom[] = [
-          { id: "r108", number: "108", status: "vacant_clean" },
-          { id: "r118", number: "118", status: "occupied", guest_name: "J. Whitfield" },
-          { id: "r214", number: "214", status: "occupied", guest_name: "M. Alvarez" },
-          { id: "r136", number: "136", status: "vacant_dirty" },
-          { id: "r137", number: "137", status: "occupied_dnd", guest_name: "S. Chen" },
-          { id: "r140", number: "140", status: "reserved" },
-          { id: "r145", number: "145", status: "out_of_order" },
-        ];
-        if (active) setRooms(demoRooms);
-        return;
-      }
       const { data } = await supabase
         .from("rooms")
         .select("id, number, floor, status, guest_name")
@@ -383,7 +274,7 @@ function Dashboard({
     return () => {
       active = false;
     };
-  }, [demo]);
+  }, []);
 
   const openRequestsByRoom = useMemo(() => {
     const map = new Map<string, number>();
@@ -406,7 +297,6 @@ function Dashboard({
   }, [selectedRoom, rows]);
 
   useEffect(() => {
-    if (demo) return;
     let active = true;
     async function load() {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
@@ -437,7 +327,7 @@ function Dashboard({
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [demo]);
+  }, []);
 
   const visible = useMemo(
     () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
@@ -458,18 +348,17 @@ function Dashboard({
       toast.error("You don't have permission to triage requests.");
       return;
     }
-    if (demo) {
-      setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status } : row)));
-      return;
-    }
+
     const previous = rows;
     const row = previous.find((r) => r.id === id);
     if (!row) return;
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    const { error } = await advanceRequest(row, status, staff ?? null);
-    if (error) {
+    const { error, updated } = await advanceRequest(row, status, staff ?? null);
+    if (error && !updated) {
       setRows(previous);
       toast.error("Update failed — your role may not allow this.");
+    } else if (error) {
+      toast.warning("Request status updated, but its timeline entry could not be saved.");
     }
   }
 
@@ -494,508 +383,517 @@ function Dashboard({
   }
 
   return (
-    <div className="ops-surface min-h-screen bg-ink px-6 pb-16 text-cream md:px-12">
-      <header className="sticky top-0 z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
-        <div className="flex min-w-0 items-center gap-5">
-          <BrandLockup tone="cream" />
-          <div className="hidden h-8 w-px bg-cream/15 md:block" />
-          <div className="hidden min-w-0 md:block">
-            <p className="signage flex items-center gap-2 text-cream/60">
-              <span aria-hidden className="h-3 w-[3px] bg-amber" />
-              {demo ? "Demo shift" : "Live shift"}
-            </p>
-            <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
+    <div className="ops-surface min-h-screen bg-ink pb-16 text-cream">
+      <div className="px-6 md:px-12">
+        <header className="top-0 sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
+          <div className="flex min-w-0 items-center gap-5">
+            <BrandLockup tone="cream" />
+            <div className="hidden h-8 w-px bg-cream/15 md:block" />
+            <div className="hidden min-w-0 md:block">
+              <p className="signage flex items-center gap-2 text-cream/60">
+                <span aria-hidden className="h-3 w-[3px] bg-amber" />
+                Live shift
+              </p>
+              <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
+            </div>
           </div>
-        </div>
 
-        <div className="flex shrink-0 items-center gap-4">
-          <nav className="hidden items-center gap-4 md:flex">
-            <Link
-              to="/front-desk"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Front desk
-            </Link>
-            <Link
-              to="/housekeeping"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Housekeeping
-            </Link>
-            {isManager ? (
+          <div className="flex shrink-0 items-center gap-4">
+            <nav className="hidden items-center gap-4 md:flex">
               <Link
-                to="/roles"
+                to="/front-desk"
                 className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
-                Roles
+                Front desk
               </Link>
-            ) : null}
-            <Link
-              to="/"
-              className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-            >
-              Guest view
-            </Link>
-            {!present ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                onClick={demo ? onExitDemo : signOut}
+              <Link
+                to="/housekeeping"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
               >
-                {demo ? "Exit demo" : "Sign out"}
-              </Button>
-            ) : null}
-          </nav>
+                Housekeeping
+              </Link>
+              {isManager ? (
+                <Link
+                  to="/roles"
+                  className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+                >
+                  Roles
+                </Link>
+              ) : null}
+              <Link
+                to="/"
+                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
+              >
+                Guest view
+              </Link>
+            </nav>
 
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="Open menu"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Open menu"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
               >
-                <Menu className="h-5 w-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
-            >
-              <SheetHeader>
-                <SheetTitle className="text-left text-cream">Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="mt-6 flex flex-col gap-3">
-                <Link
-                  to="/front-desk"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Front desk
-                </Link>
-                <Link
-                  to="/housekeeping"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Housekeeping
-                </Link>
-                {isManager ? (
+                <SheetHeader>
+                  <SheetTitle className="text-left text-cream">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 flex flex-col gap-3">
                   <Link
-                    to="/roles"
+                    to="/front-desk"
                     onClick={() => setMenuOpen(false)}
                     className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
                   >
-                    Roles
+                    Front desk
                   </Link>
-                ) : null}
-                <Link
-                  to="/"
-                  onClick={() => setMenuOpen(false)}
-                  className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                >
-                  Guest view
-                </Link>
-                {!present ? (
-                  <Button
-                    variant="outline"
-                    className="w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      if (demo && onExitDemo) onExitDemo();
-                      else signOut();
-                    }}
+                  <Link
+                    to="/housekeeping"
+                    onClick={() => setMenuOpen(false)}
+                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
                   >
-                    {demo ? "Exit demo" : "Sign out"}
-                  </Button>
-                ) : null}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </header>
-
-      <PwaInstallPrompt className="mt-4" />
-
-      {demo ? (
-        <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
-          <p className="signage text-amber">Demo view</p>
-          <p className="mt-2 max-w-2xl text-sm text-cream/70">
-            Sample requests for presentation only — nothing here is real guest data, and status
-            changes are not saved.
-          </p>
-        </div>
-      ) : null}
-
-      {!demo && !roleLoading && !canTriage ? (
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
-          <div>
-            <p className="signage text-amber">View-only access</p>
-            <p className="mt-2 text-sm text-cream/70">
-              You can watch the queue, but a manager must grant you staff access before you can
-              triage requests.
-            </p>
+                    Housekeeping
+                  </Link>
+                  {isManager ? (
+                    <Link
+                      to="/roles"
+                      onClick={() => setMenuOpen(false)}
+                      className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                    >
+                      Roles
+                    </Link>
+                  ) : null}
+                  <Link
+                    to="/"
+                    onClick={() => setMenuOpen(false)}
+                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
+                  >
+                    Guest view
+                  </Link>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
-          <Button
-            size="sm"
-            disabled={claiming}
-            className="bg-amber text-ink hover:bg-amber/90"
-            onClick={claim}
-          >
-            {claiming ? "Setting up…" : "I'm the first manager"}
-          </Button>
+        </header>
+
+        <PwaInstallPrompt className="mt-4" />
+
+        {/* System Status in Dashboard */}
+        <div className="mt-4 flex justify-end">
+          <SystemStatus session={session} />
         </div>
-      ) : null}
 
-      {/* Primary Dashboard Tabs */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-cream/15 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant={activeTab === "queue" ? "default" : "outline"}
-            onClick={() => setActiveTab("queue")}
-            className={
-              activeTab === "queue"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            }
-          >
-            <ListFilter className="mr-1.5 h-4 w-4" />
-            Request queue ({rows.filter((r) => r.status !== "done").length})
-          </Button>
+        {!roleLoading && !canTriage ? (
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
+            <div>
+              <p className="signage text-amber">View-only access</p>
+              <p className="mt-2 text-sm text-cream/70">
+                You can watch the queue, but a manager must grant you staff access before you can
+                triage requests.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              disabled={claiming}
+              className="bg-amber text-ink hover:bg-amber/90"
+              onClick={claim}
+            >
+              {claiming ? "Setting up…" : "I'm the first manager"}
+            </Button>
+          </div>
+        ) : null}
 
-          <Button
-            type="button"
-            variant={activeTab === "map" ? "default" : "outline"}
-            onClick={() => setActiveTab("map")}
-            className={
-              activeTab === "map"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            }
-          >
-            <MapIcon className="mr-1.5 h-4 w-4" />
-            Property map ({rooms.length} rooms)
-          </Button>
-
-          <Button
-            type="button"
-            variant={activeTab === "crm" ? "default" : "outline"}
-            onClick={() => setActiveTab("crm")}
-            className={
-              activeTab === "crm"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            }
-          >
-            <Users className="mr-1.5 h-4 w-4" />
-            Guest CRM
-          </Button>
-
-          <Button
-            type="button"
-            variant={activeTab === "maintenance" ? "default" : "outline"}
-            onClick={() => setActiveTab("maintenance")}
-            className={
-              activeTab === "maintenance"
-                ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-            }
-          >
-            <Wrench className="mr-1.5 h-4 w-4" />
-            Maintenance
-          </Button>
-
-          {isManager || demo ? (
+        {/* Primary Dashboard Tabs */}
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none]">
+          <div className="flex min-w-max items-center gap-2 border-b border-cream/15 pb-4">
             <Button
               type="button"
-              variant={activeTab === "analytics" ? "default" : "outline"}
-              onClick={() => setActiveTab("analytics")}
-              className={
-                activeTab === "analytics"
+              variant={activeTab === "queue" ? "default" : "outline"}
+              onClick={() => setActiveTab("queue")}
+              className={`min-h-11 sm:min-h-9 ${
+                activeTab === "queue"
                   ? "bg-amber font-bold text-ink hover:bg-amber/90"
                   : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }
+              }`}
             >
-              <BarChart3 className="mr-1.5 h-4 w-4" />
-              Analytics
+              <ListFilter className="mr-1.5 h-4 w-4" />
+              Request queue ({rows.filter((r) => r.status !== "done").length})
             </Button>
-          ) : null}
+
+            <Button
+              type="button"
+              variant={activeTab === "map" ? "default" : "outline"}
+              onClick={() => setActiveTab("map")}
+              className={`min-h-11 sm:min-h-9 ${
+                activeTab === "map"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              }`}
+            >
+              <MapIcon className="mr-1.5 h-4 w-4" />
+              Property map ({rooms.length})
+            </Button>
+
+            <Button
+              type="button"
+              variant={activeTab === "crm" ? "default" : "outline"}
+              onClick={() => setActiveTab("crm")}
+              className={`min-h-11 sm:min-h-9 ${
+                activeTab === "crm"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              }`}
+            >
+              <Users className="mr-1.5 h-4 w-4" />
+              Guest CRM
+            </Button>
+
+            <Button
+              type="button"
+              variant={activeTab === "maintenance" ? "default" : "outline"}
+              onClick={() => setActiveTab("maintenance")}
+              className={`min-h-11 sm:min-h-9 ${
+                activeTab === "maintenance"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              }`}
+            >
+              <Wrench className="mr-1.5 h-4 w-4" />
+              Maintenance
+            </Button>
+
+            {isManager ? (
+              <Button
+                type="button"
+                variant={activeTab === "analytics" ? "default" : "outline"}
+                onClick={() => setActiveTab("analytics")}
+                className={`min-h-11 sm:min-h-9 ${
+                  activeTab === "analytics"
+                    ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                }`}
+              >
+                <BarChart3 className="mr-1.5 h-4 w-4" />
+                Analytics
+              </Button>
+            ) : null}
+
+            {isManager ? (
+              <>
+                <div className="mx-1 hidden h-6 w-px bg-cream/15 sm:block" />
+                <Button
+                  type="button"
+                  variant={activeTab === "schedules" ? "default" : "outline"}
+                  onClick={() => setActiveTab("schedules")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "schedules"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <Calendar className="mr-1.5 h-4 w-4" />
+                  Schedules
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={activeTab === "assignments" ? "default" : "outline"}
+                  onClick={() => setActiveTab("assignments")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "assignments"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <ClipboardCheck className="mr-1.5 h-4 w-4" />
+                  Assignments
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={activeTab === "team" ? "default" : "outline"}
+                  onClick={() => setActiveTab("team")}
+                  className={`min-h-11 sm:min-h-9 ${
+                    activeTab === "team"
+                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }`}
+                >
+                  <UserPlus className="mr-1.5 h-4 w-4" />
+                  Team & Invites
+                </Button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {activeTab === "map" ? (
-          <div className="flex items-center gap-1.5">
-            {(["both", 1, 2] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setMapFloor(f)}
-                className={`signage px-3 py-1.5 transition-colors duration-150 rounded border ${
-                  mapFloor === f
-                    ? "border-amber bg-amber text-ink font-bold"
-                    : "border-cream/20 bg-cream/5 text-cream/60 hover:text-cream"
-                }`}
-              >
-                {f === "both" ? "All rooms (Stacked)" : `Floor ${f}`}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
+          <div className="mt-6 space-y-4">
+            <FloorPlan
+              floor={mapFloor}
+              rooms={rooms}
+              openRequests={openRequestsByRoom}
+              onFloorChange={setMapFloor}
+              onSelect={(roomId) => setSelectedRoomId(roomId)}
+            />
 
-      {activeTab === "map" ? (
-        <div className="mt-6 space-y-4">
-          <FloorPlan
-            floor={mapFloor}
-            rooms={rooms}
-            openRequests={openRequestsByRoom}
-            onSelect={(roomId) => setSelectedRoomId(roomId)}
-          />
-
-          {/* Room Inspector Sheet */}
-          <Sheet
-            open={Boolean(selectedRoom)}
-            onOpenChange={(open) => !open && setSelectedRoomId(null)}
-          >
-            <SheetContent
-              side="right"
-              className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
+            {/* Room Inspector Sheet */}
+            <Sheet
+              open={Boolean(selectedRoom)}
+              onOpenChange={(open) => !open && setSelectedRoomId(null)}
             >
-              <SheetHeader>
-                <SheetTitle className="text-left text-cream flex items-center justify-between">
-                  <span>Room {selectedRoom?.number}</span>
-                  {selectedRoom && (
-                    <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
-                      {selectedRoom.status.replace("_", " ")}
-                    </Badge>
-                  )}
-                </SheetTitle>
-              </SheetHeader>
-
-              {selectedRoom && (
-                <div className="mt-6 space-y-6">
-                  <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
-                    <p className="text-xs text-cream/50 uppercase tracking-wider">Current Guest</p>
-                    <p className="mt-1 font-serif text-lg font-bold text-cream">
-                      {selectedRoom.guest_name ?? "No guest registered"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
-                      Open Requests ({selectedRoomRequests.length})
-                    </h3>
-                    {selectedRoomRequests.length === 0 ? (
-                      <p className="text-sm text-cream/40 italic">
-                        No open requests for room {selectedRoom.number}.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {selectedRoomRequests.map((req) => (
-                          <li
-                            key={req.id}
-                            className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-sm text-cream">{req.type}</span>
-                              <Badge className="text-[10px] bg-amber/20 text-amber">
-                                {req.status}
-                              </Badge>
-                            </div>
-                            {req.details && (
-                              <p className="mt-1 text-xs text-cream/70">{req.details}</p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-cream/20 text-cream hover:bg-cream/10"
-                    >
-                      <Link to="/front-desk">Open Front Desk Board →</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-cream/20 text-cream hover:bg-cream/10"
-                    >
-                      <Link to="/housekeeping">Open Housekeeping Board →</Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </SheetContent>
-          </Sheet>
-        </div>
-      ) : activeTab === "crm" ? (
-        <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
-      ) : activeTab === "maintenance" ? (
-        <div className="mt-6">
-          <MaintenanceTicketsPanel
-            reporter={staff?.name ?? "Staff"}
-            reporterStaffId={staff?.id ?? null}
-          />
-        </div>
-      ) : activeTab === "analytics" ? (
-        <div className="mt-6">
-          <AnalyticsDashboard />
-        </div>
-      ) : (
-        <>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {STATUSES.map((status) => {
-              const active = filter === status;
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => setFilter(active ? "all" : status)}
-                  aria-pressed={active}
-                  className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
-                    active
-                      ? "border-amber/70 bg-cream/[0.07]"
-                      : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-                  }`}
-                >
-                  <p className="signage flex items-center gap-2 text-cream/60">
-                    <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
-                    {STATUS_LABEL[status]}
-                  </p>
-                  <p className="font-display text-3xl leading-none tabular-nums">
-                    {counts[status]}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
-            <span className="signage mr-1 text-cream/40">Filter</span>
-            {["all", ...STATUSES].map((option) => (
-              <Button
-                key={option}
-                size="sm"
-                variant="outline"
-                className={
-                  filter === option
-                    ? "border-amber bg-amber text-ink hover:bg-amber/90"
-                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                }
-                onClick={() => setFilter(option)}
+              <SheetContent
+                side="right"
+                className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
               >
-                {option === "all" ? "All" : STATUS_LABEL[option]}
-              </Button>
-            ))}
-            <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
-          </div>
+                <SheetHeader>
+                  <SheetTitle className="text-left text-cream flex items-center justify-between">
+                    <span>Room {selectedRoom?.number}</span>
+                    {selectedRoom && (
+                      <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
+                        {selectedRoom.status.replace("_", " ")}
+                      </Badge>
+                    )}
+                  </SheetTitle>
+                </SheetHeader>
 
-          <OpsAssistant />
+                {selectedRoom && (
+                  <div className="mt-6 space-y-6">
+                    <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
+                      <p className="text-xs text-cream/50 uppercase tracking-wider">
+                        Current Guest
+                      </p>
+                      <p className="mt-1 font-serif text-lg font-bold text-cream">
+                        {selectedRoom.guest_name ?? "No guest registered"}
+                      </p>
+                    </div>
 
-          {visible.length === 0 ? (
-            <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
-              <p className="font-display text-2xl">Queue is clear</p>
-              <p className="mt-2 text-sm text-cream/60">
-                New guest requests land here automatically.
-              </p>
-            </div>
-          ) : (
-            <ul className="mt-6 space-y-2">
-              {visible.map((row) => {
-                const next = NEXT_ACTION[row.status];
-                const others = STATUSES.filter(
-                  (status) => status !== row.status && status !== next?.status,
-                );
-                return (
-                  <li
-                    key={row.id}
-                    className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
-                    />
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-baseline gap-3">
-                          <span className="font-display text-2xl tabular-nums">{row.room}</span>
-                          <span className="text-base text-cream">{row.type}</span>
-                          <Badge
-                            className={
-                              row.status === "new"
-                                ? "bg-amber text-ink"
-                                : row.status === "in_progress"
-                                  ? "bg-sage text-ink"
-                                  : "bg-cream/15 text-cream"
-                            }
-                          >
-                            {STATUS_LABEL[row.status] ?? row.status}
-                          </Badge>
-                        </div>
-                        <p className="mt-1 text-xs text-cream/50">
-                          {row.guest_name ? `${row.guest_name} · ` : ""}
-                          <span title={new Date(row.created_at).toLocaleString()}>
-                            {timeAgo(row.created_at)}
-                          </span>
+                    <div>
+                      <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
+                        Open Requests ({selectedRoomRequests.length})
+                      </h3>
+                      {selectedRoomRequests.length === 0 ? (
+                        <p className="text-sm text-cream/40 italic">
+                          No open requests for room {selectedRoom.number}.
                         </p>
-                        {row.details ? (
-                          <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
-                        ) : null}
-                      </div>
-                      {canTriage ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          {next ? (
-                            <Button
-                              size="sm"
-                              className="bg-amber text-ink hover:bg-amber/90"
-                              onClick={() => setStatus(row.id, next.status)}
-                            >
-                              {next.label}
-                            </Button>
-                          ) : null}
-                          {others.map((status) => (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant="outline"
-                              className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                              onClick={() => setStatus(row.id, status)}
-                            >
-                              {STATUS_LABEL[status]}
-                            </Button>
-                          ))}
-                        </div>
                       ) : (
-                        <p className="signage text-cream/40">View only</p>
+                        <ul className="space-y-2">
+                          {selectedRoomRequests.map((req) => (
+                            <li
+                              key={req.id}
+                              className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm text-cream">{req.type}</span>
+                                <Badge className="text-[10px] bg-amber/20 text-amber">
+                                  {req.status}
+                                </Badge>
+                              </div>
+                              {req.details && (
+                                <p className="mt-1 text-xs text-cream/70">{req.details}</p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                    {demo ? null : (
+
+                    <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                      >
+                        <Link to="/front-desk">Open Front Desk Board →</Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
+                      >
+                        <Link to="/housekeeping">Open Housekeeping Board →</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : activeTab === "crm" ? (
+          <div className="mt-6">
+            <GuestCrmPanel canEdit={canEditCrm} />
+          </div>
+        ) : activeTab === "maintenance" ? (
+          <div className="mt-6">
+            <MaintenanceTicketsPanel
+              reporter={staff?.name ?? "Staff"}
+              reporterStaffId={staff?.id ?? null}
+            />
+          </div>
+        ) : activeTab === "analytics" ? (
+          <div className="mt-6">
+            <AnalyticsDashboard />
+          </div>
+        ) : activeTab === "queue" ? (
+          <>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {STATUSES.map((status) => {
+                const active = filter === status;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFilter(active ? "all" : status)}
+                    aria-pressed={active}
+                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
+                      active
+                        ? "border-amber/70 bg-cream/[0.07]"
+                        : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
+                    }`}
+                  >
+                    <p className="signage flex items-center gap-2 text-cream/60">
+                      <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
+                      {STATUS_LABEL[status]}
+                    </p>
+                    <p className="font-display text-3xl leading-none tabular-nums">
+                      {counts[status]}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
+              <span className="signage mr-1 text-cream/40">Filter</span>
+              {["all", ...STATUSES].map((option) => (
+                <Button
+                  key={option}
+                  size="sm"
+                  variant="outline"
+                  className={
+                    filter === option
+                      ? "border-amber bg-amber text-ink hover:bg-amber/90"
+                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  }
+                  onClick={() => setFilter(option)}
+                >
+                  {option === "all" ? "All" : STATUS_LABEL[option]}
+                </Button>
+              ))}
+              <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
+            </div>
+
+            <OpsAssistant />
+
+            {visible.length === 0 ? (
+              <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
+                <p className="font-display text-2xl">Queue is clear</p>
+                <p className="mt-2 text-sm text-cream/60">
+                  New guest requests land here automatically.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-6 space-y-2">
+                {visible.map((row) => {
+                  const next = NEXT_ACTION[row.status];
+                  const others = STATUSES.filter(
+                    (status) => status !== row.status && status !== next?.status,
+                  );
+                  return (
+                    <li
+                      key={row.id}
+                      className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
+                    >
+                      <span
+                        aria-hidden
+                        className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
+                      />
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-baseline gap-3">
+                            <span className="font-display text-2xl tabular-nums">{row.room}</span>
+                            <span className="text-base text-cream">{row.type}</span>
+                            <Badge
+                              className={
+                                row.status === "new"
+                                  ? "bg-amber text-ink"
+                                  : row.status === "in_progress"
+                                    ? "bg-sage text-ink"
+                                    : "bg-cream/15 text-cream"
+                              }
+                            >
+                              {STATUS_LABEL[row.status] ?? row.status}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-xs text-cream/50">
+                            {row.guest_name ? `${row.guest_name} · ` : ""}
+                            <span title={new Date(row.created_at).toLocaleString()}>
+                              {timeAgo(row.created_at)}
+                            </span>
+                          </p>
+                          {row.details ? (
+                            <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
+                          ) : null}
+                        </div>
+                        {canTriage ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            {next ? (
+                              <Button
+                                size="sm"
+                                className="bg-amber text-ink hover:bg-amber/90"
+                                onClick={() => setStatus(row.id, next.status)}
+                              >
+                                {next.label}
+                              </Button>
+                            ) : null}
+                            {others.map((status) => (
+                              <Button
+                                key={status}
+                                size="sm"
+                                variant="outline"
+                                className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                                onClick={() => setStatus(row.id, status)}
+                              >
+                                {STATUS_LABEL[status]}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="signage text-cream/40">View only</p>
+                        )}
+                      </div>
                       <RequestWorkflowPanel
                         request={row}
                         canEdit={canTriage}
                         staff={staff ?? null}
                       />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </>
-      )}
-
-      {isManager ? (
-        <div>
-          <ScheduleBoard />
-          <AssignmentBoard />
-          <TeamPanel />
-          <InvitePanel />
-        </div>
-      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        ) : activeTab === "schedules" ? (
+          <div className="mt-6">
+            <ScheduleBoard />
+          </div>
+        ) : activeTab === "assignments" ? (
+          <div className="mt-6">
+            <AssignmentBoard />
+          </div>
+        ) : activeTab === "team" ? (
+          <div className="mt-6 space-y-6">
+            <TeamPanel />
+            <InvitePanel />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

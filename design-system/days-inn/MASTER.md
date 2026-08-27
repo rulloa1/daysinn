@@ -18,24 +18,24 @@
 
 | Role             | Hex       | CSS Variable               |
 | ---------------- | --------- | -------------------------- |
-| Primary          | `#1E3A8A` | `--color-primary`          |
+| Primary          | `#004986` | `--color-primary`          |
 | On Primary       | `#FFFFFF` | `--color-on-primary`       |
-| Secondary        | `#3B82F6` | `--color-secondary`        |
-| On Secondary     | `#000000` | `--color-on-secondary`     |
-| Accent/CTA       | `#A16207` | `--color-accent`           |
-| On Accent/CTA    | `#FFFFFF` | `--color-on-accent`        |
+| Secondary        | `#0065AB` | `--color-secondary`        |
+| On Secondary     | `#FFFFFF` | `--color-on-secondary`     |
+| Accent/CTA       | `#D4AF37` | `--color-accent`           |
+| On Accent/CTA    | `#004986` | `--color-on-accent`        |
 | Background       | `#F8FAFC` | `--color-background`       |
-| Foreground       | `#1E40AF` | `--color-foreground`       |
+| Foreground       | `#004986` | `--color-foreground`       |
 | Card             | `#FFFFFF` | `--color-card`             |
-| Card Foreground  | `#1E40AF` | `--color-card-foreground`  |
+| Card Foreground  | `#004986` | `--color-card-foreground`  |
 | Muted            | `#E9EEF5` | `--color-muted`            |
 | Muted Foreground | `#475569` | `--color-muted-foreground` |
 | Border           | `#BFDBFE` | `--color-border`           |
 | Destructive      | `#DC2626` | `--color-destructive`      |
 | On Destructive   | `#FFFFFF` | `--color-on-destructive`   |
-| Ring             | `#1E3A8A` | `--color-ring`             |
+| Ring             | `#004986` | `--color-ring`             |
 
-**Color Notes:** Luxury navy + gold service [Accent adjusted from #CA8A04]
+**Color Notes:** Wyndham/Days Inn brand-compliant palette — Congress Blue primary, Wyndham blue secondary, gold accent.
 
 ### Typography
 

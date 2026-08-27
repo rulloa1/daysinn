@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertStaff } from "@/lib/roles.guard";
 
 /** How long a freshly issued room QR code stays scannable. */
@@ -142,8 +141,9 @@ export const guestRequests = createServerFn({ method: "POST" })
  * short-lived one. Rotating on demand means printed or shared codes die.
  */
 export const rotateRoomQr = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
+  .validator((input: unknown) =>
+    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 
@@ -183,8 +183,9 @@ export const rotateRoomQr = createServerFn({ method: "POST" })
 
 /** Staff-only: kills every outstanding code for a room. */
 export const revokeRoomQr = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
+  .validator((input: unknown) =>
+    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 

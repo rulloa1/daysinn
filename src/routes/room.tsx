@@ -339,7 +339,15 @@ function RoomHub() {
                 </div>
               ) : (
                 <ul className="mt-4 space-y-3">
-                  {rows.map((row) => {
+                  {(
+                    rows as Array<{
+                      id: string;
+                      type: string;
+                      details: string | null;
+                      status: string;
+                      created_at: string;
+                    }>
+                  ).map((row) => {
                     const status = STATUS_CONFIG[row.status] ?? {
                       label: row.status,
                       class: "bg-muted text-muted-foreground border-border",

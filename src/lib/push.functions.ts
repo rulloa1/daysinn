@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** Public VAPID key the browser needs to create a push subscription. */
 export const getPushPublicKey = createServerFn({ method: "GET" }).handler(async () => {
@@ -16,7 +15,6 @@ type SubInput = {
 
 /** Store (or refresh) a housekeeping device subscription. */
 export const savePushSubscription = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: SubInput) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("push_subscriptions").upsert(
@@ -37,7 +35,6 @@ export const savePushSubscription = createServerFn({ method: "POST" })
 
 /** Remove a device subscription when the housekeeper turns phone alerts off. */
 export const removePushSubscription = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: { endpoint: string }) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase

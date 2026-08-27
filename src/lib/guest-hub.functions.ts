@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertStaff } from "@/lib/roles.guard";
 import { verifyGuest } from "@/lib/guest-verify.server";
+import { isPastCheckout } from "@/lib/guest-access";
 
 const credentials = z.object({
   room: z.string().trim().min(1).max(10),
@@ -12,12 +12,6 @@ const credentials = z.object({
 const sendSchema = credentials.extend({
   body: z.string().trim().min(1, "Type a message first.").max(1000),
 });
-
-/** A stay ends at midnight on the checkout date; access ends with it. */
-function isPastCheckout(checkOut: string | null): boolean {
-  if (!checkOut) return false;
-  return new Date(`${checkOut}T23:59:59Z`).getTime() < Date.now();
-}
 
 /** Guest-side chat thread + digital room key, gated on room + last name. */
 export const guestThread = createServerFn({ method: "POST" })
@@ -95,7 +89,6 @@ export const guestSendMessage = createServerFn({ method: "POST" })
 
 /** Staff-only: mint or rotate the digital room key PIN for a room. */
 export const issueDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
@@ -128,7 +121,6 @@ export const issueDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only: clear a room key (checkout, lost phone, re-key). */
 export const clearDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
@@ -151,7 +143,6 @@ export const clearDoorPin = createServerFn({ method: "POST" })
 
 /** Staff-only read of a room's current key, kept out of client table reads. */
 export const readDoorPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);

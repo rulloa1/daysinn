@@ -14,6 +14,7 @@ import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
+import { Route as LiveRoomStatusRouteImport } from './routes/live-room-status'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
@@ -49,6 +50,11 @@ const GuideRoute = GuideRouteImport.update({
 const HousekeepingRoute = HousekeepingRouteImport.update({
   id: '/housekeeping',
   path: '/housekeeping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoomStatusRoute = LiveRoomStatusRouteImport.update({
+  id: '/live-room-status',
+  path: '/live-room-status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
+  '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/live-room-status'
     | '/mcp'
     | '/roles'
     | '/room'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/live-room-status'
     | '/mcp'
     | '/roles'
     | '/room'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
+    | '/live-room-status'
     | '/mcp'
     | '/roles'
     | '/room'
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   FrontDeskRoute: typeof FrontDeskRoute
   GuideRoute: typeof GuideRoute
   HousekeepingRoute: typeof HousekeepingRoute
+  LiveRoomStatusRoute: typeof LiveRoomStatusRoute
   McpRoute: typeof McpRoute
   RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/housekeeping'
       fullPath: '/housekeeping'
       preLoaderRoute: typeof HousekeepingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live-room-status': {
+      id: '/live-room-status'
+      path: '/live-room-status'
+      fullPath: '/live-room-status'
+      preLoaderRoute: typeof LiveRoomStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -364,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   FrontDeskRoute: FrontDeskRoute,
   GuideRoute: GuideRoute,
   HousekeepingRoute: HousekeepingRoute,
+  LiveRoomStatusRoute: LiveRoomStatusRoute,
   McpRoute: McpRoute,
   RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,

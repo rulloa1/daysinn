@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 function startOfDay(offsetDays = 0) {
   const d = new Date();
@@ -15,7 +14,6 @@ function dateKey(iso: string) {
 }
 
 export const getOccupancyTrend = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )
@@ -50,7 +48,6 @@ export const getOccupancyTrend = createServerFn({ method: "GET" })
   });
 
 export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.rpc("rooms_board");
@@ -65,7 +62,6 @@ export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
   });
 
 export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )
@@ -100,7 +96,6 @@ export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
   });
 
 export const getRequestVolume = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )

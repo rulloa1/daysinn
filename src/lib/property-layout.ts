@@ -1,16 +1,82 @@
 /**
- * Physical layout of Days Inn Wildwood (551 FL-44), transcribed directly from
- * the aerial architectural overlay and property blueprints.
+ * Physical layout of Days Inn Wildwood (551 FL-44).
  *
- * The property is an L-shaped compound:
- *  1. Top-Left Corner: Lobby, Registration, Breakfast, GM Office, Kitchen, Security, Room 108/208, Ice, Breezeway/Stairs.
- *  2. North Wing (Horizontal Top Building): Rooms 136-162 (outer/even) & 137-163/265 (inner/odd) with central breezeway.
- *  3. West Wing (Vertical Left Building): Rooms 110-134 (inner/even) & 111-135 (outer/odd) + BOH (Facility, Vending, Laundry & Storage).
- *  4. Central Courtyard: Heated Swim Pool, Sun Deck, and Central Parking.
- *  5. Perimeter: Truck parking (FL-44 top frontage & rear south), East parking driveway.
+ * The map is an L-shaped compound with a lobby/service block, a horizontal
+ * guest wing, a vertical guest wing, a central courtyard, and perimeter parking.
+ * Room sequences follow the original property wing drawing.
  */
 
 export type FloorKey = 1 | 2;
+
+/** Room numbers confirmed not to exist at the Wildwood property. */
+export const OMITTED_ROOM_NUMBERS: ReadonlySet<string> = new Set(["237", "239"]);
+
+/** Shared exterior access points, keyed to the rooms immediately beside them. */
+export const STAIR_LOCATIONS = [
+  { label: "Stairs outside 158 / 258", outsideRooms: ["158", "258"] as const },
+  {
+    label: "Stairs between 157 / 159 and 257 / 259",
+    outsideRooms: ["157", "159", "257", "259"] as const,
+  },
+  { label: "Front-entrance stairwell after 201", outsideRooms: ["201"] as const },
+  { label: "Stairs between 132 / 130", outsideRooms: ["132", "130"] as const },
+] as const;
+
+/** Verified landmarks shared by each interactive property-map view. */
+export type PropertyMapLocation = {
+  name: string;
+  aliases: readonly string[];
+  left: number;
+  top: number;
+};
+
+export const VERIFIED_MAP_LOCATIONS: readonly PropertyMapLocation[] = [
+  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
+  {
+    name: "Stairs outside 158 / 258",
+    aliases: ["stairs", "stairwell", "158", "258"],
+    left: 64.5,
+    top: 21.0,
+  },
+  {
+    name: "Stairs between 157 / 159 and 257 / 259",
+    aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
+    left: 74.5,
+    top: 6.0,
+  },
+  {
+    name: "Upper-floor breezeway after 214",
+    aliases: ["breezeway", "214", "upper floor"],
+    left: 52.0,
+    top: 52.0,
+  },
+  {
+    name: "Front-entrance stairwell after 201",
+    aliases: ["stairs", "stairwell", "front entrance", "201"],
+    left: 5.5,
+    top: 62.0,
+  },
+  {
+    name: "Stairs between 132 / 130",
+    aliases: ["stairs", "stairwell", "132", "130"],
+    left: 54.5,
+    top: 57.0,
+  },
+  {
+    name: "Authorized Personnel",
+    aliases: ["authorized", "personnel", "staff only"],
+    left: 19,
+    top: 54,
+  },
+  {
+    name: "Lobby / Breakfast / Dining",
+    aliases: ["lobby", "front desk", "breakfast", "dining"],
+    left: 15,
+    top: 60,
+  },
+  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
+  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
+];
 
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
 
@@ -18,97 +84,105 @@ export type WingRow =
   | { kind: "rooms"; outer: string; inner: string; left?: string; right?: string }
   | { kind: "divider"; label: string };
 
+function roomPair(start: number, count: number): Array<[string, string]> {
+  return Array.from({ length: count }, (_, index) => [
+    String(start + index * 2),
+    String(start + index * 2 + 1),
+  ]);
+}
+
 /**
- * West Wing (Vertical Building along guest parking):
- * - Outer (Left) column: Odd numbers facing west parking (111-117, 119-135)
- * - Inner (Right) column: Even numbers facing pool courtyard (110-116, 120-134)
+ * Vertical guest wing.
+ *
+ * The visible parking-side rows begin at rooms 109 and 209. Their paired
+ * courtyard-side rooms are 108 and 208, respectively, and the rows end at
+ * rooms 135 and 235. Exterior stairs sit between rooms 132 and 130. The
+ * breezeway separates the upper and lower sections.
  */
 export function westWing(floor: FloorKey): WingRow[] {
+  const base = floor === 1 ? 108 : 208;
+  const courtyardSide = Array.from({ length: 14 }, (_, index) => String(base + 26 - index * 2));
   const rows: WingRow[] = [];
 
-  // Upper section: 111-117 (outer) & 110-116 (inner)
-  for (let odd = 111; odd <= 117; odd += 2) {
-    const outer = lift(odd, floor);
-    const inner = lift(odd - 1, floor);
+  courtyardSide.forEach((outer, index) => {
+    // Rooms 134–118 come before the breezeway; 116–108 follow it.
+    if (index === 9) rows.push({ kind: "divider", label: "Breezeway" });
+    const inner = String(base + 1 + index * 2);
     rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
-  }
+  });
 
-  rows.push({ kind: "divider", label: "Breezeway // Stairs" });
-
-  // Lower section: 119-135 (outer) & 120-134 (inner)
-  const lowerOdds = [119, 121, 123, 125, 127, 129, 131, 133, 135];
-  const lowerEvens = [120, 122, 124, 126, 128, 130, 132, 134, 134];
-
-  for (let i = 0; i < lowerOdds.length; i++) {
-    const outer = lift(lowerOdds[i]!, floor);
-    const inner = lift(lowerEvens[i]!, floor);
-    rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
-  }
-
-  rows.push({ kind: "divider", label: "Breezeway" });
   return rows;
 }
 
 /**
- * North Wing (Horizontal Top Building running east from Lobby Corner):
- * - Top (Outer) row: Even rooms facing North / Truck Parking (136-162 / 236-262)
- * - Bottom (Inner) row: Odd rooms facing Swim Pool / Courtyard (137-163 / 237-265)
+ * Horizontal guest wing, as shown in the supplied original wing drawing.
+ *
+ * The pool-facing ground-floor row reads from room 136 through room 162, with
+ * exterior stairs immediately outside rooms 158 and 258 and between rooms
+ * 157/159 and 257/259. The ground-floor end row reads right to left from room
+ * 163 through room 137.
+ * Room 265 is the additional second-floor room beneath the terminal 263 cell.
+ * Rooms 237 and 239 are not part of the property inventory and must not be
+ * rendered in this wing. The drawing also shows stair access at the central
+ * split and at the wing end.
  */
 export function northBuilding(floor: FloorKey): {
   top: string[];
   bottom: string[];
+  topBreezewayAfter?: string;
 } {
   if (floor === 1) {
     return {
-      top: ["136", "138", "140", "142", "144", "146", "148", "150", "154", "156", "160", "162"],
-      bottom: ["137", "139", "141", "143", "145", "147", "149", "151", "155", "157", "161", "163"],
+      top: roomPair(136, 14).map(([even]) => even),
+      bottom: roomPair(136, 14)
+        .map(([, odd]) => odd)
+        .reverse(),
     };
   }
 
   return {
-    top: ["236", "238", "240", "242", "244", "246", "248", "250", "254", "258", "260", "262"],
-    bottom: [
-      "237",
-      "239",
-      "241",
-      "243",
-      "245",
-      "247",
-      "251",
-      "253",
-      "255",
-      "259",
-      "261",
-      "263",
-      "265",
-    ],
+    // Upper-floor, pool-facing row runs right to left and reaches a breezeway
+    // immediately after room 214. The following segment remains pending
+    // physical-layout confirmation.
+    top: ["200", "202", "204", "206", "208", "210", "212", "214"],
+    topBreezewayAfter: "214",
+    bottom: [...roomPair(236, 14).map(([, odd]) => odd), "265"].filter(
+      (number) => !OMITTED_ROOM_NUMBERS.has(number),
+    ),
   };
 }
 
-/** Alias for backward compatibility */
+/** Alias retained for backward compatibility. */
 export const southBuilding = northBuilding;
 
 export type StripCell =
   { kind: "room"; number: string } | { kind: "space"; label: string; wide?: boolean };
 
-/**
- * Top-Left Corner (Lobby & Administrative Services Block):
- */
+/** Top-left lobby and administrative services block. */
 export function frontBlock(floor: FloorKey): {
   upstairsLeft: string[];
+  upstairsLeftBreezewayBefore?: string;
+  upstairsLeftStairwellAfter?: string;
   services: StripCell[];
   upstairsRight: string[];
 } {
+  const isUpperFloor = floor === 2;
   return {
-    upstairsLeft: ["201", "203", "205", "207", "209"],
+    // Upper-floor front-entrance side reads from the breezeway to the stairwell.
+    upstairsLeft: isUpperFloor
+      ? ["217", "215", "213", "211", "210", "209", "207", "205", "203", "201"]
+      : [],
+    ...(isUpperFloor
+      ? {
+          upstairsLeftBreezewayBefore: "217",
+          upstairsLeftStairwellAfter: "201",
+        }
+      : {}),
     services: [
-      { kind: "space", label: "GM Office" },
-      { kind: "space", label: "Kitchen" },
-      { kind: "space", label: "Lobby / Registration / Breakfast", wide: true },
-      { kind: "space", label: "Security" },
-      { kind: "room", number: floor === 2 ? "208" : "108" },
+      { kind: "space", label: "Authorized Personnel" },
+      { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },
     ],
-    upstairsRight: ["200", "202", "204", "206", "208"],
+    upstairsRight: isUpperFloor ? ["200", "202", "204", "206", "208"] : [],
   };
 }
 

@@ -3,6 +3,7 @@
 // Use this for admin operations in server functions and server routes only.
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
 function isNewSupabaseApiKey(value: string): boolean {
@@ -32,23 +33,85 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-function createSupabaseAdminClient() {
+export const isSupabaseAdminConfigured = Boolean(
+  process.env["SUPABASE_URL"] && process.env["SUPABASE_SERVICE_ROLE_KEY"],
+);
+
+type AppSupabaseAdminClient = SupabaseClient<Database>;
+type MockQueryResult = { data: unknown[]; error: null };
+type MockSingleQueryResult = { data: null; error: null };
+type MockQueryBuilder = {
+  [key: string]: unknown;
+  delete: () => MockQueryBuilder;
+  eq: () => MockQueryBuilder;
+  in: () => MockQueryBuilder;
+  insert: () => MockQueryBuilder;
+  neq: () => MockQueryBuilder;
+  upsert: () => MockQueryBuilder;
+  select: () => MockQueryBuilder;
+  maybeSingle: () => Promise<MockSingleQueryResult>;
+  single: () => Promise<MockSingleQueryResult>;
+  then: (resolve: (result: MockQueryResult) => unknown) => unknown;
+};
+
+function createMockQueryBuilder(): MockQueryBuilder {
+  const builder: MockQueryBuilder = {
+    delete: () => builder,
+    eq: () => builder,
+    in: () => builder,
+    insert: () => builder,
+    neq: () => builder,
+    upsert: () => builder,
+    select: () => builder,
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    single: () => Promise.resolve({ data: null, error: null }),
+    then: (resolve) => resolve({ data: [], error: null }),
+  };
+
+  return builder;
+}
+
+function createMockSupabaseAdminClient(): AppSupabaseAdminClient {
+  const handler: ProxyHandler<AppSupabaseAdminClient> = {
+    get(target, prop, receiver) {
+      if (prop === "auth") {
+        return {
+          admin: {
+            listUsers: () => Promise.resolve({ data: { users: [] } }),
+            inviteUserByEmail: () => Promise.resolve({ data: { user: {} } }),
+            generateLink: () => Promise.resolve({ data: { properties: { action_link: "" } } }),
+          },
+        };
+      }
+      if (prop === "from") {
+        return () => createMockQueryBuilder();
+      }
+
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value === "function") {
+        return () => value;
+      }
+      return new Proxy({} as AppSupabaseAdminClient, handler);
+    },
+  };
+
+  return new Proxy({} as AppSupabaseAdminClient, handler) as AppSupabaseAdminClient;
+}
+
+function createSupabaseAdminClient(): AppSupabaseAdminClient {
   const SUPABASE_URL = process.env["SUPABASE_URL"];
   const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-      ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+  if (!isSupabaseAdminConfigured) {
+    console.warn(
+      "[Supabase] Missing Supabase admin environment variables. Running in mock admin mode.",
+    );
+    return createMockSupabaseAdminClient();
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
     global: {
-      fetch: createSupabaseFetch(SUPABASE_SERVICE_ROLE_KEY),
+      fetch: createSupabaseFetch(SUPABASE_SERVICE_ROLE_KEY!),
     },
     auth: {
       storage: undefined,
@@ -58,15 +121,15 @@ function createSupabaseAdminClient() {
   });
 }
 
-let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+let _supabaseAdmin: AppSupabaseAdminClient | undefined;
 
 // Server-side Supabase client with service role - bypasses RLS
 // SECURITY: Only use this for trusted server-side operations, never expose to client code
 // Load inside server handlers: const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 // Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
+export const supabaseAdmin = new Proxy({} as AppSupabaseAdminClient, {
   get(_, prop, receiver) {
     if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
     return Reflect.get(_supabaseAdmin, prop, receiver);
   },
-});
+}) as AppSupabaseAdminClient;

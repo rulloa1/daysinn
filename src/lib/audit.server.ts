@@ -69,27 +69,35 @@ export async function allowGuestAttempt(
   identifier: string,
 ): Promise<boolean> {
   const { max, windowMinutes } = LIMITS[scope];
-  const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
   const failuresOnly = scope === "guest_sign_in";
 
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let query = supabaseAdmin
+
+    // Guest sign-in only counts failed verification attempts, which are recorded
+    // after credentials are checked. Volumetric scopes reserve capacity atomically
+    // before their action runs, preventing concurrent requests from overrunning a limit.
+    if (!failuresOnly) {
+      const { data: allowed, error } = await supabaseAdmin.rpc("consume_guest_attempt", {
+        p_scope: scope,
+        p_identifier: keyOf(identifier),
+        p_max: max,
+        p_window_minutes: windowMinutes,
+        p_failures_only: false,
+      });
+      if (error) throw error;
+      return allowed === true;
+    }
+
+    const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
+    const { count, error } = await supabaseAdmin
       .from("guest_auth_attempts")
       .select("id", { count: "exact", head: true })
       .eq("scope", scope)
       .eq("identifier", keyOf(identifier))
-      .gte("created_at", since);
-
-    if (failuresOnly) query = query.eq("succeeded", false);
-
-    const { count } = await query;
-
-    if (!failuresOnly) {
-      await supabaseAdmin
-        .from("guest_auth_attempts")
-        .insert({ scope, identifier: keyOf(identifier), succeeded: true });
-    }
+      .gte("created_at", since)
+      .eq("succeeded", false);
+    if (error) throw error;
 
     return (count ?? 0) < max;
   } catch (error) {
