@@ -30,9 +30,11 @@ import {
 } from "@/lib/device-alerts";
 import { subscribeWebPush, unsubscribeWebPush } from "@/lib/web-push-browser";
 import { FloorPlan } from "@/components/floor-plan";
+import { HousekeepingRunner } from "@/components/housekeeping-runner";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
+import { Footprints } from "lucide-react";
 
 import {
   Dialog,
@@ -376,7 +378,7 @@ function HousekeepingBoard({
   const [query, setQuery] = useState("");
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "map" | "runner">("grid");
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
@@ -700,6 +702,25 @@ function HousekeepingBoard({
     }
   }
 
+  /** Update persistent notes for a room. */
+  async function saveNotes(room: RoomRow, notes: string) {
+    if (!canTriage) return;
+    const previous = allRooms;
+    setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, notes } : r)));
+    if (!isSupabaseConfigured) {
+      setAllRooms(previous);
+      toast.error("Live room status is unavailable. Please check the data connection.");
+      return;
+    }
+    const { error } = await supabase.from("rooms").update({ notes }).eq("id", room.id);
+    if (error) {
+      setAllRooms(previous);
+      toast.error("Couldn't save notes.");
+    } else {
+      toast.success(`Notes saved for Room ${room.number}`);
+    }
+  }
+
   /** Quick status change from the housekeeping board. */
   async function setStatus(room: RoomRow, next: RoomStatus) {
     if (!canTriage) {
@@ -961,6 +982,19 @@ function HousekeepingBoard({
             </button>
             <button
               type="button"
+              onClick={() => setViewMode("runner")}
+              aria-pressed={viewMode === "runner"}
+              className={`signage flex items-center gap-1.5 rounded-md px-3 py-2 transition-colors duration-200 ${
+                viewMode === "runner"
+                  ? "bg-amber font-bold text-ink shadow-sm"
+                  : "text-cream/60 hover:text-cream"
+              }`}
+            >
+              <Footprints className="h-3.5 w-3.5" />
+              <span>Runner</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setViewMode("map")}
               aria-pressed={viewMode === "map"}
               className={`signage rounded-md px-3 py-2 transition-colors duration-200 ${
@@ -974,6 +1008,22 @@ function HousekeepingBoard({
           </div>
         </div>
       </section>
+
+      {viewMode === "runner" ? (
+        <HousekeepingRunner
+          rooms={rooms}
+          staff={staff}
+          canTriage={canTriage}
+          initialRoomId={activeId}
+          openRequests={openIssues}
+          onSetStatus={(room, next) => setStatus(room as RoomRow, next)}
+          onSetStage={(room, stage) => setStage(room as RoomRow, stage)}
+          onToggleLinen={(room) => toggleLinen(room as RoomRow)}
+          onSaveNotes={(room, notes) => saveNotes(room as RoomRow, notes)}
+          onReportIssue={(room) => setIssueRoom(room as RoomRow)}
+          onClose={() => setViewMode("grid")}
+        />
+      ) : null}
 
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
@@ -1297,6 +1347,19 @@ function HousekeepingBoard({
       </Dialog>
 
       <IssueDialog room={issueRoom} staff={staff} onClose={() => setIssueRoom(null)} />
+
+      {/* Mobile Floating Action Button to launch Runner Mode */}
+      {viewMode !== "runner" ? (
+        <button
+          type="button"
+          onClick={() => setViewMode("runner")}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-amber px-5 py-3.5 font-bold text-ink shadow-2xl transition-all active:scale-95 hover:bg-amber/90 sm:hidden"
+          aria-label="Start runner mode"
+        >
+          <Footprints className="h-5 w-5" />
+          <span>Runner ({toClean})</span>
+        </button>
+      ) : null}
     </div>
   );
 }

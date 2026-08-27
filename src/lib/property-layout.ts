@@ -31,51 +31,51 @@ export type PropertyMapLocation = {
 };
 
 export const VERIFIED_MAP_LOCATIONS: readonly PropertyMapLocation[] = [
-  { name: "Pool", aliases: ["pool", "swimming"], left: 45, top: 30 },
+  { name: "Pool", aliases: ["pool", "swimming"], left: 45.0, top: 45.0 },
   {
     name: "Stairs outside 158 / 258",
     aliases: ["stairs", "stairwell", "158", "258"],
     left: 64.5,
-    top: 21.0,
+    top: 29.5,
   },
   {
     name: "Stairs between 157 / 159 and 257 / 259",
     aliases: ["stairs", "stairwell", "157", "159", "257", "259"],
-    left: 74.5,
-    top: 6.0,
+    left: 77.0,
+    top: 24.0,
   },
   {
     name: "Upper-floor breezeway after 214",
     aliases: ["breezeway", "214", "upper floor"],
-    left: 52.0,
-    top: 52.0,
+    left: 36.2,
+    top: 67.5,
   },
   {
     name: "Front-entrance stairwell after 201",
     aliases: ["stairs", "stairwell", "front entrance", "201"],
-    left: 5.5,
-    top: 62.0,
+    left: 13.5,
+    top: 64.0,
   },
   {
     name: "Stairs between 132 / 130",
     aliases: ["stairs", "stairwell", "132", "130"],
     left: 54.5,
-    top: 57.0,
+    top: 72.0,
   },
   {
     name: "Authorized Personnel",
     aliases: ["authorized", "personnel", "staff only"],
-    left: 19,
-    top: 54,
+    left: 19.0,
+    top: 68.0,
   },
   {
     name: "Lobby / Breakfast / Dining",
     aliases: ["lobby", "front desk", "breakfast", "dining"],
-    left: 15,
-    top: 60,
+    left: 15.0,
+    top: 70.0,
   },
-  { name: "Laundry", aliases: ["laundry", "storage"], left: 65, top: 50 },
-  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20, top: 20 },
+  { name: "Laundry", aliases: ["laundry", "storage"], left: 65.0, top: 50.0 },
+  { name: "Truck parking", aliases: ["truck", "rv", "parking"], left: 20.0, top: 20.0 },
 ];
 
 export const lift = (base: number, floor: FloorKey) => String(floor === 2 ? base + 100 : base);
