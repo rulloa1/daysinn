@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -12,7 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { useStaffRole } from "@/hooks/use-staff-role";
-import { logRoomStatusChange, type StaffIdentity } from "@/lib/ops";
+import { type StaffIdentity } from "@/lib/ops";
+import {
+  createQueuedRoomStatusChange,
+  enqueueRoomStatusChange,
+  readQueuedRoomStatusChanges,
+  roomStatusQueueSummary,
+} from "@/lib/room-status-sync";
+import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
 import { PRESENTER_IDENTITY, usePresentationMode } from "@/lib/presentation";
 import {
@@ -445,6 +452,8 @@ function HousekeepingBoard({
   const [alertsOn, setAlertsOn] = useState(false);
   const [pushOn, setPushOn] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
+  const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const alertsRef = useRef(false);
   const pushRef = useRef(false);
@@ -667,6 +676,33 @@ function HousekeepingBoard({
   const mineDone = mine.length - mineLeft;
   const active = rooms.find((r) => r.id === activeId) ?? null;
 
+  const refreshSyncSummary = useCallback(() => {
+    setSyncSummary(roomStatusQueueSummary());
+  }, []);
+
+  const flushQueuedRoomStatusChanges = useCallback(async () => {
+    if (presenting || !isSupabaseConfigured) return { synced: 0, conflicts: 0 };
+    let synced = 0;
+    let conflicts = 0;
+    for (const change of readQueuedRoomStatusChanges()) {
+      if (change.state === "conflict") continue;
+      const result = await syncQueuedRoomStatusChange(change);
+      if (result === "synced") synced += 1;
+      if (result === "conflict") conflicts += 1;
+    }
+    refreshSyncSummary();
+    return { synced, conflicts };
+  }, [presenting, refreshSyncSummary]);
+
+  useEffect(() => {
+    refreshSyncSummary();
+    if (presenting || !isSupabaseConfigured) return;
+    void flushQueuedRoomStatusChanges();
+    const retry = () => void flushQueuedRoomStatusChanges();
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [flushQueuedRoomStatusChanges, presenting, refreshSyncSummary]);
+
   async function setAssignment(room: RoomRow, toMe: boolean) {
     if (!canTriage) {
       toast.error("A manager needs to grant you staff access first.");
@@ -766,22 +802,31 @@ function HousekeepingBoard({
       toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
       return;
     }
-    const { error } = await supabase.from("rooms").update({ status: next }).eq("id", room.id);
-    if (error) {
-      setAllRooms(previous);
-      toast.error("Couldn't update that room.");
-      return;
-    }
-    const logged = await logRoomStatusChange({
+
+    const change = createQueuedRoomStatusChange({
       roomId: room.id,
       roomNumber: room.number,
       oldStatus: room.status,
       newStatus: next,
-      previousChangedAt: room.updated_at,
+      expectedUpdatedAt: room.updated_at,
       staff,
     });
-    if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
-    else toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
+    enqueueRoomStatusChange(change);
+    refreshSyncSummary();
+
+    const result = await syncQueuedRoomStatusChange(change);
+    refreshSyncSummary();
+    if (result === "synced") {
+      toast.success(`Room ${room.number} · ${STATUS_LABEL[next]} · ${staff.name}`);
+      return;
+    }
+
+    setAllRooms(previous);
+    if (result === "conflict") {
+      toast.error("Room changed elsewhere. The live board was kept and this action needs review.");
+      return;
+    }
+    toast.message("Room update saved on this device and will retry when you reconnect.");
   }
 
   async function markClean(room: RoomRow) {
@@ -847,6 +892,47 @@ function HousekeepingBoard({
       ) : null}
 
       <MaintenanceTicketsPanel reporter={staff.name} reporterStaffId={staff.id ?? null} />
+
+      {syncSummary.pending || syncSummary.conflicts ? (
+        <section
+          className={`mt-4 border p-4 ${
+            syncSummary.conflicts
+              ? "border-status-dirty/70 bg-status-dirty/10"
+              : "border-amber/50 bg-amber/10"
+          }`}
+          aria-live="polite"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="signage text-cream">
+                {syncSummary.pending
+                  ? `${syncSummary.pending} room update${syncSummary.pending === 1 ? "" : "s"} waiting to sync`
+                  : "Room update needs review"}
+              </p>
+              <p className="mt-1 text-sm text-cream/70">
+                {syncSummary.conflicts
+                  ? `${syncSummary.conflicts} update${syncSummary.conflicts === 1 ? "" : "s"} conflict with a newer room change. Refresh the room before trying again.`
+                  : "Your changes are stored on this device and will retry when a connection is available."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-cream/35 bg-transparent text-cream hover:bg-cream/10"
+              onClick={() => {
+                void flushQueuedRoomStatusChanges().then(({ synced, conflicts }) => {
+                  if (synced)
+                    toast.success(`${synced} room update${synced === 1 ? "" : "s"} synced.`);
+                  else if (conflicts) toast.error("A room changed elsewhere and needs review.");
+                  else toast.message("Updates are still waiting for a connection.");
+                });
+              }}
+            >
+              Retry sync
+            </Button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Stat label="To clean" value={toClean} />
@@ -953,10 +1039,11 @@ function HousekeepingBoard({
       {loading ? (
         <p className="mt-8 text-sm text-cream/50">Loading rooms…</p>
       ) : viewMode === "map" ? (
-        <div className="mt-6 space-y-3">
+        <div className="mt-6">
           <FloorPlan
+            floor={mapFloor}
             rooms={rooms}
-            activeRoomId={activeId}
+            onFloorChange={setMapFloor}
             onSelect={(roomId) => setActiveId(roomId)}
           />
         </div>

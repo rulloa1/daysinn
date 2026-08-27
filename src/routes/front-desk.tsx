@@ -8,7 +8,7 @@ import { GuestChatPanel } from "@/components/guest-chat-panel";
 import { clearDoorPin, issueDoorPin, readDoorPin } from "@/lib/guest-hub.functions";
 
 import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
-import { supabase } from "@/integrations/supabase/client";
+import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import {
   average,
   formatDuration,
-  logRoomStatusChange,
   startOfToday,
   type RoomStatusEvent,
   type StaffIdentity,
@@ -37,6 +36,13 @@ import {
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
 import { usePresentationMode } from "@/lib/presentation";
+import {
+  createQueuedRoomStatusChange,
+  enqueueRoomStatusChange,
+  readQueuedRoomStatusChanges,
+  roomStatusQueueSummary,
+} from "@/lib/room-status-sync";
+import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { PRIORITY_BADGE, toGuestStatus, wingForRoom } from "@/lib/room-model";
 import { GUEST_STATUSES, PRIORITY_LEVELS, type PriorityLevel } from "@/types/operations";
@@ -226,11 +232,13 @@ function FrontDeskPage() {
 }
 
 function Board() {
+  const presenting = usePresentationMode();
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [filter, setFilter] = useState<"all" | RoomStatus>("all");
   const [view, setView] = useState<"map" | "list" | "analytics">("map");
+  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
   const [events, setEvents] = useState<RoomStatusEvent[]>([]);
@@ -238,6 +246,7 @@ function Board() {
     { id: string; response_seconds: number | null }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
   const { canTriage, loading: roleLoading } = useStaffRole();
   const { members, staff, select, addMember } = useStaffIdentity();
   const day = today();
@@ -399,6 +408,33 @@ function Board() {
 
   const activeRoom = rooms.find((r) => r.id === activeRoomId) ?? null;
 
+  const refreshSyncSummary = useCallback(() => {
+    setSyncSummary(roomStatusQueueSummary());
+  }, []);
+
+  const flushQueuedRoomStatusChanges = useCallback(async () => {
+    if (presenting || !isSupabaseConfigured) return { synced: 0, conflicts: 0 };
+    let synced = 0;
+    let conflicts = 0;
+    for (const change of readQueuedRoomStatusChanges()) {
+      if (change.state === "conflict") continue;
+      const result = await syncQueuedRoomStatusChange(change);
+      if (result === "synced") synced += 1;
+      if (result === "conflict") conflicts += 1;
+    }
+    refreshSyncSummary();
+    return { synced, conflicts };
+  }, [presenting, refreshSyncSummary]);
+
+  useEffect(() => {
+    refreshSyncSummary();
+    if (presenting || !isSupabaseConfigured) return;
+    void flushQueuedRoomStatusChanges();
+    const retry = () => void flushQueuedRoomStatusChanges();
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [flushQueuedRoomStatusChanges, presenting, refreshSyncSummary]);
+
   async function saveRoom(room: RoomRow, patch: RoomPatch) {
     if (!canTriage) {
       toast.error("You don't have permission to update rooms.");
@@ -410,23 +446,43 @@ function Board() {
         r.id === room.id ? { ...r, ...patch, updated_at: new Date().toISOString() } : r,
       ),
     );
+    if (patch.status && patch.status !== room.status && !presenting && isSupabaseConfigured) {
+      const change = createQueuedRoomStatusChange({
+        roomId: room.id,
+        roomNumber: room.number,
+        oldStatus: room.status,
+        newStatus: patch.status,
+        expectedUpdatedAt: room.updated_at,
+        staff,
+      });
+      enqueueRoomStatusChange(change);
+      refreshSyncSummary();
+
+      const result = await syncQueuedRoomStatusChange(change);
+      refreshSyncSummary();
+      if (result === "synced") {
+        toast.success(
+          staff ? `Room ${room.number} updated by ${staff.name}` : `Room ${room.number} updated`,
+        );
+        return;
+      }
+
+      setRooms(previous);
+      if (result === "conflict") {
+        toast.error(
+          "Room changed elsewhere. The live board was kept and this action needs review.",
+        );
+        return;
+      }
+      toast.message("Room update saved on this device and will retry when you reconnect.");
+      return;
+    }
+
     const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
     if (error) {
       setRooms(previous);
       toast.error("Couldn't update that room.");
       return;
-    }
-
-    if (patch.status && patch.status !== room.status) {
-      const logged = await logRoomStatusChange({
-        roomId: room.id,
-        roomNumber: room.number,
-        oldStatus: room.status,
-        newStatus: patch.status,
-        previousChangedAt: room.updated_at,
-        staff,
-      });
-      if (!logged.ok) toast.error("Room saved, but the change wasn't logged.");
     }
 
     toast.success(
@@ -484,6 +540,47 @@ function Board() {
             rooms or bookings.
           </p>
         </div>
+      ) : null}
+
+      {syncSummary.pending || syncSummary.conflicts ? (
+        <section
+          className={`mt-6 border p-4 ${
+            syncSummary.conflicts
+              ? "border-status-dirty/70 bg-status-dirty/10"
+              : "border-amber/50 bg-amber/10"
+          }`}
+          aria-live="polite"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="signage text-cream">
+                {syncSummary.pending
+                  ? `${syncSummary.pending} room update${syncSummary.pending === 1 ? "" : "s"} waiting to sync`
+                  : "Room update needs review"}
+              </p>
+              <p className="mt-1 text-sm text-cream/70">
+                {syncSummary.conflicts
+                  ? `${syncSummary.conflicts} update${syncSummary.conflicts === 1 ? "" : "s"} conflict with a newer room change. Refresh the room before trying again.`
+                  : "Changes are stored on this device and will retry when a connection is available."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-cream/35 bg-transparent text-cream hover:bg-cream/10"
+              onClick={() => {
+                void flushQueuedRoomStatusChanges().then(({ synced, conflicts }) => {
+                  if (synced)
+                    toast.success(`${synced} room update${synced === 1 ? "" : "s"} synced.`);
+                  else if (conflicts) toast.error("A room changed elsewhere and needs review.");
+                  else toast.message("Updates are still waiting for a connection.");
+                });
+              }}
+            >
+              Retry sync
+            </Button>
+          </div>
+        </section>
       ) : null}
 
       <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -544,15 +641,15 @@ function Board() {
                 {mode === "map" ? "Property map" : mode === "list" ? "Room list" : "Analytics"}
               </button>
             ))}
-            {/* Floor toggle removed because FloorPlan handles it internally now */}
           </div>
 
           {!loading && view === "map" ? (
             <FloorPlan
+              floor={mapFloor}
               rooms={rooms}
               openRequests={openCountByRoom}
               dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
-              activeRoomId={activeRoomId}
+              onFloorChange={setMapFloor}
               onSelect={setActiveRoomId}
             />
           ) : null}

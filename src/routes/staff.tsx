@@ -541,6 +541,7 @@ Suggestions: ${feedbackText || "None"}`;
   const claimManager = useServerFn(claimFirstManager);
   const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
   const [rooms, setRooms] = useState<MapRoom[]>([]);
+  const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -959,9 +960,10 @@ Suggestions: ${feedbackText || "None"}`;
         {activeTab === "map" ? (
           <div className="mt-6 space-y-4">
             <FloorPlan
+              floor={mapFloor}
               rooms={rooms}
               openRequests={openRequestsByRoom}
-              activeRoomId={selectedRoomId}
+              onFloorChange={setMapFloor}
               onSelect={(roomId) => setSelectedRoomId(roomId)}
             />
 
