@@ -1,4 +1,4 @@
-import numpy as np
+import json
 from PIL import Image
 
 # Read image
@@ -105,5 +105,4 @@ for ge, go, ue, uo, x in h_cols:
     coords[uo] = [x, h_upper_y]
 
 print(f"Total mapped rooms: {len(coords)}")
-import json
 print(json.dumps(coords, indent=2))
