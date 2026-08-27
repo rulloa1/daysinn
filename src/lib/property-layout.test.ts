@@ -70,6 +70,25 @@ describe("authoritative property wing drawing", () => {
     expect(rows.flatMap((row) => [row.outer, row.inner])).not.toContain("239");
   });
 
+  it("orders the pool-facing ground-floor row from room 136 through room 162", () => {
+    expect(northBuilding(1).top).toEqual([
+      "136",
+      "138",
+      "140",
+      "142",
+      "144",
+      "146",
+      "148",
+      "150",
+      "152",
+      "154",
+      "156",
+      "158",
+      "160",
+      "162",
+    ]);
+  });
+
   it("orders the ground-floor end row from room 163 to room 137 and omits only 237 and 239", () => {
     expect(northBuilding(1).bottom).toEqual([
       "163",

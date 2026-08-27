@@ -49,6 +49,7 @@ export function westWing(floor: FloorKey): WingRow[] {
 /**
  * Horizontal guest wing, as shown in the supplied original wing drawing.
  *
+ * The pool-facing ground-floor row reads from room 136 through room 162.
  * The ground-floor end row reads right to left from room 163 through room 137.
  * Room 265 is the additional second-floor room beneath the terminal 263 cell.
  * Rooms 237 and 239 are not part of the property inventory and must not be
