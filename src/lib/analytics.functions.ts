@@ -16,7 +16,7 @@ function dateKey(iso: string) {
 
 export const getOccupancyTrend = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
+  .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -51,7 +51,7 @@ export const getOccupancyTrend = createServerFn({ method: "GET" })
 
 export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({}).parse(input ?? {}))
+  .validator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.rpc("rooms_board");
     if (error) throw new Error(error.message);
@@ -66,7 +66,7 @@ export const getRoomStatusBreakdown = createServerFn({ method: "GET" })
 
 export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
+  .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -101,7 +101,7 @@ export const getTurnaroundByHousekeeper = createServerFn({ method: "GET" })
 
 export const getRequestVolume = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
+  .validator((input) =>
     z.object({ days: z.number().int().min(1).max(90).default(14) }).parse(input),
   )
   .handler(async ({ data, context }) => {

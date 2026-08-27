@@ -7,7 +7,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  */
 export const verifyStaffPin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { memberId: string; pin: string }) => input)
+  .validator((input: { memberId: string; pin: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("staff_members")
@@ -52,7 +52,7 @@ export const verifyStaffPin = createServerFn({ method: "POST" })
 /** Store or clear a housekeeper's PIN. */
 export const setStaffPin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { memberId: string; pin: string }) => input)
+  .validator((input: { memberId: string; pin: string }) => input)
   .handler(async ({ data, context }) => {
     const pin = data.pin.trim();
     const { error } = await context.supabase

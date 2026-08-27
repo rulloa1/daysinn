@@ -34,7 +34,7 @@ export const listTeam = createServerFn({ method: "POST" })
 
 export const setTeamRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; role: AppRole }) => {
+  .validator((input: { userId: string; role: AppRole }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
     }
@@ -71,7 +71,7 @@ export const setTeamRole = createServerFn({ method: "POST" })
 
 export const revokeTeamRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string }) => {
+  .validator((input: { userId: string }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
       throw new Error("A user is required");
     }

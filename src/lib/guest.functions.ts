@@ -69,7 +69,7 @@ const GENERIC_DENIAL =
   "We couldn't verify that room. Check the room number and the last name on the reservation, or ask the front desk.";
 
 export const guestSignIn = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => signInSchema.parse(input))
+  .validator((input: unknown) => signInSchema.parse(input))
   .handler(async ({ data }) => {
     const { allowGuestAttempt, recordGuestAttempt, recordAudit } =
       await import("@/lib/audit.server");
@@ -116,7 +116,7 @@ export const guestSignIn = createServerFn({ method: "POST" })
   });
 
 export const guestRequests = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => credentialsSchema.parse(input))
+  .validator((input: unknown) => credentialsSchema.parse(input))
   .handler(async ({ data }) => {
     const { allowGuestAttempt } = await import("@/lib/audit.server");
     if (!(await allowGuestAttempt("guest_request", data.room))) {
@@ -143,9 +143,7 @@ export const guestRequests = createServerFn({ method: "POST" })
  */
 export const rotateRoomQr = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 
@@ -186,9 +184,7 @@ export const rotateRoomQr = createServerFn({ method: "POST" })
 /** Staff-only: kills every outstanding code for a room. */
 export const revokeRoomQr = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ room: z.string().trim().min(1).max(10) }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ room: z.string().trim().min(1).max(10) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase, context.userId);
 

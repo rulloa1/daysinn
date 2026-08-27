@@ -14,7 +14,7 @@ import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { logRoomStatusChange, type StaffIdentity } from "@/lib/ops";
 import { verifyStaffPin } from "@/lib/housekeeping.functions";
-import { PRESENTER_IDENTITY, usePresentationMode } from "@/lib/presentation";
+import { PRESENTER_IDENTITY, setPresentationMode, usePresentationMode } from "@/lib/presentation";
 import {
   enableDevicePush,
   pushPermission,
@@ -189,6 +189,17 @@ function HousekeepingPage() {
           </p>
           <Button asChild className="mt-6 w-full bg-amber text-ink hover:bg-amber/90">
             <Link to="/staff">Go to staff sign in</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setPresentationMode(true);
+              window.location.reload();
+            }}
+            className="mt-3 w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+          >
+            Open demo preview
           </Button>
           <Link
             to="/"

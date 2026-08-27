@@ -36,7 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
-import { usePresentationMode } from "@/lib/presentation";
+import { setPresentationMode, usePresentationMode } from "@/lib/presentation";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { PRIORITY_BADGE, toGuestStatus, wingForRoom } from "@/lib/room-model";
 import { GUEST_STATUSES, PRIORITY_LEVELS, type PriorityLevel } from "@/types/operations";
@@ -210,6 +210,17 @@ function FrontDeskPage() {
           </p>
           <Button asChild className="mt-6 w-full bg-amber text-ink hover:bg-amber/90">
             <Link to="/staff">Go to staff sign in</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setPresentationMode(true);
+              window.location.reload();
+            }}
+            className="mt-3 w-full border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+          >
+            Open demo preview
           </Button>
           <Link
             to="/"

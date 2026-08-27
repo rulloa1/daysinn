@@ -37,7 +37,7 @@ If no tool is needed, reply naturally and omit tool_calls. Keep replies short an
 
 export const askOpsAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         messages: z.array(

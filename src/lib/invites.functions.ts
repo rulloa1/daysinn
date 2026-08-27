@@ -73,7 +73,7 @@ export const listStaffInvites = createServerFn({ method: "POST" })
 
 export const sendStaffInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { name: string; email: string; role?: AppRole; inviteId?: string }) => {
+  .validator((input: { name: string; email: string; role?: AppRole; inviteId?: string }) => {
     if (typeof input?.name !== "string" || !input.name.trim()) {
       throw new Error("A name is required");
     }
@@ -218,7 +218,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
 
 export const revokeStaffInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { inviteId: string }) => {
+  .validator((input: { inviteId: string }) => {
     if (typeof input?.inviteId !== "string" || !input.inviteId) {
       throw new Error("An invite is required");
     }

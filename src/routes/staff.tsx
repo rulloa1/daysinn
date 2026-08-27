@@ -24,9 +24,11 @@ import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
+import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
-import { Menu, Map as MapIcon, ListFilter, Users } from "lucide-react";
+import { Menu, Map as MapIcon, ListFilter, Users, Wrench, BarChart3 } from "lucide-react";
 
 type RequestRow = {
   id: string;
@@ -336,7 +338,9 @@ function Dashboard({
   const canEditCrm = demo ? false : isManager || role.roles.includes("staff");
   const refresh = role.refresh;
   const claimManager = useServerFn(claimFirstManager);
-  const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm">("queue");
+  const [activeTab, setActiveTab] = useState<"queue" | "map" | "crm" | "maintenance" | "analytics">(
+    "queue",
+  );
   const [rooms, setRooms] = useState<MapRoom[]>([]);
   const [mapFloor, setMapFloor] = useState<FloorView>("both");
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -687,6 +691,36 @@ function Dashboard({
             <Users className="mr-1.5 h-4 w-4" />
             Guest CRM
           </Button>
+
+          <Button
+            type="button"
+            variant={activeTab === "maintenance" ? "default" : "outline"}
+            onClick={() => setActiveTab("maintenance")}
+            className={
+              activeTab === "maintenance"
+                ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+            }
+          >
+            <Wrench className="mr-1.5 h-4 w-4" />
+            Maintenance
+          </Button>
+
+          {isManager || demo ? (
+            <Button
+              type="button"
+              variant={activeTab === "analytics" ? "default" : "outline"}
+              onClick={() => setActiveTab("analytics")}
+              className={
+                activeTab === "analytics"
+                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
+                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+              }
+            >
+              <BarChart3 className="mr-1.5 h-4 w-4" />
+              Analytics
+            </Button>
+          ) : null}
         </div>
 
         {activeTab === "map" ? (
@@ -800,6 +834,17 @@ function Dashboard({
         </div>
       ) : activeTab === "crm" ? (
         <GuestCrmPanel canEdit={canEditCrm} demo={demo} />
+      ) : activeTab === "maintenance" ? (
+        <div className="mt-6">
+          <MaintenanceTicketsPanel
+            reporter={staff?.name ?? "Staff"}
+            reporterStaffId={staff?.id ?? null}
+          />
+        </div>
+      ) : activeTab === "analytics" ? (
+        <div className="mt-6">
+          <AnalyticsDashboard />
+        </div>
       ) : (
         <>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
