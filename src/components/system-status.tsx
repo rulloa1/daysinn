@@ -1,5 +1,4 @@
 import { isSupabaseConfigured } from "@/integrations/supabase/client";
-import { readPresentationMode } from "@/lib/presentation";
 import type { Session } from "@supabase/supabase-js";
 import { Database, Shield, MonitorPlay } from "lucide-react";
 
