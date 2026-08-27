@@ -202,7 +202,7 @@ const ROOM_COORDS: Record<string, [number, number]> = {
   "262": [75.8, 18.7],
   "263": [81.8, 18.7],
   "264": [75.8, 16.2],
-  "265": [81.8, 16.2]
+  "265": [81.8, 16.2],
 };
 
 /** Filter rooms to the floors the user wants to see */
@@ -384,19 +384,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
             className="block w-full select-none"
             draggable={false}
           />
-
-          {/* The two physical cells not occupied by the 110–135 range stay visibly unused. */}
-          {activeFloor !== 2 &&
-            UNUSED_FIRST_FLOOR_SLOTS.map(([left, top]) => (
-              <span
-                key={`unused-${left}-${top}`}
-                title="Unused physical room slot"
-                style={{ left: `${left}%`, top: `${top}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 rounded border border-slate-400/70 bg-slate-100/95 px-1 py-0.5 text-[7px] font-bold uppercase tracking-tight text-slate-600 shadow-sm"
-              >
-                Unused
-              </span>
-            ))}
+          />
 
           {matchingFacilities.map((facility) => (
             <span
