@@ -122,6 +122,10 @@ function StaffPage() {
     );
   }
 
+  if (!session) {
+    return <SignIn onDemo={() => {}} session={session} />;
+  }
+
   return (
     <PasswordResetGate>
       <Dashboard session={session} />
@@ -135,90 +139,6 @@ function Dashboard({
   session?: Session | null;
 }) {
   const [rows, setRows] = useState<RequestRow[]>([]);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [tourStep, setTourStep] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (tourStep === 1) {
-      setActiveTab("map");
-    } else if (tourStep === 2) {
-      setActiveTab("queue");
-    } else if (tourStep === 3) {
-      setActiveTab("crm");
-    }
-  }, [tourStep]);
-
-  useEffect(() => {
-    if (tourStep === null) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setTourStep(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [tourStep]);
-
-  const handleStartTour = () => {
-    setShowWelcome(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("daysinn.tour.dismissed", "1");
-    }
-    setTourStep(1);
-  };
-
-  const handleSkipTour = () => {
-    setShowWelcome(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("daysinn.tour.dismissed", "1");
-    }
-  };
-
-  const handleNextStep = () => {
-    if (tourStep !== null) {
-      if (tourStep < 4) {
-        setTourStep(tourStep + 1);
-      } else {
-        setTourStep(null);
-      }
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (tourStep !== null && tourStep > 1) {
-      setTourStep(tourStep - 1);
-    }
-  };
-
-  const [feedbackAnswer, setFeedbackAnswer] = useState<"Yes" | "Maybe" | "No" | null>(null);
-  const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-
-  const submitFeedback = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!feedbackAnswer) {
-      toast.error("Please select an answer.");
-      return;
-    }
-    setFeedbackSubmitted(true);
-    toast.success("Thank you for your feedback!");
-  };
-
-  const copyFeedback = () => {
-    const text = `DaysInn Staff Portal Demo Feedback:
-Would this make daily operations easier? ${feedbackAnswer}
-Suggestions: ${feedbackText || "None"}`;
-    navigator.clipboard.writeText(text);
-    toast.success("Feedback copied to clipboard!");
-  };
-
-  const emailFeedback = () => {
-    const subject = encodeURIComponent("DaysInn staff portal demo feedback");
-    const body = encodeURIComponent(
-      `Would this make daily operations easier? ${feedbackAnswer}\nSuggestions: ${feedbackText || "None"}`,
-    );
-    window.open(`mailto:demo-feedback@daysinn.com?subject=${subject}&body=${body}`, "_blank");
-  };
   const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
   const roleLoading = role.loading;
