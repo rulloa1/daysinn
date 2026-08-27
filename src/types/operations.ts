@@ -17,10 +17,13 @@ export type PriorityLevel = "Normal" | "High" | "VIP";
 
 export type WingName = "North Wing" | "West Wing" | "South Wing";
 
+export type BuildingName = "Main Building" | "Building 2" | "Building 3";
+
 export interface Room {
   id: string;
   number: string;
   wing: WingName;
+  building?: BuildingName;
   floor: 1 | 2;
   side: string;
   type: string;
@@ -69,6 +72,8 @@ export const GUEST_STATUSES: GuestStatus[] = [
 export const PRIORITY_LEVELS: PriorityLevel[] = ["Normal", "High", "VIP"];
 
 export const WING_NAMES: WingName[] = ["North Wing", "West Wing", "South Wing"];
+
+export const BUILDING_NAMES: BuildingName[] = ["Main Building", "Building 2", "Building 3"];
 
 export const TICKET_URGENCIES: TicketUrgency[] = ["Low", "Normal", "High", "Urgent"];
 

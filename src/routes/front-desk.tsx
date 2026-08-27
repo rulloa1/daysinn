@@ -185,6 +185,7 @@ function stamp(iso: string) {
 function FrontDeskPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const { isFrontDesk, isHousekeeper, loading: roleLoading } = useStaffRole();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
@@ -195,7 +196,7 @@ function FrontDeskPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (!ready) {
+  if (!ready || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink text-sm text-cream/60">
         Loading…
@@ -214,6 +215,32 @@ function FrontDeskPage() {
           </p>
           <Button asChild className="mt-6 w-full bg-amber text-ink hover:bg-amber/90">
             <Link to="/staff">Go to staff sign in</Link>
+          </Button>
+          <Link
+            to="/"
+            className="signage mt-6 inline-block text-cream/60 transition-colors duration-200 hover:text-amber"
+          >
+            ← Guest view
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Housekeeping-only role is restricted from front-desk guest bookings & phone numbers
+  if (isHousekeeper && !isFrontDesk) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink px-6 text-cream">
+        <div className="w-full max-w-md border border-amber/30 bg-cream/[0.02] p-8 text-center">
+          <BrandLockup tone="cream" />
+          <p className="signage mt-6 text-amber">Restricted Access</p>
+          <h1 className="mt-2 text-2xl font-normal">Housekeeping Portal</h1>
+          <p className="mt-3 text-sm text-cream/70">
+            The front-desk board and bookings log are reserved for front desk and management. You
+            have access to the live room-status dashboard.
+          </p>
+          <Button asChild className="mt-6 w-full bg-amber text-ink hover:bg-amber/90">
+            <Link to="/housekeeping">Open Housekeeping Dashboard</Link>
           </Button>
           <Link
             to="/"

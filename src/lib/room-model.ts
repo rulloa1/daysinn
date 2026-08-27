@@ -1,4 +1,13 @@
-import type { GuestStatus, PriorityLevel, Room, RoomStatus, WingName } from "@/types/operations";
+import type {
+  BuildingName,
+  GuestStatus,
+  PriorityLevel,
+  Room,
+  RoomStatus,
+  WingName,
+} from "@/types/operations";
+
+export type { BuildingName };
 
 /** The room_status enum stored in the database. */
 export type DbRoomStatus =
@@ -14,11 +23,13 @@ export type DbRoomRow = {
   guest_name?: string | null;
   check_in?: string | null;
   check_out?: string | null;
+  original_check_out?: string | null;
   notes?: string | null;
   dnd?: boolean | null;
   extended_stay?: boolean | null;
   assigned_name?: string | null;
   wing?: string | null;
+  building?: BuildingName | null;
   side?: string | null;
   guest_status?: string | null;
   hk_stage?: string | null;
@@ -26,6 +37,52 @@ export type DbRoomRow = {
   linen_change?: boolean | null;
   updated_at?: string | null;
 };
+
+/**
+ * Actual property building based on physical layout:
+ * - Main Building: rooms 108-117 and 208-217, plus upstairs rooms 200-209;
+ *   also contains lobby, breakfast area, kitchen, GM office, security, and the pool
+ * - Building 2: rooms 118-135 and 218-235; contains laundry / guest laundry facility
+ * - Building 3: rooms 136-163 and 236-265
+ */
+export function buildingForRoom(number: string): BuildingName {
+  const value = Number(number);
+  if (!Number.isFinite(value)) return "Main Building";
+
+  if (value < 200) {
+    if (value >= 100 && value <= 117) return "Main Building";
+    if (value >= 118 && value <= 135) return "Building 2";
+    if (value >= 136 && value <= 165) return "Building 3";
+  } else {
+    if (value >= 200 && value <= 217) return "Main Building";
+    if (value >= 218 && value <= 235) return "Building 2";
+    if (value >= 236 && value <= 265) return "Building 3";
+  }
+  return "Main Building";
+}
+
+/**
+ * Determine if DND is active as an independent boolean/flag.
+ */
+export function isDndActive(room: {
+  dnd?: boolean | null;
+  status?: DbRoomStatus | string | null;
+}): boolean {
+  return Boolean(room.dnd) || room.status === "occupied_dnd" || room.status === "DND";
+}
+
+/**
+ * Determine if Extended Stay is active (either boolean flag or check_out > original_check_out).
+ */
+export function isExtendedStay(room: {
+  extended_stay?: boolean | null;
+  check_out?: string | null;
+  original_check_out?: string | null;
+}): boolean {
+  if (room.extended_stay === true) return true;
+  if (!room.check_out || !room.original_check_out) return false;
+  return room.check_out > room.original_check_out;
+}
 
 /** True when a room occupies the vertical physical wing on the site plan. */
 function isVerticalWing(number: string) {
@@ -56,8 +113,8 @@ export function toRoomStatus(row: DbRoomRow): RoomStatus {
   if (row.hk_stage === "in_progress") return "In Progress";
   if (row.hk_stage === "inspected") return "Inspected";
   if (row.status === "out_of_order") return "Maintenance";
-  if (row.status === "occupied_dnd" || row.dnd) return "DND";
-  if (row.extended_stay) return "Stayover";
+  if (isDndActive(row)) return "DND";
+  if (isExtendedStay(row)) return "Stayover";
   if (row.status === "vacant_clean") return "Clean";
   if (row.status === "vacant_dirty") return "Dirty";
   return row.status === "occupied" ? "Dirty" : "Clean";
@@ -108,6 +165,7 @@ export function toRoom(row: DbRoomRow): Room {
     id: row.id,
     number: row.number,
     wing: ((row.wing as WingName | null) ?? wingForRoom(row.number)) as WingName,
+    building: row.building ?? buildingForRoom(row.number),
     floor: (row.floor === 2 ? 2 : 1) as 1 | 2,
     side: row.side ?? sideForRoom(row.number),
     type: row.bed_type ?? "Standard",

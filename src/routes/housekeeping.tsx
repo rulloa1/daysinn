@@ -34,7 +34,8 @@ import { HousekeepingRunner } from "@/components/housekeeping-runner";
 import { ShiftClock } from "@/components/shift-clock";
 import { MySchedule } from "@/components/my-schedule";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
-import { Footprints } from "lucide-react";
+import { Footprints, Ban, RefreshCw, Sparkles, Building2, Calendar } from "lucide-react";
+import { buildingForRoom, isDndActive, isExtendedStay, type BuildingName } from "@/lib/room-model";
 
 import {
   Dialog,
@@ -67,6 +68,7 @@ type RoomRow = {
   status: RoomStatus;
   guest_name: string | null;
   check_out: string | null;
+  original_check_out?: string | null;
   notes: string | null;
   dnd: boolean;
   extended_stay: boolean;
@@ -76,6 +78,21 @@ type RoomRow = {
   hk_stage: string | null;
   priority: string | null;
   linen_change: boolean | null;
+};
+
+const BUILDING_META: Record<BuildingName, { label: string; description: string }> = {
+  "Main Building": {
+    label: "Main Building",
+    description: "Rooms 108–117 & 200–217 · Lobby, Pool & Front Wing",
+  },
+  "Building 2": {
+    label: "Building 2",
+    description: "Rooms 118–135 & 218–235 · Laundry & Facilities",
+  },
+  "Building 3": {
+    label: "Building 3",
+    description: "Rooms 136–163 & 236–265 · Courtyard & Rear Wing",
+  },
 };
 
 const STATUS_LABEL: Record<RoomStatus, string> = {
@@ -433,7 +450,7 @@ function HousekeepingBoard({
       const { data, error } = await supabase
         .from("rooms")
         .select(
-          "id, number, floor, status, guest_name, check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change",
+          "id, number, floor, status, guest_name, check_out, original_check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change",
         )
         .order("number");
       if (!active) return;
@@ -469,24 +486,24 @@ function HousekeepingBoard({
               sendDevicePush(title, description ?? "", `room-${next.number}`);
             }
           };
-          if (next.dnd && !prev.dnd) {
+          if (isDndActive(next) && !isDndActive(prev)) {
             emit(
               "warning",
               `Room ${next.number} is now Do Not Disturb`,
               "Skip this room until the flag clears.",
             );
           }
-          if (next.extended_stay && !prev.extended_stay) {
+          if (isExtendedStay(next) && !isExtendedStay(prev)) {
             emit(
               "info",
-              `Room ${next.number} is staying over`,
+              `Room ${next.number} is an extended stay`,
               next.check_out
                 ? `New checkout ${next.check_out}`
                 : "Service as a stayover, not a checkout.",
             );
           } else if (
-            next.extended_stay &&
-            prev.extended_stay &&
+            isExtendedStay(next) &&
+            isExtendedStay(prev) &&
             next.check_out !== prev.check_out
           ) {
             emit(
@@ -557,7 +574,7 @@ function HousekeepingBoard({
     );
   }
 
-  const floors = useMemo(() => {
+  const buildings = useMemo(() => {
     const base =
       filter === "dirty"
         ? rooms.filter((r) => r.status === "vacant_dirty")
@@ -567,27 +584,39 @@ function HousekeepingBoard({
     const q = query.trim().toLowerCase();
     const pool = q ? base.filter((r) => String(r.number).toLowerCase().includes(q)) : base;
 
-    const byFloor = new Map<number, RoomRow[]>();
+    const order: BuildingName[] = ["Main Building", "Building 2", "Building 3"];
+    const byBuilding = new Map<BuildingName, RoomRow[]>();
+    for (const name of order) byBuilding.set(name, []);
+
     for (const room of pool) {
-      const list = byFloor.get(room.floor) ?? [];
+      const bName = buildingForRoom(room.number);
+      const list = byBuilding.get(bName) ?? [];
       list.push(room);
-      byFloor.set(room.floor, list);
+      byBuilding.set(bName, list);
     }
-    return [...byFloor.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([floor, list]) => ({
-        floor,
-        rooms: list.sort(
-          (a, b) =>
-            PRIORITY.indexOf(a.status) - PRIORITY.indexOf(b.status) ||
-            a.number.localeCompare(b.number),
-        ),
-      }));
+
+    return order
+      .map((name) => {
+        const list = byBuilding.get(name) ?? [];
+        return {
+          building: name,
+          meta: BUILDING_META[name],
+          rooms: list.sort((a, b) => {
+            const priorityDiff = PRIORITY.indexOf(a.status) - PRIORITY.indexOf(b.status);
+            if (priorityDiff !== 0) return priorityDiff;
+            const aNum = parseInt(a.number, 10);
+            const bNum = parseInt(b.number, 10);
+            if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+            return a.number.localeCompare(b.number);
+          }),
+        };
+      })
+      .filter((g) => g.rooms.length > 0);
   }, [rooms, filter, staff.id, query]);
 
   const toClean = rooms.filter((r) => r.status === "vacant_dirty").length;
-  const dnd = rooms.filter((r) => r.dnd).length;
-  const stayovers = rooms.filter((r) => r.extended_stay).length;
+  const dnd = rooms.filter((r) => isDndActive(r)).length;
+  const stayovers = rooms.filter((r) => isExtendedStay(r)).length;
   const mine = rooms.filter((r) => r.assigned_staff_id === staff.id);
   const mineLeft = mine.filter((r) => r.status === "vacant_dirty").length;
   const mineDone = mine.length - mineLeft;
@@ -1036,7 +1065,7 @@ function HousekeepingBoard({
             onSelect={(roomId) => setActiveId(roomId)}
           />
         </div>
-      ) : floors.length === 0 ? (
+      ) : buildings.length === 0 ? (
         <div className="mt-8 border border-cream/15 bg-cream/[0.03] p-6 text-center">
           <p className="signage text-cream/50">No rooms match</p>
           <p className="mt-2 text-sm text-cream/60">
@@ -1044,147 +1073,189 @@ function HousekeepingBoard({
           </p>
         </div>
       ) : (
-        floors.map(({ floor, rooms: list }) => (
-          <section key={floor} className="mt-8">
-            <div className="sticky top-0 z-10 -mx-1 grid grid-cols-[auto_auto_auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-cream/10 bg-ink/85 px-1 py-2.5 backdrop-blur-xl sm:flex sm:flex-wrap">
-              <span aria-hidden className="h-3 w-[3px] shrink-0 bg-amber" />
-              <p className="signage text-cream/70">Floor {floor}</p>
-              <span className="signage text-[0.65rem] text-cream/40">{list.length} rooms</span>
-              <span className="hidden h-px flex-1 bg-cream/10 sm:block" />
-              <span className="col-span-4 -mx-1 flex snap-x items-center gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:col-auto sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-                {(Object.keys(STATUS_LABEL) as RoomStatus[])
-                  .map((s) => [s, list.filter((r) => r.status === s).length] as const)
-                  .filter(([, n]) => n > 0)
-                  .map(([s, n]) => (
-                    <span
-                      key={s}
-                      className="signage flex shrink-0 items-center gap-1.5 text-[0.6rem] text-cream/55"
+        buildings.map(({ building, meta, rooms: list }) => {
+          const dirtyInBuilding = list.filter((r) => r.status === "vacant_dirty").length;
+          return (
+            <section key={building} className="mt-8">
+              <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-cream/10 bg-ink/90 px-1 py-3 backdrop-blur-xl">
+                <div className="flex items-center gap-2.5">
+                  <span aria-hidden className="h-4 w-[3px] shrink-0 bg-amber" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="signage text-base font-medium text-cream">{building}</h2>
+                      <span className="signage rounded border border-cream/15 bg-cream/[0.04] px-2 py-0.5 text-[0.65rem] text-cream/60">
+                        {list.length} rooms
+                      </span>
+                      {dirtyInBuilding > 0 ? (
+                        <span className="signage rounded bg-status-dirty/20 border border-status-dirty/40 px-2 py-0.5 text-[0.65rem] font-bold text-status-dirty">
+                          {dirtyInBuilding} to turn
+                        </span>
+                      ) : (
+                        <span className="signage rounded bg-status-clean/20 border border-status-clean/40 px-2 py-0.5 text-[0.65rem] text-status-clean">
+                          All clean
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-[0.7rem] text-cream/45">{meta.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {(Object.keys(STATUS_LABEL) as RoomStatus[])
+                    .map((s) => [s, list.filter((r) => r.status === s).length] as const)
+                    .filter(([, n]) => n > 0)
+                    .map(([s, n]) => (
+                      <span
+                        key={s}
+                        className="signage flex shrink-0 items-center gap-1.5 rounded-full border border-cream/10 bg-cream/[0.03] px-2 py-0.5 text-[0.6rem] text-cream/60"
+                      >
+                        <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[s]}`} />
+                        {STATUS_LABEL[s]} {n}
+                      </span>
+                    ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+                {list.map((room) => {
+                  const mine = room.assigned_staff_id === staff.id;
+                  const actionable = !room.assigned_staff_id || mine;
+                  const needsTurn = room.status === "vacant_dirty";
+                  const hasDnd = isDndActive(room);
+                  const hasExtendedStay = isExtendedStay(room);
+                  const stage = room.hk_stage
+                    ? (STAGE_LABEL[room.hk_stage] ?? room.hk_stage)
+                    : null;
+                  return (
+                    <div
+                      key={room.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setActiveId(room.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setActiveId(room.id);
+                        }
+                      }}
+                      className={`group relative flex h-full min-h-[10.5rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden rounded-xl border p-3.5 pl-4 text-left shadow-sm transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
                     >
-                      <span aria-hidden className={`h-2 w-2 rounded-full ${STATUS_DOT[s]}`} />
-                      {STATUS_LABEL[s]} {n}
-                    </span>
-                  ))}
-              </span>
-            </div>
-            <div className="mt-3 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-              {list.map((room) => {
-                const mine = room.assigned_staff_id === staff.id;
-                const actionable = !room.assigned_staff_id || mine;
-                const needsTurn = room.status === "vacant_dirty";
-                const stage = room.hk_stage ? (STAGE_LABEL[room.hk_stage] ?? room.hk_stage) : null;
-                return (
-                  <div
-                    key={room.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setActiveId(room.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setActiveId(room.id);
-                      }
-                    }}
-                    className={`group relative flex h-full min-h-[10.25rem] cursor-pointer touch-manipulation select-none flex-col overflow-hidden rounded-xl border p-3.5 pl-4 text-left shadow-sm transition-all duration-200 active:scale-[0.99] hover:-translate-y-0.5 hover:border-cream/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber ${STATUS_CARD[room.status]}`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`absolute inset-y-0 left-0 w-[4px] ${STATUS_DOT[room.status]}`}
-                    />
-                    <span className="flex items-start justify-between gap-2">
-                      <span className="text-3xl leading-none tracking-tight">{room.number}</span>
                       <span
-                        className={`signage rounded-full border px-2 py-1 text-right text-[0.55rem] leading-none ${STATUS_PILL[room.status]}`}
-                      >
-                        {STATUS_LABEL[room.status]}
-                      </span>
-                    </span>
-
-                    <span className="mt-3 flex min-h-[1.25rem] flex-wrap gap-1">
-                      {stage ? (
-                        <span className="signage border border-sky-300/30 bg-sky-300/10 px-1.5 py-0.5 text-[0.6rem] text-sky-100">
-                          {stage}
-                        </span>
-                      ) : null}
-                      {room.dnd ? (
-                        <span className="signage bg-status-dnd px-1.5 py-0.5 text-[0.6rem] text-ink">
-                          DND
-                        </span>
-                      ) : null}
-                      {room.extended_stay ? (
-                        <span className="signage bg-amber px-1.5 py-0.5 text-[0.6rem] text-ink">
-                          Stayover
-                        </span>
-                      ) : null}
-                      {room.linen_change ? (
-                        <span className="signage border border-amber/50 px-1.5 py-0.5 text-[0.6rem] text-amber">
-                          Linens
-                        </span>
-                      ) : null}
-                    </span>
-
-                    <span className="mt-2 flex items-center justify-between gap-2 text-xs">
-                      <span className="truncate text-cream/55">
-                        {room.assigned_name
-                          ? mine
-                            ? "Assigned to you"
-                            : `Assigned to ${room.assigned_name}`
-                          : "Unassigned"}
-                      </span>
-                      <span className="shrink-0 text-cream/35">{stamp(room.updated_at)}</span>
-                    </span>
-
-                    <span className="mt-auto block pt-3">
-                      {actionable && needsTurn ? (
-                        <button
-                          type="button"
-                          disabled={!canTriage}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void markClean(room);
-                          }}
-                          className="signage flex min-h-11 w-full touch-manipulation items-center justify-center rounded-lg bg-status-clean px-3 py-2 text-center text-[0.68rem] font-bold text-ink shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                        aria-hidden
+                        className={`absolute inset-y-0 left-0 w-[4px] ${STATUS_DOT[room.status]}`}
+                      />
+                      <span className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-3xl font-display leading-none tracking-tight text-cream">
+                            {room.number}
+                          </span>
+                          <span className="block mt-1 text-[0.65rem] text-cream/50">
+                            Floor {room.floor}
+                          </span>
+                        </div>
+                        <span
+                          className={`signage rounded-full border px-2 py-1 text-right text-[0.55rem] font-semibold leading-none ${STATUS_PILL[room.status]}`}
                         >
-                          Mark clean
-                        </button>
-                      ) : null}
-                      <span
-                        className={`grid gap-1.5 ${actionable && needsTurn ? "mt-1.5 grid-cols-2" : "grid-cols-1"}`}
-                      >
-                        {actionable ? (
+                          {STATUS_LABEL[room.status]}
+                        </span>
+                      </span>
+
+                      <span className="mt-2.5 flex min-h-[1.5rem] flex-wrap items-center gap-1.5">
+                        {hasDnd ? (
+                          <span
+                            className="signage flex items-center gap-1 rounded bg-status-dnd px-2 py-0.5 text-[0.62rem] font-bold text-white shadow-sm"
+                            title="Do Not Disturb set — do not knock"
+                          >
+                            <Ban className="h-3 w-3 shrink-0" />
+                            <span>DND</span>
+                          </span>
+                        ) : null}
+                        {hasExtendedStay ? (
+                          <span
+                            className="signage flex items-center gap-1 rounded bg-amber px-2 py-0.5 text-[0.62rem] font-bold text-ink shadow-sm"
+                            title="Extended Stay: Checkout date pushed later"
+                          >
+                            <RefreshCw className="h-3 w-3 shrink-0" />
+                            <span>Extended Stay</span>
+                          </span>
+                        ) : null}
+                        {stage ? (
+                          <span className="signage rounded border border-sky-300/30 bg-sky-300/10 px-1.5 py-0.5 text-[0.6rem] text-sky-100">
+                            {stage}
+                          </span>
+                        ) : null}
+                        {room.linen_change ? (
+                          <span className="signage rounded border border-amber/50 bg-amber/10 px-1.5 py-0.5 text-[0.6rem] text-amber">
+                            Linens
+                          </span>
+                        ) : null}
+                      </span>
+
+                      <span className="mt-2 flex items-center justify-between gap-2 text-xs">
+                        <span className="truncate text-cream/55">
+                          {room.assigned_name
+                            ? mine
+                              ? "Assigned to you"
+                              : `Assigned to ${room.assigned_name}`
+                            : "Unassigned"}
+                        </span>
+                        <span className="shrink-0 text-cream/35">{stamp(room.updated_at)}</span>
+                      </span>
+
+                      <span className="mt-auto block pt-3">
+                        {actionable && needsTurn ? (
                           <button
                             type="button"
                             disabled={!canTriage}
                             onClick={(e) => {
                               e.stopPropagation();
-                              void setAssignment(room, !mine);
+                              void markClean(room);
                             }}
-                            className={`signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border px-2 py-2 text-center text-[0.62rem] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                              mine
-                                ? "border-cream/25 text-cream/60 hover:bg-cream/10 hover:text-cream"
-                                : "border-amber/60 text-amber hover:bg-amber hover:text-ink"
-                            }`}
+                            className="signage flex min-h-11 w-full touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-status-clean px-3 py-2 text-center text-[0.72rem] font-bold text-ink shadow-sm transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            {mine ? "Release" : "Claim"}
+                            <Sparkles className="h-3.5 w-3.5" />
+                            <span>Mark clean</span>
                           </button>
                         ) : null}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveId(room.id);
-                          }}
-                          className="signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border border-cream/20 px-2 py-2 text-center text-[0.62rem] text-cream/65 transition-colors hover:border-cream/45 hover:bg-cream/10 hover:text-cream"
+                        <span
+                          className={`grid gap-1.5 ${actionable && needsTurn ? "mt-1.5 grid-cols-2" : "grid-cols-1"}`}
                         >
-                          {actionable ? "Details & status" : "View details"}
-                        </button>
+                          {actionable ? (
+                            <button
+                              type="button"
+                              disabled={!canTriage}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void setAssignment(room, !mine);
+                              }}
+                              className={`signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border px-2 py-2 text-center text-[0.62rem] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                mine
+                                  ? "border-cream/25 text-cream/60 hover:bg-cream/10 hover:text-cream"
+                                  : "border-amber/60 text-amber hover:bg-amber hover:text-ink"
+                              }`}
+                            >
+                              {mine ? "Release" : "Claim"}
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveId(room.id);
+                            }}
+                            className="signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border border-cream/20 px-2 py-2 text-center text-[0.62rem] text-cream/65 transition-colors hover:border-cream/45 hover:bg-cream/10 hover:text-cream"
+                          >
+                            {actionable ? "Details & status" : "View details"}
+                          </button>
+                        </span>
                       </span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        ))
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })
       )}
 
       <Dialog open={!!active} onOpenChange={(open) => !open && setActiveId(null)}>
@@ -1192,41 +1263,61 @@ function HousekeepingBoard({
           {active ? (
             <>
               <DialogHeader>
-                <DialogTitle className="text-3xl">Room {active.number}</DialogTitle>
+                <div className="flex items-center gap-2.5">
+                  <DialogTitle className="text-3xl font-display">Room {active.number}</DialogTitle>
+                  <span className="signage rounded border border-cream/20 bg-cream/[0.04] px-2 py-0.5 text-xs text-cream/70">
+                    {buildingForRoom(active.number)} · Floor {active.floor}
+                  </span>
+                </div>
                 <DialogDescription className="text-cream/60">
-                  Floor {active.floor} · updated {stamp(active.updated_at)}
+                  Updated {stamp(active.updated_at)}
                 </DialogDescription>
               </DialogHeader>
 
-              <p className={`signage ${STATUS_TEXT[active.status]}`}>
-                <span
-                  aria-hidden
-                  className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[active.status]}`}
-                />
-                {STATUS_LABEL[active.status]}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className={`signage ${STATUS_TEXT[active.status]}`}>
+                  <span
+                    aria-hidden
+                    className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[active.status]}`}
+                  />
+                  {STATUS_LABEL[active.status]}
+                </p>
+              </div>
 
-              <div className="flex flex-wrap gap-2">
-                {active.dnd ? (
-                  <span className="signage bg-status-dnd px-2 py-1 text-xs text-ink">
-                    ⛔ Do not disturb
-                  </span>
+              <div className="flex flex-col gap-2">
+                {isDndActive(active) ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-status-dnd/60 bg-status-dnd/20 p-2.5 text-white">
+                    <Ban className="h-4 w-4 shrink-0 text-status-dnd" />
+                    <span className="text-xs font-semibold">
+                      Do Not Disturb set — do not knock or enter.
+                    </span>
+                  </div>
                 ) : null}
-                {active.extended_stay ? (
-                  <span className="signage bg-amber px-2 py-1 text-xs text-ink">
-                    ↻ Staying over — not a turn today
-                  </span>
+                {isExtendedStay(active) ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-amber/60 bg-amber/15 p-2.5 text-amber">
+                    <RefreshCw className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-semibold">
+                      Extended Stay · Checkout extended to {active.check_out || "a later date"}.
+                    </span>
+                  </div>
                 ) : null}
               </div>
 
               <dl className="grid gap-3 text-sm">
                 <div>
                   <dt className="signage text-cream/45">Guest</dt>
-                  <dd className="mt-1 text-cream/85">{active.guest_name || "—"}</dd>
+                  <dd className="mt-1 text-cream/85 font-medium">{active.guest_name || "—"}</dd>
                 </div>
                 <div>
-                  <dt className="signage text-cream/45">Checkout</dt>
-                  <dd className="mt-1 text-cream/85">{active.check_out || "—"}</dd>
+                  <dt className="signage text-cream/45">Checkout Date</dt>
+                  <dd className="mt-1 text-cream/85">
+                    {active.check_out || "—"}
+                    {active.original_check_out && active.original_check_out !== active.check_out ? (
+                      <span className="ml-2 text-xs text-cream/50">
+                        (originally {active.original_check_out})
+                      </span>
+                    ) : null}
+                  </dd>
                 </div>
                 <div>
                   <dt className="signage text-cream/45">Front desk notes</dt>
@@ -1236,7 +1327,7 @@ function HousekeepingBoard({
                 </div>
               </dl>
 
-              <div className="border border-cream/15 bg-cream/[0.03] px-3 py-3">
+              <div className="border border-cream/15 bg-cream/[0.03] p-3 rounded-lg">
                 <p className="signage text-cream/45">Assigned to</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <p className="text-sm text-cream/85">{active.assigned_name ?? "Unassigned"}</p>
@@ -1264,7 +1355,7 @@ function HousekeepingBoard({
                       .map((issue) => (
                         <li
                           key={issue.id}
-                          className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
+                          className="border border-cream/15 bg-cream/[0.03] px-3 py-2 rounded"
                         >
                           <p className="text-sm text-cream">
                             {issue.type} · {REQUEST_STATUS_LABEL[issue.status] ?? issue.status}

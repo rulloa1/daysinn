@@ -30,7 +30,7 @@ export type MapRoom = {
 
 export type FloorView = FloorKey | "both";
 
-const STORAGE_KEY = "daysinn_custom_room_coords_v6";
+const STORAGE_KEY = "daysinn_custom_room_coords_v7";
 
 /** Solid background colors per status for high contrast over the photo */
 const PILL_BG: Record<RoomStatus, string> = {
@@ -100,9 +100,11 @@ const DEFAULT_ROOM_COORDS: Record<string, [number, number]> = {
   "234": [67.5, 63.0],
   "235": [67.5, 63.8],
 
-  // Vertical Wing Upper Roof (Even = Courtyard Side, Odd = Parking Side)
+  // Vertical Pool Wing Upper Roof (Even = Courtyard Side, Odd = Parking Side)
   "236": [64.5, 67.0],
+  "237": [73.0, 67.0],
   "238": [65.0, 63.0],
+  "239": [73.5, 63.0],
   "240": [65.5, 59.0],
   "241": [74.0, 59.0],
   "242": [66.0, 55.0],
@@ -127,7 +129,6 @@ const DEFAULT_ROOM_COORDS: Record<string, [number, number]> = {
   "261": [79.0, 19.0],
   "262": [71.0, 15.0],
   "263": [79.5, 15.0],
-  "264": [71.5, 11.0],
   "265": [80.0, 11.0],
 
   // --- Ground Floor (1xx Series) ---
@@ -169,7 +170,7 @@ const DEFAULT_ROOM_COORDS: Record<string, [number, number]> = {
   "134": [67.5, 71.5],
   "135": [67.5, 72.3],
 
-  // Vertical Wing Ground Walkways (Even = Courtyard Side, Odd = Parking Side)
+  // Vertical Pool Wing Ground Walkways (Even = Courtyard Side, Odd = Parking Side)
   "136": [63.0, 67.0],
   "137": [74.0, 67.0],
   "138": [63.5, 63.0],
@@ -198,8 +199,6 @@ const DEFAULT_ROOM_COORDS: Record<string, [number, number]> = {
   "161": [80.0, 19.0],
   "162": [69.5, 15.0],
   "163": [80.5, 15.0],
-  "164": [70.0, 11.0],
-  "165": [81.0, 11.0],
 };
 
 function loadStoredCoords(): Record<string, [number, number]> {

@@ -37,8 +37,21 @@ export function useStaffRole() {
   }, [refresh]);
 
   const isManager = roles.includes("manager");
+  const isStaff = roles.includes("staff");
   const isHousekeeper = roles.includes("housekeeper");
-  const canTriage = isManager || roles.includes("staff") || isHousekeeper;
+  const isFrontDesk = isManager || isStaff;
+  const canTriage = isManager || isStaff || isHousekeeper;
+  const canClean = isManager || isStaff || isHousekeeper;
 
-  return { roles, loading, isManager, isHousekeeper, canTriage, refresh };
+  return {
+    roles,
+    loading,
+    isManager,
+    isStaff,
+    isHousekeeper,
+    isFrontDesk,
+    canTriage,
+    canClean,
+    refresh,
+  };
 }
