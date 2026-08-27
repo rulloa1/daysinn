@@ -205,8 +205,9 @@ function StaffPage() {
         <Dashboard session={session} />
       </PasswordResetGate>
     );
-  if (demo) return <Dashboard demo present={present} onExitDemo={exitDemo} session={session} />;
-  return <SignIn onDemo={() => setDemo(true)} session={session} />;
+  
+  // Force demo mode by default if not signed in
+  return <Dashboard demo present={present} onExitDemo={exitDemo} session={session} />;
 }
 
 function SignIn({ onDemo, session }: { onDemo: () => void; session: Session | null }) {
