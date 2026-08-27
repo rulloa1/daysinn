@@ -21,3 +21,13 @@ A genuine Housekeeping completion and Front Desk real-time receipt test is **blo
 Following the Housekeeping screen’s **Go to staff sign in** link through the live application router loads the intended `/staff` page. The deployed page explicitly displays: “The live data service is not configured.” Its sign-in controls are disabled. This establishes that the public production build currently lacks the required Supabase URL and publishable key at build/runtime, so it cannot authenticate a staff user, load live room data, or subscribe to real-time room-status events.
 
 This is separate from the browser’s initial direct-navigation rendering of the guest page: application-router navigation reaches the correct staff route, but the route correctly fails closed because its live backend configuration is absent. No credentials were entered and no production data was modified.
+
+## Operations Assistant recovery verification — 2026-08-27 EDT
+
+A runtime error report identified an uncaught network failure in the Operations Assistant server function while it attempted to call the configured AI gateway. The function has been changed locally to return a bounded, staff-facing unavailable message for missing AI configuration, upstream HTTP errors, malformed responses, timeouts, and network errors; it logs the technical cause server-side rather than throwing into the page.
+
+TypeScript validation passed. A local `/staff` load also correctly remains fail-closed and displays the live-data configuration notice with disabled sign-in controls when no Supabase configuration is present. The Operations Assistant cannot be invoked from that signed-out, no-live-backend state, so final browser verification must occur after the production Supabase connection and an authorized staff session are restored.
+
+### Server-function fallback result
+
+The repaired handler was exercised through TanStack Start’s actual local server-function protocol with middleware initialization enabled and the AI key intentionally absent. It returned HTTP 200 and the explicit, non-operational fallback message: “Ops Assistant is temporarily unavailable. You can continue using the live room and request boards directly.” The server did not throw and no blank error page was returned. This verifies the failure mode that previously surfaced as `TypeError: fetch failed` now degrades safely.
