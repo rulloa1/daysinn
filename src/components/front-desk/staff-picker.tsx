@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { StaffIdentity } from "@/lib/ops";
@@ -53,7 +54,14 @@ export function StaffPicker({
             size="sm"
             className="bg-amber text-ink hover:bg-amber/90"
             onClick={async () => {
-              await onAdd(name);
+              try {
+                await onAdd(name);
+              } catch (err) {
+                toast.error(
+                  err instanceof Error ? err.message : "Could not add that name to the roster.",
+                );
+                return;
+              }
               setName("");
               setAdding(false);
             }}

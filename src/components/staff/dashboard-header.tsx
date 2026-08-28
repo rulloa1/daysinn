@@ -4,9 +4,9 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BrandLockup } from "@/components/brand-lockup";
 
-const DESKTOP_LINK = "signage text-cream/60 transition-colors duration-200 hover:text-amber";
+const DESKTOP_LINK = "text-xs font-bold uppercase tracking-wider text-slate-500 transition hover:text-[#004986]";
 const SHEET_LINK =
-  "signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream";
+  "rounded-xl border border-slate-200 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-100";
 
 /** Destinations shared by the desktop nav and the mobile sheet. */
 function navTargets(isManager: boolean) {
@@ -24,21 +24,13 @@ export function DashboardHeader({ isManager }: { isManager: boolean }) {
   const targets = navTargets(isManager);
 
   return (
-    <header className="sticky top-0 z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
-      <div className="flex min-w-0 items-center gap-5">
-        <BrandLockup tone="cream" />
-        <div className="hidden h-8 w-px bg-cream/15 md:block" />
-        <div className="hidden min-w-0 md:block">
-          <p className="signage flex items-center gap-2 text-cream/60">
-            <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            Live shift
-          </p>
-          <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
-        </div>
+    <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex min-w-0 items-center gap-4">
+        <BrandLockup tone="ink" />
       </div>
 
       <div className="flex shrink-0 items-center gap-4">
-        <nav className="hidden items-center gap-4 md:flex">
+        <nav className="hidden items-center gap-5 md:flex">
           {targets.map((target) => (
             <Link key={target.to} to={target.to} className={DESKTOP_LINK}>
               {target.label}
@@ -51,17 +43,17 @@ export function DashboardHeader({ isManager }: { isManager: boolean }) {
             <button
               type="button"
               aria-label="Open menu"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50 md:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
+            className="w-[80vw] max-w-xs border-slate-200 bg-white text-slate-800"
           >
             <SheetHeader>
-              <SheetTitle className="text-left text-cream">Menu</SheetTitle>
+              <SheetTitle className="text-left font-serif text-lg text-[#004986]">Menu</SheetTitle>
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-3">
               {targets.map((target) => (

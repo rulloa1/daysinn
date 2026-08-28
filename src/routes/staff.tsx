@@ -25,19 +25,20 @@ import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { SignIn } from "@/components/staff/sign-in";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
+import { NavRail } from "@/components/front-desk/nav-rail";
 import type { DashboardTab } from "@/components/staff/types";
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Staff Dashboard — Days Inn Hub" },
+      { title: "Request Queue & Staff Portal — Days Inn Hub" },
       {
         name: "description",
         content:
           "Front-desk dashboard for routing guest requests: triage new asks, mark them in progress, and close them out.",
       },
-      { property: "og:title", content: "Staff Dashboard — Days Inn Hub" },
+      { property: "og:title", content: "Request Queue — Days Inn Hub" },
       {
         property: "og:description",
         content: "Triage and close out guest requests from one live queue.",
@@ -65,8 +66,8 @@ function StaffPage() {
 
   if (!ready) {
     return (
-      <div className="ops-surface flex min-h-screen items-center justify-center bg-ink text-sm text-cream/60">
-        Loading…
+      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
+        Loading Staff Portal…
       </div>
     );
   }
@@ -116,99 +117,109 @@ function Dashboard({ session }: { session: Session }) {
   }
 
   return (
-    <div className="ops-surface min-h-screen bg-ink pb-16 text-cream">
-      <div className="px-6 md:px-12">
-        <DashboardHeader isManager={isManager} />
+    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+      {/* Navigation Rail */}
+      <NavRail current="queue" staff={staff} />
 
-        <PwaInstallPrompt className="mt-4" />
+      {/* Main Container */}
+      <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6">
+          <DashboardHeader isManager={isManager} />
 
-        <div className="mt-4 flex justify-end">
-          <SystemStatus session={session} />
-        </div>
+          <PwaInstallPrompt className="mt-1" />
 
-        {!roleLoading && !canTriage ? (
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-amber/50 bg-amber/10 p-5">
-            <div>
-              <p className="signage text-amber">View-only access</p>
-              <p className="mt-2 text-sm text-cream/70">
-                You can watch the queue, but a manager must grant you staff access before you can
-                triage requests.
-              </p>
+          {!roleLoading && !canTriage ? (
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-500/30 bg-amber-50/50 p-5">
+              <div>
+                <p className="text-[11px] font-bold tracking-widest text-[#B45309] uppercase">
+                  View-only access
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  You can watch the queue, but a manager must grant you staff access before you can
+                  triage requests.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                disabled={claiming}
+                className="bg-[#004986] text-white hover:bg-[#004986]/90"
+                onClick={claim}
+              >
+                {claiming ? "Setting up…" : "I'm the first manager"}
+              </Button>
             </div>
-            <Button
-              size="sm"
-              disabled={claiming}
-              className="bg-amber text-ink hover:bg-amber/90"
-              onClick={claim}
-            >
-              {claiming ? "Setting up…" : "I'm the first manager"}
-            </Button>
-          </div>
-        ) : null}
+          ) : null}
 
-        <DashboardTabs
-          active={activeTab}
-          onSelect={setActiveTab}
-          isManager={isManager}
-          openCount={queue.openCount}
-          roomCount={queue.rooms.length}
-        />
-
-        {activeTab === "map" ? (
-          <div className="mt-6 space-y-4">
-            <FloorPlan
-              floor={mapFloor}
-              rooms={queue.rooms}
-              openRequests={queue.openRequestsByRoom}
-              onFloorChange={setMapFloor}
-              onSelect={(roomId) => setSelectedRoomId(roomId)}
-            />
-            <RoomInspector
-              room={selectedRoom}
-              requests={queue.requestsForRoom(selectedRoom?.number)}
-              onClose={() => setSelectedRoomId(null)}
-            />
-          </div>
-        ) : activeTab === "crm" ? (
-          <div className="mt-6">
-            <GuestCrmPanel canEdit={canEditCrm} />
-          </div>
-        ) : activeTab === "maintenance" ? (
-          <div className="mt-6">
-            <MaintenanceTicketsPanel
-              reporter={staff?.name ?? "Staff"}
-              reporterStaffId={staff?.id ?? null}
-            />
-          </div>
-        ) : activeTab === "analytics" ? (
-          <div className="mt-6">
-            <AnalyticsDashboard />
-          </div>
-        ) : activeTab === "queue" ? (
-          <RequestQueue
-            visible={queue.visible}
-            counts={queue.counts}
-            filter={queue.filter}
-            onFilterChange={queue.setFilter}
-            canTriage={canTriage}
-            staff={staff ?? null}
-            onSetStatus={queue.setStatus}
+          {/* Top Sub-tabs */}
+          <DashboardTabs
+            active={activeTab}
+            onSelect={setActiveTab}
+            isManager={isManager}
+            openCount={queue.openCount}
+            roomCount={queue.rooms.length}
           />
-        ) : activeTab === "schedules" ? (
-          <div className="mt-6">
-            <ScheduleBoard />
-          </div>
-        ) : activeTab === "assignments" ? (
-          <div className="mt-6">
-            <AssignmentBoard />
-          </div>
-        ) : activeTab === "team" ? (
-          <div className="mt-6 space-y-6">
-            <TeamPanel />
-            <InvitePanel />
-          </div>
-        ) : null}
-      </div>
+
+          {/* Tab Views */}
+          {activeTab === "queue" ? (
+            <RequestQueue
+              visible={queue.visible}
+              counts={queue.counts}
+              filter={queue.filter}
+              onFilterChange={queue.setFilter}
+              canTriage={canTriage}
+              staff={staff ?? null}
+              onSetStatus={queue.setStatus}
+            />
+          ) : activeTab === "map" ? (
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <FloorPlan
+                floor={mapFloor}
+                rooms={queue.rooms}
+                openRequests={queue.openRequestsByRoom}
+                onFloorChange={setMapFloor}
+                onSelect={(roomId) => setSelectedRoomId(roomId)}
+              />
+              <RoomInspector
+                room={selectedRoom}
+                requests={queue.requestsForRoom(selectedRoom?.number)}
+                onClose={() => setSelectedRoomId(null)}
+              />
+            </div>
+          ) : activeTab === "crm" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <GuestCrmPanel canEdit={canEditCrm} />
+            </div>
+          ) : activeTab === "maintenance" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <MaintenanceTicketsPanel
+                reporter={staff?.name ?? "Staff"}
+                reporterStaffId={staff?.id ?? null}
+              />
+            </div>
+          ) : activeTab === "analytics" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <AnalyticsDashboard />
+            </div>
+          ) : activeTab === "schedules" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <ScheduleBoard />
+            </div>
+          ) : activeTab === "assignments" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <AssignmentBoard />
+            </div>
+          ) : activeTab === "team" ? (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <TeamPanel />
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <InvitePanel />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </main>
     </div>
   );
 }
