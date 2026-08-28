@@ -1,0 +1,185 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - paragraph [ref=f5e3]: "refresh tick: 2"
+    - generic [ref=f5e4]:
+      - generic [ref=f5e6]:
+        - generic [ref=f5e7]:
+          - generic [ref=f5e8]:
+            - generic [ref=f5e9]:
+              - paragraph [ref=f5e10]: Days Inn Wildwood
+              - heading "Detailed property map" [level=2] [ref=f5e11]
+              - paragraph [ref=f5e12]: Drag room markers onto precise roof-level spots or select a room below.
+            - generic [ref=f5e13]:
+              - button "Exit Calibration" [active] [ref=f5e14]
+              - generic [ref=f5e17]: Live status
+          - generic [ref=f5e22]:
+            - generic [ref=f5e23]:
+              - generic [ref=f5e24]:
+                - generic [ref=f5e25]: "Room:"
+                - combobox "Room:" [ref=f5e26]:
+                  - option "Room 108" [selected]
+                  - option "Room 109"
+                  - option "Room 110"
+                  - option "Room 111"
+                  - option "Room 112"
+                  - option "Room 113"
+                  - option "Room 114"
+                  - option "Room 115"
+                  - option "Room 116"
+                  - option "Room 117"
+                  - option "Room 118"
+                  - option "Room 119"
+                  - option "Room 120"
+                  - option "Room 121"
+                  - option "Room 122"
+                  - option "Room 123"
+                  - option "Room 124"
+                  - option "Room 125"
+                  - option "Room 126"
+                  - option "Room 127"
+                  - option "Room 128"
+                  - option "Room 129"
+                  - option "Room 130"
+                  - option "Room 131"
+                  - option "Room 132"
+                  - option "Room 133"
+                  - option "Room 134"
+                  - option "Room 135"
+                  - option "Room 136"
+                  - option "Room 137"
+                  - option "Room 138"
+                  - option "Room 139"
+                  - option "Room 140"
+                  - option "Room 141"
+                  - option "Room 142"
+                  - option "Room 143"
+                  - option "Room 144"
+                  - option "Room 145"
+                  - option "Room 146"
+                  - option "Room 147"
+                  - option "Room 148"
+                  - option "Room 149"
+                  - option "Room 150"
+                  - option "Room 151"
+                  - option "Room 152"
+                  - option "Room 153"
+                  - option "Room 154"
+                  - option "Room 155"
+                  - option "Room 156"
+                  - option "Room 157"
+                  - option "Room 158"
+                  - option "Room 159"
+                  - option "Room 160"
+                  - option "Room 161"
+                  - option "Room 162"
+                  - option "Room 163"
+              - generic [ref=f5e27]:
+                - generic [ref=f5e28]: "X: 22.5%"
+                - generic [ref=f5e29]: "|"
+                - generic [ref=f5e30]: "Y: 75.45%"
+            - generic [ref=f5e31]:
+              - button "Nudge Left" [ref=f5e32]
+              - generic [ref=f5e35]:
+                - button "Nudge Up" [ref=f5e36]
+                - button "Nudge Down" [ref=f5e39]
+              - button "Nudge Right" [ref=f5e42]
+            - generic [ref=f5e45]:
+              - button "Reset Room" [ref=f5e46]
+              - button "Reset All" [ref=f5e50]
+              - button "Copy JSON" [ref=f5e51]
+              - button "Cancel" [ref=f5e55]
+              - button "Save Changes" [ref=f5e59]
+          - generic "Map attention summary" [ref=f5e64]:
+            - generic [ref=f5e65]:
+              - paragraph [ref=f5e66]: "12"
+              - paragraph [ref=f5e67]: Dirty
+            - generic [ref=f5e68]:
+              - paragraph [ref=f5e69]: "11"
+              - paragraph [ref=f5e70]: DND
+            - generic [ref=f5e71]:
+              - paragraph [ref=f5e72]: "0"
+              - paragraph [ref=f5e73]: Maintenance
+            - generic [ref=f5e74]:
+              - paragraph [ref=f5e75]: "2"
+              - paragraph [ref=f5e76]: Open requests
+          - generic [ref=f5e77]:
+            - generic [ref=f5e78]: Search rooms and facilities
+            - textbox "Search rooms and facilities" [ref=f5e79]:
+              - /placeholder: Search rooms, guests, facilities…
+          - generic [ref=f5e80]:
+            - button "1st Floor" [pressed] [ref=f5e81]
+            - button "2nd Floor" [ref=f5e82]
+            - button "All" [ref=f5e83]
+          - generic [ref=f5e84]:
+            - button "Housekeeping filter" [ref=f5e85]
+            - paragraph [ref=f5e87]: 56 rooms shown
+        - generic [ref=f5e89]:
+          - img "Days Inn Wildwood detailed property map"
+          - button "108 22.5%, 75.45%" [ref=f5e90]:
+            - text: "108"
+            - generic [ref=f5e91]: 22.5%, 75.45%
+          - button "109" [ref=f5e92]
+          - button "110" [ref=f5e93]
+          - button "111" [ref=f5e94]
+          - button "112" [ref=f5e95]
+          - button "113" [ref=f5e96]
+          - button "114" [ref=f5e97]
+          - button "115" [ref=f5e98]
+          - button "116" [ref=f5e99]
+          - button "117" [ref=f5e100]
+          - button "118" [ref=f5e101]
+          - button "119" [ref=f5e102]
+          - button "120" [ref=f5e103]
+          - button "121" [ref=f5e104]
+          - button "122" [ref=f5e105]
+          - button "123" [ref=f5e106]
+          - button "124" [ref=f5e107]
+          - button "125" [ref=f5e108]
+          - button "126" [ref=f5e109]
+          - button "127" [ref=f5e110]
+          - button "128" [ref=f5e111]
+          - button "129" [ref=f5e112]
+          - button "130" [ref=f5e113]
+          - button "131" [ref=f5e114]
+          - button "132" [ref=f5e115]
+          - button "133" [ref=f5e116]
+          - button "134" [ref=f5e117]
+          - button "135" [ref=f5e118]
+          - button "136" [ref=f5e119]
+          - button "137" [ref=f5e120]
+          - button "138" [ref=f5e121]
+          - button "139" [ref=f5e122]
+          - button "140" [ref=f5e123]
+          - button "141" [ref=f5e124]
+          - button "142" [ref=f5e125]
+          - button "143" [ref=f5e126]
+          - button "144" [ref=f5e127]
+          - button "145" [ref=f5e128]
+          - button "146" [ref=f5e129]
+          - button "147" [ref=f5e130]
+          - button "148" [ref=f5e131]
+          - button "149" [ref=f5e132]
+          - button "150" [ref=f5e133]
+          - button "151" [ref=f5e134]
+          - button "152" [ref=f5e135]
+          - button "153" [ref=f5e136]
+          - button "154" [ref=f5e137]
+          - button "155" [ref=f5e138]
+          - button "156" [ref=f5e139]
+          - button "157" [ref=f5e140]
+          - button "158" [ref=f5e141]
+          - button "159" [ref=f5e142]
+          - button "160" [ref=f5e143]
+          - button "161" [ref=f5e144]
+          - button "162" [ref=f5e145]
+          - button "163" [ref=f5e146]
+          - generic [ref=f5e147]:
+            - paragraph [ref=f5e148]: Room status
+            - generic [ref=f5e149]:
+              - generic [ref=f5e150]: Available
+              - generic [ref=f5e152]: Occupied
+              - generic [ref=f5e154]: Dirty / cleaning
+              - generic [ref=f5e156]: Exterior stairs
+              - generic [ref=f5e158]: Maintenance
+      - complementary [ref=f5e160]: sidebar
+  - region "Notifications alt+T"

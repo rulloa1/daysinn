@@ -7,9 +7,8 @@ import { BrandLockup } from "@/components/brand-lockup";
 import { FloorPlan, type FloorView } from "@/components/floor-plan";
 import { Button } from "@/components/ui/button";
 import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
-
-type RoomStatus =
-  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "reserved" | "out_of_order";
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh";
+import { DB_STATUS_LABEL as STATUS_LABEL, type DbRoomStatus as RoomStatus } from "@/lib/room-model";
 
 type LiveRoom = {
   id: string;
@@ -21,6 +20,7 @@ type LiveRoom = {
   hk_stage: string | null;
 };
 
+/** Dirty first — this board exists to show what housekeeping still owes. */
 const STATUS_ORDER: RoomStatus[] = [
   "vacant_dirty",
   "vacant_clean",
@@ -29,15 +29,6 @@ const STATUS_ORDER: RoomStatus[] = [
   "reserved",
   "out_of_order",
 ];
-
-const STATUS_LABEL: Record<RoomStatus, string> = {
-  vacant_clean: "Vacant clean",
-  vacant_dirty: "Vacant dirty",
-  occupied: "Occupied",
-  occupied_dnd: "Occupied / DND",
-  reserved: "Reserved / arriving",
-  out_of_order: "Out of order",
-};
 
 const STATUS_STYLE: Record<RoomStatus, string> = {
   vacant_clean: "border-status-clean/55 bg-status-clean/12 text-status-clean",
@@ -151,23 +142,17 @@ function LiveBoard() {
     setRefreshing(false);
   }, []);
 
+  useRealtimeRefresh({
+    channel: "front-desk-live-room-status",
+    tables: ["rooms", "room_status_events"],
+    enabled: isSupabaseConfigured,
+    onRefresh: () => load(),
+  });
+
+  // With Supabase unconfigured there is nothing to subscribe to, but `load`
+  // still needs to run once to surface the "not configured" message.
   useEffect(() => {
-    void load();
-    if (!isSupabaseConfigured) return;
-
-    const channel = supabase
-      .channel("front-desk-live-room-status")
-      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () => void load())
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "room_status_events" },
-        () => void load(),
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    if (!isSupabaseConfigured) void load();
   }, [load]);
 
   const counts = useMemo(

@@ -48,13 +48,16 @@ export const Route = createFileRoute("/front-desk")({
   component: FrontDeskPage,
 });
 
-const VIEWS = [
-  { id: "map", label: "Property map" },
+/**
+ * Supplementary panels shown beneath the map. The map itself is no longer one
+ * of these — it is always on screen above them.
+ */
+const DETAIL_VIEWS = [
   { id: "list", label: "Room list" },
   { id: "analytics", label: "Analytics" },
 ] as const;
 
-type ViewMode = (typeof VIEWS)[number]["id"];
+type DetailView = (typeof DETAIL_VIEWS)[number]["id"];
 
 function FrontDeskPage() {
   const [session, setSession] = useState<Session | null>(null);
@@ -133,7 +136,7 @@ function FrontDeskPage() {
 function Board() {
   const board = useFrontDeskBoard();
   const [filter, setFilter] = useState<"all" | DbRoomStatus>("all");
-  const [view, setView] = useState<ViewMode>("map");
+  const [detail, setDetail] = useState<DetailView>("list");
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
@@ -165,7 +168,30 @@ function Board() {
 
       <RoomSyncBanner summary={board.syncSummary} onRetry={board.flushQueuedRoomStatusChanges} />
 
-      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {/*
+        The property map is the board. It leads the page at full width and stays
+        mounted, so calibration and the floor selection survive every status
+        filter change and realtime refresh; everything else reads as context
+        arranged around it.
+      */}
+      <section className="mt-8" aria-label="Property map">
+        {board.loading ? (
+          <div className="grid min-h-[22rem] place-items-center rounded-[1.75rem] border border-cream/15 bg-cream/[0.03]">
+            <p className="text-sm text-cream/50">Loading the property map…</p>
+          </div>
+        ) : (
+          <FloorPlan
+            floor={mapFloor}
+            rooms={board.rooms}
+            openRequests={board.openCountByRoom}
+            dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
+            onFloorChange={setMapFloor}
+            onSelect={setActiveRoomId}
+          />
+        )}
+      </section>
+
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Stat label="Occupancy" value={`${board.occupancy}%`} />
         <Stat label="Arrivals today" value={board.arrivals.length} />
         <Stat label="Departures today" value={board.departures.length} />
@@ -208,14 +234,14 @@ function Board() {
       <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <section>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {VIEWS.map((mode) => (
+            {DETAIL_VIEWS.map((mode) => (
               <button
                 key={mode.id}
                 type="button"
-                onClick={() => setView(mode.id)}
-                aria-pressed={view === mode.id}
+                onClick={() => setDetail(mode.id)}
+                aria-pressed={detail === mode.id}
                 className={`signage border px-4 py-2 transition-colors duration-200 ${
-                  view === mode.id
+                  detail === mode.id
                     ? "border-amber bg-amber/15 text-amber"
                     : "border-cream/20 text-cream/55 hover:text-cream"
                 }`}
@@ -225,28 +251,17 @@ function Board() {
             ))}
           </div>
 
-          {!board.loading && view === "map" ? (
-            <FloorPlan
-              floor={mapFloor}
-              rooms={board.rooms}
-              openRequests={board.openCountByRoom}
-              dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
-              onFloorChange={setMapFloor}
-              onSelect={setActiveRoomId}
-            />
-          ) : null}
-
-          {!board.loading && view === "analytics" ? <AnalyticsDashboard /> : null}
-
           {board.loading ? (
             <p className="text-sm text-cream/50">Loading the board…</p>
-          ) : view === "list" ? (
+          ) : detail === "analytics" ? (
+            <AnalyticsDashboard />
+          ) : (
             <RoomList
               rooms={visible}
               openCountByRoom={board.openCountByRoom}
               onSelect={setActiveRoomId}
             />
-          ) : null}
+          )}
         </section>
 
         <BoardSidebar

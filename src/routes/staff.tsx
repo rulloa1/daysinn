@@ -1,87 +1,31 @@
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { toast } from "sonner";
-import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { SystemStatus } from "@/components/system-status";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { InvitePanel } from "@/components/invite-panel";
 import { AssignmentBoard } from "@/components/assignment-board";
 import { ScheduleBoard } from "@/components/schedule-board";
-import { OpsAssistant } from "@/components/ops-assistant";
 import { PasswordResetGate } from "@/components/password-reset-gate";
-import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
 import { GuestCrmPanel } from "@/components/guest-crm-panel";
-import { advanceRequest } from "@/lib/request-workflow";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { claimFirstManager } from "@/lib/roles.functions";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
-import { FloorPlan, type FloorView, type MapRoom } from "@/components/floor-plan";
-import {
-  Menu,
-  Map as MapIcon,
-  ListFilter,
-  Users,
-  ClipboardCheck,
-  FileText,
-  Bell,
-  Play,
-  Calendar,
-  UserPlus,
-  Wrench,
-  BarChart3,
-} from "lucide-react";
-
-type RequestRow = {
-  id: string;
-  room: string;
-  guest_name: string | null;
-  type: string;
-  details: string | null;
-  status: string;
-  created_at: string;
-  started_at?: string | null;
-  started_by_name?: string | null;
-  resolved_at?: string | null;
-  resolved_by_name?: string | null;
-};
-
-const STATUSES = ["new", "in_progress", "done"] as const;
-const STATUS_LABEL: Record<string, string> = {
-  new: "New",
-  in_progress: "In progress",
-  done: "Done",
-};
-const STATUS_ACCENT: Record<string, string> = {
-  new: "bg-amber",
-  in_progress: "bg-sage",
-  done: "bg-cream/25",
-};
-const NEXT_ACTION: Record<string, { status: string; label: string } | null> = {
-  new: { status: "in_progress", label: "Start" },
-  in_progress: { status: "done", label: "Complete" },
-  done: null,
-};
-
-function timeAgo(iso: string) {
-  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.round(hrs / 24)}d ago`;
-}
+import { FloorPlan, type FloorView } from "@/components/floor-plan";
+import { DashboardHeader } from "@/components/staff/dashboard-header";
+import { DashboardTabs } from "@/components/staff/dashboard-tabs";
+import { RequestQueue } from "@/components/staff/request-queue";
+import { RoomInspector } from "@/components/staff/room-inspector";
+import { SignIn } from "@/components/staff/sign-in";
+import { useRequestQueue } from "@/components/staff/use-request-queue";
+import type { DashboardTab } from "@/components/staff/types";
 
 export const Route = createFileRoute("/staff")({
   ssr: false,
@@ -136,231 +80,24 @@ function StaffPage() {
   );
 }
 
-function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!isSupabaseConfigured) {
-      toast.error("The live data service is not configured. Please contact an administrator.");
-      return;
-    }
-    setBusy(true);
-    const credentials = { email: email.trim(), password };
-    const { error } =
-      mode === "signin"
-        ? await supabase.auth.signInWithPassword(credentials)
-        : await supabase.auth.signUp({
-            ...credentials,
-            options: { emailRedirectTo: `${window.location.origin}/staff` },
-          });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (mode === "signup") toast.success("Check your email to confirm the account.");
-  }
-
-  return (
-    <main className="ops-surface flex min-h-screen items-center justify-center bg-ink px-6 py-12 text-cream">
-      <section className="w-full max-w-md border border-cream/15 bg-cream/[0.04] p-8 shadow-2xl shadow-black/30">
-        <BrandLockup tone="cream" />
-        <p className="signage mt-8 text-cream/60">Operations portal</p>
-        <h1 className="mt-2 text-3xl">Staff sign in</h1>
-        <p className="mt-2 text-sm leading-relaxed text-cream/60">
-          Sign in to access the live room status, housekeeping, and guest-service boards.
-        </p>
-        {!isSupabaseConfigured ? (
-          <p className="mt-4 border border-status-dirty/60 bg-status-dirty/10 p-3 text-sm text-status-dirty">
-            The live data service is not configured.
-          </p>
-        ) : null}
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@daysinn.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              disabled={!isSupabaseConfigured}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              disabled={!isSupabaseConfigured}
-              minLength={6}
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={busy || !isSupabaseConfigured}
-            className="w-full bg-amber font-bold text-ink hover:bg-amber/90"
-          >
-            {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
-          </Button>
-        </form>
-        {isSupabaseConfigured ? (
-          <button
-            type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="mt-5 w-full text-center text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
-          >
-            {mode === "signin"
-              ? "Need a staff account? Create one"
-              : "Already have an account? Sign in"}
-          </button>
-        ) : null}
-        <Link to="/" className="signage mt-7 inline-block text-cream/50 hover:text-amber">
-          ← Guest view
-        </Link>
-      </section>
-    </main>
-  );
-}
-
 function Dashboard({ session }: { session: Session }) {
-  const [rows, setRows] = useState<RequestRow[]>([]);
-
-  const [filter, setFilter] = useState<string>("all");
   const role = useStaffRole();
-  const roleLoading = role.loading;
-  const isManager = role.isManager;
-  const canTriage = role.canTriage;
+  const { isManager, canTriage, loading: roleLoading, refresh } = role;
   const canEditCrm = isManager || role.roles.includes("staff");
-  const refresh = role.refresh;
-  const claimManager = useServerFn(claimFirstManager);
-  const [activeTab, setActiveTab] = useState<
-    "queue" | "map" | "crm" | "maintenance" | "analytics" | "schedules" | "assignments" | "team"
-  >("queue");
-  const [rooms, setRooms] = useState<MapRoom[]>([]);
+  const { staff } = useStaffIdentity();
+
+  const [activeTab, setActiveTab] = useState<DashboardTab>("queue");
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { staff } = useStaffIdentity();
 
-  useEffect(() => {
-    let active = true;
-    async function loadRooms() {
-      const { data } = await supabase
-        .from("rooms")
-        .select("id, number, floor, status, guest_name")
-        .order("number");
-      if (active && data) {
-        setRooms(
-          data.map((r) => ({
-            id: r.id,
-            number: r.number,
-            status: (r.status ?? "vacant_clean") as MapRoom["status"],
-            guest_name: r.guest_name,
-          })),
-        );
-      }
-    }
-    void loadRooms();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const queue = useRequestQueue(canTriage, staff ?? null);
+  const claimManager = useServerFn(claimFirstManager);
 
-  const openRequestsByRoom = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const r of rows) {
-      if (r.status !== "done") {
-        map.set(r.room, (map.get(r.room) ?? 0) + 1);
-      }
-    }
-    return map;
-  }, [rows]);
-
-  const selectedRoom = useMemo(() => {
-    if (!selectedRoomId) return null;
-    return rooms.find((r) => r.id === selectedRoomId) ?? null;
-  }, [selectedRoomId, rooms]);
-
-  const selectedRoomRequests = useMemo(() => {
-    if (!selectedRoom) return [];
-    return rows.filter((r) => r.room === selectedRoom.number);
-  }, [selectedRoom, rows]);
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      const rpc = supabase.rpc.bind(supabase) as unknown as (
-        fn: string,
-        args?: Record<string, unknown>,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ) => any;
-      const { data, error } = await rpc("requests_board")
-        .select(
-          "id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name",
-        )
-        .order("created_at", { ascending: false });
-      if (!active) return;
-      if (error) {
-        toast.error("Couldn't load the queue.");
-        return;
-      }
-      setRows((data ?? []) as RequestRow[]);
-    }
-    load();
-
-    const channel = supabase
-      .channel("requests-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, () => load())
-      .subscribe();
-
-    return () => {
-      active = false;
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const visible = useMemo(
-    () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
-    [rows, filter],
+  const selectedRoom = useMemo(
+    () => (selectedRoomId ? (queue.rooms.find((r) => r.id === selectedRoomId) ?? null) : null),
+    [selectedRoomId, queue.rooms],
   );
-
-  const counts = useMemo(
-    () => ({
-      new: rows.filter((row) => row.status === "new").length,
-      in_progress: rows.filter((row) => row.status === "in_progress").length,
-      done: rows.filter((row) => row.status === "done").length,
-    }),
-    [rows],
-  );
-
-  async function setStatus(id: string, status: string) {
-    if (!canTriage) {
-      toast.error("You don't have permission to triage requests.");
-      return;
-    }
-
-    const previous = rows;
-    const row = previous.find((r) => r.id === id);
-    if (!row) return;
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    const { error, updated } = await advanceRequest(row, status, staff ?? null);
-    if (error && !updated) {
-      setRows(previous);
-      toast.error("Update failed — your role may not allow this.");
-    } else if (error) {
-      toast.warning("Request status updated, but its timeline entry could not be saved.");
-    }
-  }
 
   async function claim() {
     setClaiming(true);
@@ -378,113 +115,13 @@ function Dashboard({ session }: { session: Session }) {
     setClaiming(false);
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
-  }
-
   return (
     <div className="ops-surface min-h-screen bg-ink pb-16 text-cream">
       <div className="px-6 md:px-12">
-        <header className="top-0 sticky z-20 -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-cream/15 bg-ink/70 px-6 py-4 backdrop-blur-xl md:-mx-12 md:flex md:flex-wrap md:justify-between md:px-12">
-          <div className="flex min-w-0 items-center gap-5">
-            <BrandLockup tone="cream" />
-            <div className="hidden h-8 w-px bg-cream/15 md:block" />
-            <div className="hidden min-w-0 md:block">
-              <p className="signage flex items-center gap-2 text-cream/60">
-                <span aria-hidden className="h-3 w-[3px] bg-amber" />
-                Live shift
-              </p>
-              <h1 className="mt-1 truncate font-display text-2xl leading-none">Request queue</h1>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-4">
-            <nav className="hidden items-center gap-4 md:flex">
-              <Link
-                to="/front-desk"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Front desk
-              </Link>
-              <Link
-                to="/housekeeping"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Housekeeping
-              </Link>
-              {isManager ? (
-                <Link
-                  to="/roles"
-                  className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-                >
-                  Roles
-                </Link>
-              ) : null}
-              <Link
-                to="/"
-                className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-              >
-                Guest view
-              </Link>
-            </nav>
-
-            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Open menu"
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cream/25 text-cream transition-colors duration-200 hover:bg-cream/10 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                </button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[80vw] max-w-xs border-cream/15 bg-ink text-cream"
-              >
-                <SheetHeader>
-                  <SheetTitle className="text-left text-cream">Menu</SheetTitle>
-                </SheetHeader>
-                <nav className="mt-6 flex flex-col gap-3">
-                  <Link
-                    to="/front-desk"
-                    onClick={() => setMenuOpen(false)}
-                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                  >
-                    Front desk
-                  </Link>
-                  <Link
-                    to="/housekeeping"
-                    onClick={() => setMenuOpen(false)}
-                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                  >
-                    Housekeeping
-                  </Link>
-                  {isManager ? (
-                    <Link
-                      to="/roles"
-                      onClick={() => setMenuOpen(false)}
-                      className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                    >
-                      Roles
-                    </Link>
-                  ) : null}
-                  <Link
-                    to="/"
-                    onClick={() => setMenuOpen(false)}
-                    className="signage rounded-lg border border-cream/15 px-4 py-3 text-center text-cream/80 transition-colors duration-200 hover:bg-cream/10 hover:text-cream"
-                  >
-                    Guest view
-                  </Link>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </header>
+        <DashboardHeader isManager={isManager} />
 
         <PwaInstallPrompt className="mt-4" />
 
-        {/* System Status in Dashboard */}
         <div className="mt-4 flex justify-end">
           <SystemStatus session={session} />
         </div>
@@ -509,221 +146,28 @@ function Dashboard({ session }: { session: Session }) {
           </div>
         ) : null}
 
-        {/* Primary Dashboard Tabs */}
-        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none]">
-          <div className="flex min-w-max items-center gap-2 border-b border-cream/15 pb-4">
-            <Button
-              type="button"
-              variant={activeTab === "queue" ? "default" : "outline"}
-              onClick={() => setActiveTab("queue")}
-              className={`min-h-11 sm:min-h-9 ${
-                activeTab === "queue"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }`}
-            >
-              <ListFilter className="mr-1.5 h-4 w-4" />
-              Request queue ({rows.filter((r) => r.status !== "done").length})
-            </Button>
-
-            <Button
-              type="button"
-              variant={activeTab === "map" ? "default" : "outline"}
-              onClick={() => setActiveTab("map")}
-              className={`min-h-11 sm:min-h-9 ${
-                activeTab === "map"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }`}
-            >
-              <MapIcon className="mr-1.5 h-4 w-4" />
-              Property map ({rooms.length})
-            </Button>
-
-            <Button
-              type="button"
-              variant={activeTab === "crm" ? "default" : "outline"}
-              onClick={() => setActiveTab("crm")}
-              className={`min-h-11 sm:min-h-9 ${
-                activeTab === "crm"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }`}
-            >
-              <Users className="mr-1.5 h-4 w-4" />
-              Guest CRM
-            </Button>
-
-            <Button
-              type="button"
-              variant={activeTab === "maintenance" ? "default" : "outline"}
-              onClick={() => setActiveTab("maintenance")}
-              className={`min-h-11 sm:min-h-9 ${
-                activeTab === "maintenance"
-                  ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                  : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-              }`}
-            >
-              <Wrench className="mr-1.5 h-4 w-4" />
-              Maintenance
-            </Button>
-
-            {isManager ? (
-              <Button
-                type="button"
-                variant={activeTab === "analytics" ? "default" : "outline"}
-                onClick={() => setActiveTab("analytics")}
-                className={`min-h-11 sm:min-h-9 ${
-                  activeTab === "analytics"
-                    ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                }`}
-              >
-                <BarChart3 className="mr-1.5 h-4 w-4" />
-                Analytics
-              </Button>
-            ) : null}
-
-            {isManager ? (
-              <>
-                <div className="mx-1 hidden h-6 w-px bg-cream/15 sm:block" />
-                <Button
-                  type="button"
-                  variant={activeTab === "schedules" ? "default" : "outline"}
-                  onClick={() => setActiveTab("schedules")}
-                  className={`min-h-11 sm:min-h-9 ${
-                    activeTab === "schedules"
-                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                  }`}
-                >
-                  <Calendar className="mr-1.5 h-4 w-4" />
-                  Schedules
-                </Button>
-
-                <Button
-                  type="button"
-                  variant={activeTab === "assignments" ? "default" : "outline"}
-                  onClick={() => setActiveTab("assignments")}
-                  className={`min-h-11 sm:min-h-9 ${
-                    activeTab === "assignments"
-                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                  }`}
-                >
-                  <ClipboardCheck className="mr-1.5 h-4 w-4" />
-                  Assignments
-                </Button>
-
-                <Button
-                  type="button"
-                  variant={activeTab === "team" ? "default" : "outline"}
-                  onClick={() => setActiveTab("team")}
-                  className={`min-h-11 sm:min-h-9 ${
-                    activeTab === "team"
-                      ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                  }`}
-                >
-                  <UserPlus className="mr-1.5 h-4 w-4" />
-                  Team & Invites
-                </Button>
-              </>
-            ) : null}
-          </div>
-        </div>
+        <DashboardTabs
+          active={activeTab}
+          onSelect={setActiveTab}
+          isManager={isManager}
+          openCount={queue.openCount}
+          roomCount={queue.rooms.length}
+        />
 
         {activeTab === "map" ? (
           <div className="mt-6 space-y-4">
             <FloorPlan
               floor={mapFloor}
-              rooms={rooms}
-              openRequests={openRequestsByRoom}
+              rooms={queue.rooms}
+              openRequests={queue.openRequestsByRoom}
               onFloorChange={setMapFloor}
               onSelect={(roomId) => setSelectedRoomId(roomId)}
             />
-
-            {/* Room Inspector Sheet */}
-            <Sheet
-              open={Boolean(selectedRoom)}
-              onOpenChange={(open) => !open && setSelectedRoomId(null)}
-            >
-              <SheetContent
-                side="right"
-                className="w-[90vw] max-w-md border-cream/15 bg-ink text-cream"
-              >
-                <SheetHeader>
-                  <SheetTitle className="text-left text-cream flex items-center justify-between">
-                    <span>Room {selectedRoom?.number}</span>
-                    {selectedRoom && (
-                      <Badge className="bg-amber text-ink font-mono uppercase text-[10px]">
-                        {selectedRoom.status.replace("_", " ")}
-                      </Badge>
-                    )}
-                  </SheetTitle>
-                </SheetHeader>
-
-                {selectedRoom && (
-                  <div className="mt-6 space-y-6">
-                    <div className="rounded-xl border border-cream/15 bg-cream/[0.04] p-4">
-                      <p className="text-xs text-cream/50 uppercase tracking-wider">
-                        Current Guest
-                      </p>
-                      <p className="mt-1 font-serif text-lg font-bold text-cream">
-                        {selectedRoom.guest_name ?? "No guest registered"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="signage text-xs text-cream/60 uppercase tracking-wider mb-2">
-                        Open Requests ({selectedRoomRequests.length})
-                      </h3>
-                      {selectedRoomRequests.length === 0 ? (
-                        <p className="text-sm text-cream/40 italic">
-                          No open requests for room {selectedRoom.number}.
-                        </p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {selectedRoomRequests.map((req) => (
-                            <li
-                              key={req.id}
-                              className="rounded-lg border border-cream/15 bg-cream/[0.03] p-3"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-sm text-cream">{req.type}</span>
-                                <Badge className="text-[10px] bg-amber/20 text-amber">
-                                  {req.status}
-                                </Badge>
-                              </div>
-                              {req.details && (
-                                <p className="mt-1 text-xs text-cream/70">{req.details}</p>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-
-                    <div className="pt-4 border-t border-cream/10 flex flex-col gap-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
-                      >
-                        <Link to="/front-desk">Open Front Desk Board →</Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="w-full border-cream/20 text-cream hover:bg-cream/10"
-                      >
-                        <Link to="/housekeeping">Open Housekeeping Board →</Link>
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </SheetContent>
-            </Sheet>
+            <RoomInspector
+              room={selectedRoom}
+              requests={queue.requestsForRoom(selectedRoom?.number)}
+              onClose={() => setSelectedRoomId(null)}
+            />
           </div>
         ) : activeTab === "crm" ? (
           <div className="mt-6">
@@ -741,144 +185,15 @@ function Dashboard({ session }: { session: Session }) {
             <AnalyticsDashboard />
           </div>
         ) : activeTab === "queue" ? (
-          <>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {STATUSES.map((status) => {
-                const active = filter === status;
-                return (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => setFilter(active ? "all" : status)}
-                    aria-pressed={active}
-                    className={`group flex items-center justify-between border p-4 text-left transition-colors duration-200 ${
-                      active
-                        ? "border-amber/70 bg-cream/[0.07]"
-                        : "border-cream/15 bg-cream/[0.04] hover:border-cream/35"
-                    }`}
-                  >
-                    <p className="signage flex items-center gap-2 text-cream/60">
-                      <span aria-hidden className={`h-3 w-[3px] ${STATUS_ACCENT[status]}`} />
-                      {STATUS_LABEL[status]}
-                    </p>
-                    <p className="font-display text-3xl leading-none tabular-nums">
-                      {counts[status]}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 flex flex-wrap items-center gap-2 border-b border-cream/10 pb-4">
-              <span className="signage mr-1 text-cream/40">Filter</span>
-              {["all", ...STATUSES].map((option) => (
-                <Button
-                  key={option}
-                  size="sm"
-                  variant="outline"
-                  className={
-                    filter === option
-                      ? "border-amber bg-amber text-ink hover:bg-amber/90"
-                      : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                  }
-                  onClick={() => setFilter(option)}
-                >
-                  {option === "all" ? "All" : STATUS_LABEL[option]}
-                </Button>
-              ))}
-              <span className="ml-auto text-xs text-cream/40">{visible.length} shown</span>
-            </div>
-
-            <OpsAssistant />
-
-            {visible.length === 0 ? (
-              <div className="mt-10 border border-dashed border-cream/20 bg-cream/[0.02] p-10 text-center">
-                <p className="font-display text-2xl">Queue is clear</p>
-                <p className="mt-2 text-sm text-cream/60">
-                  New guest requests land here automatically.
-                </p>
-              </div>
-            ) : (
-              <ul className="mt-6 space-y-2">
-                {visible.map((row) => {
-                  const next = NEXT_ACTION[row.status];
-                  const others = STATUSES.filter(
-                    (status) => status !== row.status && status !== next?.status,
-                  );
-                  return (
-                    <li
-                      key={row.id}
-                      className={`group relative border border-cream/15 bg-cream/[0.04] p-4 pl-6 transition-colors duration-200 hover:border-amber/60 ${row.status === "done" ? "opacity-70" : ""}`}
-                    >
-                      <span
-                        aria-hidden
-                        className={`absolute left-0 top-0 h-full w-[3px] ${STATUS_ACCENT[row.status]}`}
-                      />
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-baseline gap-3">
-                            <span className="font-display text-2xl tabular-nums">{row.room}</span>
-                            <span className="text-base text-cream">{row.type}</span>
-                            <Badge
-                              className={
-                                row.status === "new"
-                                  ? "bg-amber text-ink"
-                                  : row.status === "in_progress"
-                                    ? "bg-sage text-ink"
-                                    : "bg-cream/15 text-cream"
-                              }
-                            >
-                              {STATUS_LABEL[row.status] ?? row.status}
-                            </Badge>
-                          </div>
-                          <p className="mt-1 text-xs text-cream/50">
-                            {row.guest_name ? `${row.guest_name} · ` : ""}
-                            <span title={new Date(row.created_at).toLocaleString()}>
-                              {timeAgo(row.created_at)}
-                            </span>
-                          </p>
-                          {row.details ? (
-                            <p className="mt-2 max-w-2xl text-sm text-cream/85">{row.details}</p>
-                          ) : null}
-                        </div>
-                        {canTriage ? (
-                          <div className="flex flex-wrap items-center gap-2">
-                            {next ? (
-                              <Button
-                                size="sm"
-                                className="bg-amber text-ink hover:bg-amber/90"
-                                onClick={() => setStatus(row.id, next.status)}
-                              >
-                                {next.label}
-                              </Button>
-                            ) : null}
-                            {others.map((status) => (
-                              <Button
-                                key={status}
-                                size="sm"
-                                variant="outline"
-                                className="border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                                onClick={() => setStatus(row.id, status)}
-                              >
-                                {STATUS_LABEL[status]}
-                              </Button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="signage text-cream/40">View only</p>
-                        )}
-                      </div>
-                      <RequestWorkflowPanel
-                        request={row}
-                        canEdit={canTriage}
-                        staff={staff ?? null}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </>
+          <RequestQueue
+            visible={queue.visible}
+            counts={queue.counts}
+            filter={queue.filter}
+            onFilterChange={queue.setFilter}
+            canTriage={canTriage}
+            staff={staff ?? null}
+            onSetStatus={queue.setStatus}
+          />
         ) : activeTab === "schedules" ? (
           <div className="mt-6">
             <ScheduleBoard />

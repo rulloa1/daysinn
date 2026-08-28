@@ -1,0 +1,77 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e6]:
+          - paragraph [ref=f1e7]: Days Inn Wildwood
+          - heading "Detailed property map" [level=2] [ref=f1e8]
+          - paragraph [ref=f1e9]: Drag room markers onto precise roof-level spots or select a room below.
+        - generic [ref=f1e10]:
+          - button "Exit Calibration" [active] [ref=f1e11]
+          - generic [ref=f1e14]: Live status
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [ref=f1e22]: "Room:"
+            - combobox "Room:" [ref=f1e23]:
+              - option "Room 108" [selected]
+              - option "Room 109"
+              - option "Room 110"
+              - option "Room 136"
+          - generic [ref=f1e24]:
+            - generic [ref=f1e25]: "X: 22.5%"
+            - generic [ref=f1e26]: "|"
+            - generic [ref=f1e27]: "Y: 75.45%"
+        - generic [ref=f1e28]:
+          - button "Nudge Left" [ref=f1e29]
+          - generic [ref=f1e32]:
+            - button "Nudge Up" [ref=f1e33]
+            - button "Nudge Down" [ref=f1e36]
+          - button "Nudge Right" [ref=f1e39]
+        - generic [ref=f1e42]:
+          - button "Reset Room" [ref=f1e43]
+          - button "Reset All" [ref=f1e47]
+          - button "Copy JSON" [ref=f1e48]
+          - button "Cancel" [ref=f1e52]
+          - button "Save Changes" [ref=f1e56]
+      - generic "Map attention summary" [ref=f1e61]:
+        - generic [ref=f1e62]:
+          - paragraph [ref=f1e63]: "1"
+          - paragraph [ref=f1e64]: Dirty
+        - generic [ref=f1e65]:
+          - paragraph [ref=f1e66]: "1"
+          - paragraph [ref=f1e67]: DND
+        - generic [ref=f1e68]:
+          - paragraph [ref=f1e69]: "0"
+          - paragraph [ref=f1e70]: Maintenance
+        - generic [ref=f1e71]:
+          - paragraph [ref=f1e72]: "0"
+          - paragraph [ref=f1e73]: Open requests
+      - generic [ref=f1e74]:
+        - generic [ref=f1e75]: Search rooms and facilities
+        - textbox "Search rooms and facilities" [ref=f1e76]:
+          - /placeholder: Search rooms, guests, facilities…
+      - generic [ref=f1e77]:
+        - button "1st Floor" [pressed] [ref=f1e78]
+        - button "2nd Floor" [ref=f1e79]
+        - button "All" [ref=f1e80]
+      - generic [ref=f1e81]:
+        - button "Housekeeping filter" [ref=f1e82]
+        - paragraph [ref=f1e84]: 4 rooms shown
+    - generic [ref=f1e86]:
+      - img "Days Inn Wildwood detailed property map"
+      - button "108 22.5%, 75.45%" [ref=f1e87]:
+        - text: "108"
+        - generic [ref=f1e88]: 22.5%, 75.45%
+      - button "109" [ref=f1e89]
+      - button "110" [ref=f1e90]
+      - button "136" [ref=f1e91]
+      - generic [ref=f1e92]:
+        - paragraph [ref=f1e93]: Room status
+        - generic [ref=f1e94]:
+          - generic [ref=f1e95]: Available
+          - generic [ref=f1e97]: Occupied
+          - generic [ref=f1e99]: Dirty / cleaning
+          - generic [ref=f1e101]: Exterior stairs
+          - generic [ref=f1e103]: Maintenance
+  - region "Notifications alt+T"
