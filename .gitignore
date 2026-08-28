@@ -26,6 +26,10 @@ __pycache__/
 .wrangler/
 .dev.vars
 
+# Ad-hoc screenshots and scratch captures taken while iterating on the UI.
+# Anything worth keeping belongs in src/assets/ or public/.
+/*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,151 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { toast } from "sonner";
-import { RequestWorkflowPanel } from "@/components/request-workflow-panel";
-import { GuestChatPanel } from "@/components/guest-chat-panel";
-import { clearDoorPin, issueDoorPin, readDoorPin } from "@/lib/guest-hub.functions";
-
-import { REQUEST_STATUS_LABEL } from "@/lib/request-workflow";
-import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffRole } from "@/hooks/use-staff-role";
-import { useStaffIdentity } from "@/hooks/use-staff-identity";
-import {
-  average,
-  formatDuration,
-  startOfToday,
-  type RoomStatusEvent,
-  type StaffIdentity,
-} from "@/lib/ops";
-import { QrCode } from "@/components/qr-code";
+import { formatDuration } from "@/lib/ops";
 import { FloorPlan } from "@/components/floor-plan";
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
-import { MetricsExportButton } from "@/components/metrics-export-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
-import {
-  createQueuedRoomStatusChange,
-  enqueueRoomStatusChange,
-  readQueuedRoomStatusChanges,
-  roomStatusQueueSummary,
-} from "@/lib/room-status-sync";
-import { syncQueuedRoomStatusChange } from "@/lib/room-status-sync-executor";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
-import { PRIORITY_BADGE, toGuestStatus, wingForRoom } from "@/lib/room-model";
-import { GUEST_STATUSES, PRIORITY_LEVELS, type PriorityLevel } from "@/types/operations";
-
-type RoomStatus =
-  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
-
-type RoomRow = {
-  id: string;
-  number: string;
-  floor: number;
-  bed_type: string;
-  status: RoomStatus;
-  guest_name: string | null;
-  check_in: string | null;
-  check_out: string | null;
-  notes: string | null;
-  wing: string | null;
-  side: string | null;
-  guest_status: string | null;
-  hk_stage: string | null;
-  priority: string | null;
-  linen_change: boolean | null;
-  updated_at: string;
-};
-
-type RoomPatch = {
-  status?: RoomStatus;
-  guest_name?: string | null;
-  notes?: string | null;
-  guest_status?: string | null;
-  hk_stage?: string | null;
-  priority?: string;
-  linen_change?: boolean;
-};
-
-type RequestRow = {
-  id: string;
-  room: string;
-  type: string;
-  details?: string | null;
-  status: string;
-  created_at: string;
-  started_at?: string | null;
-  started_by_name?: string | null;
-  resolved_at?: string | null;
-  resolved_by_name?: string | null;
-};
-
-type BookingRow = {
-  id: string;
-  guest_name: string;
-  room: string;
-  phone: string | null;
-  check_in: string;
-  check_out: string;
-  notes: string | null;
-};
-
-const STATUS_ORDER: RoomStatus[] = [
-  "vacant_clean",
-  "vacant_dirty",
-  "occupied",
-  "occupied_dnd",
-  "reserved",
-  "out_of_order",
-];
-
-const STATUS_LABEL: Record<RoomStatus, string> = {
-  vacant_clean: "Vacant clean",
-  vacant_dirty: "Vacant dirty",
-  occupied: "Occupied",
-  occupied_dnd: "Occupied / DND",
-  reserved: "Reserved / arriving",
-  out_of_order: "Out of order",
-};
-
-/** Card + dot colour per status. Status colour is the primary scan cue. */
-const STATUS_CARD: Record<RoomStatus, string> = {
-  vacant_clean: "border-status-clean/55 bg-status-clean/12 hover:bg-status-clean/20",
-  vacant_dirty: "border-status-dirty/55 bg-status-dirty/12 hover:bg-status-dirty/20",
-  occupied: "border-status-occupied/55 bg-status-occupied/14 hover:bg-status-occupied/22",
-  occupied_dnd: "border-status-dnd/55 bg-status-dnd/14 hover:bg-status-dnd/22",
-  reserved: "border-status-reserved/55 bg-status-reserved/12 hover:bg-status-reserved/20",
-  out_of_order: "border-status-ooo/55 bg-status-ooo/12 hover:bg-status-ooo/20",
-};
-
-const STATUS_DOT: Record<RoomStatus, string> = {
-  vacant_clean: "bg-status-clean",
-  vacant_dirty: "bg-status-dirty",
-  occupied: "bg-status-occupied",
-  occupied_dnd: "bg-status-dnd",
-  reserved: "bg-status-reserved",
-  out_of_order: "bg-status-ooo",
-};
-
-const STATUS_TEXT: Record<RoomStatus, string> = {
-  vacant_clean: "text-status-clean",
-  vacant_dirty: "text-status-dirty",
-  occupied: "text-status-occupied",
-  occupied_dnd: "text-status-dnd",
-  reserved: "text-status-reserved",
-  out_of_order: "text-status-ooo",
-};
+import {
+  DB_STATUS_CARD,
+  DB_STATUS_DOT,
+  DB_STATUS_LABEL,
+  DB_STATUS_ORDER,
+  type DbRoomStatus,
+} from "@/lib/room-model";
+import { BoardHeader } from "@/components/front-desk/board-header";
+import { BoardSidebar } from "@/components/front-desk/board-sidebar";
+import { BookingsLog } from "@/components/front-desk/bookings-log";
+import { Stat } from "@/components/front-desk/primitives";
+import { RoomList } from "@/components/front-desk/room-list";
+import { RoomPanel } from "@/components/front-desk/room-panel";
+import { RoomQrDialog } from "@/components/front-desk/room-qr-dialog";
+import { RoomSyncBanner } from "@/components/room-sync-banner";
+import { useFrontDeskBoard } from "@/components/front-desk/use-front-desk-board";
+import type { RoomRow } from "@/components/front-desk/types";
 
 export const Route = createFileRoute("/front-desk")({
   ssr: false,
@@ -168,19 +48,13 @@ export const Route = createFileRoute("/front-desk")({
   component: FrontDeskPage,
 });
 
-function today() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
+const VIEWS = [
+  { id: "map", label: "Property map" },
+  { id: "list", label: "Room list" },
+  { id: "analytics", label: "Analytics" },
+] as const;
 
-function stamp(iso: string) {
-  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.round(hrs / 24)}d ago`;
-}
+type ViewMode = (typeof VIEWS)[number]["id"];
 
 function FrontDeskPage() {
   const [session, setSession] = useState<Session | null>(null);
@@ -257,324 +131,29 @@ function FrontDeskPage() {
 }
 
 function Board() {
-  const [rooms, setRooms] = useState<RoomRow[]>([]);
-  const [requests, setRequests] = useState<RequestRow[]>([]);
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [filter, setFilter] = useState<"all" | RoomStatus>("all");
-  const [view, setView] = useState<"map" | "list" | "analytics">("map");
+  const board = useFrontDeskBoard();
+  const [filter, setFilter] = useState<"all" | DbRoomStatus>("all");
+  const [view, setView] = useState<ViewMode>("map");
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [qrRoom, setQrRoom] = useState<RoomRow | null>(null);
-  const [events, setEvents] = useState<RoomStatusEvent[]>([]);
-  const [resolvedToday, setResolvedToday] = useState<
-    { id: string; response_seconds: number | null }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
-  const { canTriage, loading: roleLoading } = useStaffRole();
-  const { members, staff, select, addMember } = useStaffIdentity();
-  const day = today();
 
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      const rpc = supabase.rpc.bind(supabase) as unknown as (
-        fn: string,
-        args?: Record<string, unknown>,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ) => any;
-      const [roomRes, reqRes, bookRes, eventRes, resolvedRes] = await Promise.all([
-        rpc("rooms_board")
-          .select(
-            "id, number, floor, bed_type, status, guest_name, check_in, check_out, notes, wing, side, guest_status, hk_stage, priority, linen_change, updated_at",
-          )
-          .order("number"),
-        rpc("requests_board")
-          .select(
-            "id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name",
-          )
-          .neq("status", "done")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("bookings")
-          .select("id, guest_name, room, phone, check_in, check_out, notes")
-          .order("check_in"),
-        supabase
-          .from("room_status_events")
-          .select(
-            "id, room_number, old_status, new_status, staff_name, duration_seconds, is_turnover, changed_at",
-          )
-          .order("changed_at", { ascending: false })
-          .limit(500),
-        rpc("requests_board").select("id, response_seconds").gte("resolved_at", startOfToday()),
-      ]);
-      if (!active) return;
-      if (roomRes.error) toast.error("Couldn't load the room board.");
-      setRooms((roomRes.data ?? []) as RoomRow[]);
-      setRequests((reqRes.data ?? []) as RequestRow[]);
-      setBookings((bookRes.data ?? []) as BookingRow[]);
-      setEvents((eventRes.data ?? []) as RoomStatusEvent[]);
-      setResolvedToday(
-        (resolvedRes.data ?? []) as { id: string; response_seconds: number | null }[],
-      );
-      setLoading(false);
-    }
-
-    void load();
-
-    const channel = supabase
-      .channel("front-desk-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, () => void load())
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "requests" },
-        () => void load(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookings" },
-        () => void load(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "room_status_events" },
-        () => void load(),
-      )
-      .subscribe();
-
-    return () => {
-      active = false;
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const counts = useMemo(() => {
-    return STATUS_ORDER.reduce(
-      (acc, status) => {
-        acc[status] = rooms.filter((room) => room.status === status).length;
-        return acc;
-      },
-      {} as Record<RoomStatus, number>,
-    );
-  }, [rooms]);
-
-  const occupancy = useMemo(() => {
-    const sellable = rooms.filter((r) => r.status !== "out_of_order").length;
-    const taken = rooms.filter(
-      (r) => r.status === "occupied" || r.status === "occupied_dnd",
-    ).length;
-    return sellable ? Math.round((taken / sellable) * 100) : 0;
-  }, [rooms]);
-
-  const arrivals = useMemo(() => bookings.filter((b) => b.check_in === day), [bookings, day]);
-  const departures = useMemo(() => bookings.filter((b) => b.check_out === day), [bookings, day]);
-
-  const visible = filter === "all" ? rooms : rooms.filter((room) => room.status === filter);
-
-  const byFloor = useMemo(() => {
-    const map = new Map<number, RoomRow[]>();
-    for (const room of visible) {
-      const list = map.get(room.floor) ?? [];
-      list.push(room);
-      map.set(room.floor, list);
-    }
-    return [...map.entries()].sort((a, b) => a[0] - b[0]);
-  }, [visible]);
-
-  const requestsByRoom = useMemo(() => {
-    const map = new Map<string, RequestRow[]>();
-    for (const req of requests) {
-      const list = map.get(req.room) ?? [];
-      list.push(req);
-      map.set(req.room, list);
-    }
-    return map;
-  }, [requests]);
-
-  const openCountByRoom = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const [room, list] of requestsByRoom) map.set(room, list.length);
-    return map;
-  }, [requestsByRoom]);
-
-  const dayStart = startOfToday();
-
-  const avgTurnover = useMemo(
-    () =>
-      average(
-        events
-          .filter((e) => e.is_turnover && e.duration_seconds != null && e.changed_at >= dayStart)
-          .map((e) => e.duration_seconds as number),
-      ),
-    [events, dayStart],
+  const visible = useMemo(
+    () => (filter === "all" ? board.rooms : board.rooms.filter((room) => room.status === filter)),
+    [board.rooms, filter],
   );
-
-  const avgResponse = useMemo(
-    () =>
-      average(
-        resolvedToday
-          .filter((r) => r.response_seconds != null)
-          .map((r) => r.response_seconds as number),
-      ),
-    [resolvedToday],
-  );
-
-  const eventsByRoom = useMemo(() => {
-    const map = new Map<string, RoomStatusEvent[]>();
-    for (const event of events) {
-      const list = map.get(event.room_number) ?? [];
-      list.push(event);
-      map.set(event.room_number, list);
-    }
-    return map;
-  }, [events]);
-
-  const activeRoom = rooms.find((r) => r.id === activeRoomId) ?? null;
-
-  const refreshSyncSummary = useCallback(() => {
-    setSyncSummary(roomStatusQueueSummary());
-  }, []);
-
-  const flushQueuedRoomStatusChanges = useCallback(async () => {
-    if (!isSupabaseConfigured) return { synced: 0, conflicts: 0 };
-    let synced = 0;
-    let conflicts = 0;
-    for (const change of readQueuedRoomStatusChanges()) {
-      if (change.state === "conflict") continue;
-      const result = await syncQueuedRoomStatusChange(change);
-      if (result === "synced") synced += 1;
-      if (result === "conflict") conflicts += 1;
-    }
-    refreshSyncSummary();
-    return { synced, conflicts };
-  }, [refreshSyncSummary]);
-
-  useEffect(() => {
-    refreshSyncSummary();
-    if (!isSupabaseConfigured) return;
-    void flushQueuedRoomStatusChanges();
-    const retry = () => void flushQueuedRoomStatusChanges();
-    window.addEventListener("online", retry);
-    return () => window.removeEventListener("online", retry);
-  }, [flushQueuedRoomStatusChanges, refreshSyncSummary]);
-
-  async function saveRoom(room: RoomRow, patch: RoomPatch) {
-    if (!canTriage) {
-      toast.error("You don't have permission to update rooms.");
-      return;
-    }
-    const previous = rooms;
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === room.id ? { ...r, ...patch, updated_at: new Date().toISOString() } : r,
-      ),
-    );
-    if (!isSupabaseConfigured) {
-      setRooms(previous);
-      toast.error("Live room status is unavailable. Please check the data connection.");
-      return;
-    }
-
-    if (patch.status && patch.status !== room.status) {
-      if (!staff) {
-        setRooms(previous);
-        toast.error("Select the staff member on desk before changing a room status.");
-        return;
-      }
-
-      const change = createQueuedRoomStatusChange({
-        roomId: room.id,
-        roomNumber: room.number,
-        oldStatus: room.status,
-        newStatus: patch.status,
-        expectedUpdatedAt: room.updated_at,
-        staff,
-      });
-      enqueueRoomStatusChange(change);
-      refreshSyncSummary();
-
-      const result = await syncQueuedRoomStatusChange(change);
-      refreshSyncSummary();
-      if (result === "synced") {
-        toast.success(
-          staff ? `Room ${room.number} updated by ${staff.name}` : `Room ${room.number} updated`,
-        );
-        return;
-      }
-
-      setRooms(previous);
-      if (result === "conflict") {
-        toast.error(
-          "Room changed elsewhere. The live board was kept and this action needs review.",
-        );
-        return;
-      }
-      toast.message("Room update saved on this device and will retry when you reconnect.");
-      return;
-    }
-
-    const { error } = await supabase.from("rooms").update(patch).eq("id", room.id);
-    if (error) {
-      setRooms(previous);
-      toast.error("Couldn't update that room.");
-      return;
-    }
-
-    toast.success(
-      staff ? `Room ${room.number} updated by ${staff.name}` : `Room ${room.number} updated`,
-    );
-  }
+  const activeRoom = board.rooms.find((r) => r.id === activeRoomId) ?? null;
 
   return (
     <div className="min-h-screen bg-ink px-4 py-8 text-cream md:px-12">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cream/15 pb-6">
-        <div>
-          <BrandLockup tone="cream" />
-          <p className="signage mt-6 flex items-center gap-2 text-cream/60">
-            <span aria-hidden className="h-3 w-[3px] bg-amber" />
-            Front desk · Shift board
-          </p>
-          <h1 className="mt-3 text-4xl">Front desk board</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <StaffPicker members={members} staff={staff} onSelect={select} onAdd={addMember} />
-          <MetricsExportButton />
-          <Link
-            to="/live-room-status"
-            className="signage text-amber transition-colors duration-200 hover:text-cream"
-          >
-            Live room status
-          </Link>
-          <Link
-            to="/staff"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Request queue
-          </Link>
-          <Link
-            to="/housekeeping"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Housekeeping
-          </Link>
-          <Link
-            to="/checkin"
-            search={{}}
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Guest sign-in
-          </Link>
-          <Link
-            to="/"
-            className="signage text-cream/60 transition-colors duration-200 hover:text-amber"
-          >
-            Guest view
-          </Link>
-        </div>
-      </header>
+      <BoardHeader
+        members={board.members}
+        staff={board.staff}
+        onSelectStaff={board.selectStaff}
+        onAddMember={board.addMember}
+      />
 
-      {!roleLoading && !canTriage ? (
+      {!board.roleLoading && !board.canTriage ? (
         <div className="mt-8 border border-amber/50 bg-amber/10 p-5">
           <p className="signage text-amber">View-only access</p>
           <p className="mt-2 text-sm text-cream/70">
@@ -584,58 +163,19 @@ function Board() {
         </div>
       ) : null}
 
-      {syncSummary.pending || syncSummary.conflicts ? (
-        <section
-          className={`mt-6 border p-4 ${
-            syncSummary.conflicts
-              ? "border-status-dirty/70 bg-status-dirty/10"
-              : "border-amber/50 bg-amber/10"
-          }`}
-          aria-live="polite"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="signage text-cream">
-                {syncSummary.pending
-                  ? `${syncSummary.pending} room update${syncSummary.pending === 1 ? "" : "s"} waiting to sync`
-                  : "Room update needs review"}
-              </p>
-              <p className="mt-1 text-sm text-cream/70">
-                {syncSummary.conflicts
-                  ? `${syncSummary.conflicts} update${syncSummary.conflicts === 1 ? "" : "s"} conflict with a newer room change. Refresh the room before trying again.`
-                  : "Changes are stored on this device and will retry when a connection is available."}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-cream/35 bg-transparent text-cream hover:bg-cream/10"
-              onClick={() => {
-                void flushQueuedRoomStatusChanges().then(({ synced, conflicts }) => {
-                  if (synced)
-                    toast.success(`${synced} room update${synced === 1 ? "" : "s"} synced.`);
-                  else if (conflicts) toast.error("A room changed elsewhere and needs review.");
-                  else toast.message("Updates are still waiting for a connection.");
-                });
-              }}
-            >
-              Retry sync
-            </Button>
-          </div>
-        </section>
-      ) : null}
+      <RoomSyncBanner summary={board.syncSummary} onRetry={board.flushQueuedRoomStatusChanges} />
 
       <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <Stat label="Occupancy" value={`${occupancy}%`} />
-        <Stat label="Arrivals today" value={arrivals.length} />
-        <Stat label="Departures today" value={departures.length} />
-        <Stat label="Open requests" value={requests.length} />
-        <Stat label="Avg turnover today" value={formatDuration(avgTurnover)} />
-        <Stat label="Avg response today" value={formatDuration(avgResponse)} />
+        <Stat label="Occupancy" value={`${board.occupancy}%`} />
+        <Stat label="Arrivals today" value={board.arrivals.length} />
+        <Stat label="Departures today" value={board.departures.length} />
+        <Stat label="Open requests" value={board.requests.length} />
+        <Stat label="Avg turnover today" value={formatDuration(board.avgTurnover)} />
+        <Stat label="Avg response today" value={formatDuration(board.avgResponse)} />
       </section>
 
-      <section className="mt-4 grid gap-3 grid-cols-2 lg:grid-cols-6">
-        {STATUS_ORDER.map((status) => {
+      <section className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
+        {DB_STATUS_ORDER.map((status) => {
           const on = filter === status;
           return (
             <button
@@ -643,13 +183,13 @@ function Board() {
               type="button"
               onClick={() => setFilter(on ? "all" : status)}
               aria-pressed={on}
-              className={`border px-4 py-3 text-left transition-colors duration-200 ${STATUS_CARD[status]} ${on ? "ring-2 ring-amber" : ""}`}
+              className={`border px-4 py-3 text-left transition-colors duration-200 ${DB_STATUS_CARD[status]} ${on ? "ring-2 ring-amber" : ""}`}
             >
               <p className="signage flex items-center gap-2 text-cream/75">
-                <span aria-hidden className={`h-3 w-[3px] ${STATUS_DOT[status]}`} />
-                {STATUS_LABEL[status]}
+                <span aria-hidden className={`h-3 w-[3px] ${DB_STATUS_DOT[status]}`} />
+                {DB_STATUS_LABEL[status]}
               </p>
-              <p className="mt-2 text-3xl">{counts[status] ?? 0}</p>
+              <p className="mt-2 text-3xl">{board.counts[status] ?? 0}</p>
             </button>
           );
         })}
@@ -661,196 +201,84 @@ function Board() {
           onClick={() => setFilter("all")}
           className="signage mt-4 text-amber underline-offset-4 hover:underline"
         >
-          Clear filter — showing {STATUS_LABEL[filter]} ({visible.length})
+          Clear filter — showing {DB_STATUS_LABEL[filter]} ({visible.length})
         </button>
       ) : null}
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <section>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {(["map", "list", "analytics"] as const).map((mode) => (
+            {VIEWS.map((mode) => (
               <button
-                key={mode}
+                key={mode.id}
                 type="button"
-                onClick={() => setView(mode)}
-                aria-pressed={view === mode}
+                onClick={() => setView(mode.id)}
+                aria-pressed={view === mode.id}
                 className={`signage border px-4 py-2 transition-colors duration-200 ${
-                  view === mode
+                  view === mode.id
                     ? "border-amber bg-amber/15 text-amber"
                     : "border-cream/20 text-cream/55 hover:text-cream"
                 }`}
               >
-                {mode === "map" ? "Property map" : mode === "list" ? "Room list" : "Analytics"}
+                {mode.label}
               </button>
             ))}
           </div>
 
-          {!loading && view === "map" ? (
+          {!board.loading && view === "map" ? (
             <FloorPlan
               floor={mapFloor}
-              rooms={rooms}
-              openRequests={openCountByRoom}
+              rooms={board.rooms}
+              openRequests={board.openCountByRoom}
               dimmed={filter === "all" ? undefined : new Set(visible.map((r) => r.number))}
               onFloorChange={setMapFloor}
               onSelect={setActiveRoomId}
             />
           ) : null}
 
-          {!loading && view === "analytics" ? <AnalyticsDashboard /> : null}
+          {!board.loading && view === "analytics" ? <AnalyticsDashboard /> : null}
 
-          {loading ? (
+          {board.loading ? (
             <p className="text-sm text-cream/50">Loading the board…</p>
           ) : view === "list" ? (
-            byFloor.length === 0 ? (
-              <p className="text-sm text-cream/50">No rooms match this filter.</p>
-            ) : (
-              byFloor.map(([floor, list]) => (
-                <div key={floor} className="mb-8">
-                  <p className="signage text-cream/50">
-                    Floor {floor} · {list.length} rooms
-                  </p>
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                    {list.map((room) => {
-                      const open = requestsByRoom.get(room.number)?.length ?? 0;
-                      return (
-                        <button
-                          key={room.id}
-                          type="button"
-                          onClick={() => setActiveRoomId(room.id)}
-                          className={`border p-3 text-left transition-colors duration-200 ${STATUS_CARD[room.status]}`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-2xl leading-none">{room.number}</span>
-                            <span
-                              aria-hidden
-                              className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT[room.status]}`}
-                            />
-                          </div>
-                          <p className={`signage mt-2 ${STATUS_TEXT[room.status]}`}>
-                            {STATUS_LABEL[room.status]}
-                          </p>
-                          <p className="mt-1 truncate text-xs text-cream/70">
-                            {room.guest_name ?? room.bed_type}
-                          </p>
-                          <p className="mt-1 truncate text-[11px] text-cream/45">
-                            {room.wing ?? wingForRoom(room.number)} ·{" "}
-                            {toGuestStatus({ ...room, status: room.status })}
-                          </p>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {room.priority && room.priority !== "Normal" ? (
-                              <span
-                                className={`signage px-1.5 py-0.5 text-[10px] ${PRIORITY_BADGE[room.priority as PriorityLevel]}`}
-                              >
-                                {room.priority}
-                              </span>
-                            ) : null}
-                            {room.linen_change ? (
-                              <span className="signage bg-cream/12 px-1.5 py-0.5 text-[10px] text-cream/75">
-                                Linen
-                              </span>
-                            ) : null}
-                            {room.hk_stage ? (
-                              <span className="signage bg-amber/20 px-1.5 py-0.5 text-[10px] text-amber">
-                                {room.hk_stage === "in_progress" ? "In progress" : "Inspected"}
-                              </span>
-                            ) : null}
-                          </div>
-                          {open ? (
-                            <p className="signage mt-1 text-amber">
-                              {open} request{open === 1 ? "" : "s"}
-                            </p>
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            )
+            <RoomList
+              rooms={visible}
+              openCountByRoom={board.openCountByRoom}
+              onSelect={setActiveRoomId}
+            />
           ) : null}
         </section>
 
-        <aside className="space-y-8">
-          <Panel title="Arriving today">
-            {arrivals.length === 0 ? (
-              <li className="text-sm text-cream/45">Nothing scheduled.</li>
-            ) : (
-              arrivals.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-                >
-                  <span>Room {b.room}</span>
-                  <span className="text-cream/55">{b.guest_name}</span>
-                </li>
-              ))
-            )}
-          </Panel>
-
-          <Panel title="Departing today">
-            {departures.length === 0 ? (
-              <li className="text-sm text-cream/45">Nothing scheduled.</li>
-            ) : (
-              departures.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-                >
-                  <span>Room {b.room}</span>
-                  <span className="text-cream/55">{b.guest_name}</span>
-                </li>
-              ))
-            )}
-          </Panel>
-
-          <Panel title="Open requests">
-            {requests.length === 0 ? (
-              <li className="text-sm text-cream/45">Queue is clear.</li>
-            ) : (
-              requests.slice(0, 8).map((req) => (
-                <li
-                  key={req.id}
-                  className="flex items-center justify-between border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-                >
-                  <button
-                    type="button"
-                    className="text-left underline-offset-4 hover:text-amber hover:underline"
-                    onClick={() => {
-                      const match = rooms.find((r) => r.number === req.room);
-                      if (match) setActiveRoomId(match.id);
-                    }}
-                  >
-                    Room {req.room} · {req.type}
-                  </button>
-                  <span className="text-cream/45">{stamp(req.created_at)}</span>
-                </li>
-              ))
-            )}
-          </Panel>
-        </aside>
+        <BoardSidebar
+          arrivals={board.arrivals}
+          departures={board.departures}
+          requests={board.requests}
+          rooms={board.rooms}
+          onSelectRoom={setActiveRoomId}
+        />
       </div>
 
       <BookingsLog
-        bookings={bookings}
-        canEdit={canTriage}
-        arrivals={arrivals}
-        departures={departures}
+        bookings={board.bookings}
+        canEdit={board.canTriage}
+        arrivals={board.arrivals}
+        departures={board.departures}
       />
 
       <MaintenanceTicketsPanel
-        reporter={staff?.name ?? null}
-        reporterStaffId={staff?.id ?? null}
-        canEdit={canTriage}
+        reporter={board.staff?.name ?? null}
+        reporterStaffId={board.staff?.id ?? null}
+        canEdit={board.canTriage}
       />
 
       <RoomPanel
         room={activeRoom}
-        canEdit={canTriage}
-        requests={activeRoom ? (requestsByRoom.get(activeRoom.number) ?? []) : []}
-        history={activeRoom ? (eventsByRoom.get(activeRoom.number) ?? []) : []}
-        staff={staff}
+        canEdit={board.canTriage}
+        requests={activeRoom ? (board.requestsByRoom.get(activeRoom.number) ?? []) : []}
+        history={activeRoom ? (board.eventsByRoom.get(activeRoom.number) ?? []) : []}
+        staff={board.staff}
         onClose={() => setActiveRoomId(null)}
-        onSave={saveRoom}
+        onSave={board.saveRoom}
         onQr={(room) => {
           setActiveRoomId(null);
           setQrRoom(room);
@@ -858,744 +286,6 @@ function Board() {
       />
 
       <RoomQrDialog room={qrRoom} onClose={() => setQrRoom(null)} />
-    </div>
-  );
-}
-
-function StaffPicker({
-  members,
-  staff,
-  onSelect,
-  onAdd,
-}: {
-  members: { id: string; name: string }[];
-  staff: StaffIdentity;
-  onSelect: (next: StaffIdentity) => void;
-  onAdd: (name: string) => Promise<unknown>;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState("");
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="signage text-cream/45">On desk</span>
-      <select
-        aria-label="Staff member on desk"
-        value={staff?.id ?? ""}
-        onChange={(e) => {
-          const match = members.find((m) => m.id === e.target.value);
-          onSelect(match ? { id: match.id, name: match.name } : null);
-        }}
-        className="border border-cream/25 bg-cream/[0.04] px-2 py-1 text-sm text-cream"
-      >
-        <option value="">Not set</option>
-        {members.map((m) => (
-          <option key={m.id} value={m.id} className="text-ink">
-            {m.name}
-          </option>
-        ))}
-      </select>
-      {adding ? (
-        <span className="flex items-center gap-2">
-          <Input
-            value={name}
-            autoFocus
-            placeholder="Name"
-            onChange={(e) => setName(e.target.value)}
-            className="h-8 w-32 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
-          />
-          <Button
-            size="sm"
-            className="bg-amber text-ink hover:bg-amber/90"
-            onClick={async () => {
-              await onAdd(name);
-              setName("");
-              setAdding(false);
-            }}
-          >
-            Save
-          </Button>
-        </span>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          className="signage text-cream/50 transition-colors duration-200 hover:text-amber"
-        >
-          + Add
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
-        {title}
-      </p>
-      <ul className="mt-3 space-y-2">{children}</ul>
-    </div>
-  );
-}
-
-function RoomPanel({
-  room,
-  canEdit,
-  requests,
-  history,
-  staff,
-  onClose,
-  onSave,
-  onQr,
-}: {
-  room: RoomRow | null;
-  canEdit: boolean;
-  requests: RequestRow[];
-  history: RoomStatusEvent[];
-  staff: StaffIdentity;
-  onClose: () => void;
-  onSave: (room: RoomRow, patch: RoomPatch) => Promise<void>;
-  onQr: (room: RoomRow) => void;
-}) {
-  const [guest, setGuest] = useState("");
-  const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [pin, setPin] = useState<string | null>(null);
-  const [keyBusy, setKeyBusy] = useState(false);
-  const mintKey = useServerFn(issueDoorPin);
-  const loadKey = useServerFn(readDoorPin);
-  const revokeKey = useServerFn(clearDoorPin);
-
-  async function issueKey(number: string) {
-    setKeyBusy(true);
-    try {
-      const result = await mintKey({ data: { room: number } });
-      setPin(result.pin);
-      toast.success(`Room key issued for ${number}.`);
-    } catch {
-      toast.error("Could not issue a room key.");
-    } finally {
-      setKeyBusy(false);
-    }
-  }
-
-  async function clearKey(number: string) {
-    setKeyBusy(true);
-    try {
-      await revokeKey({ data: { room: number } });
-      setPin(null);
-      toast.success(`Room key cleared for ${number}.`);
-    } catch {
-      toast.error("Could not clear the room key.");
-    } finally {
-      setKeyBusy(false);
-    }
-  }
-
-  useEffect(() => {
-    setGuest(room?.guest_name ?? "");
-    setNotes(room?.notes ?? "");
-    setPin(null);
-    if (!room?.number) return;
-    let active = true;
-    // Door PINs are never in the client table read; fetch them staff-gated.
-    void loadKey({ data: { room: room.number } })
-      .then((res) => {
-        if (active) setPin(res.pin);
-      })
-      .catch(() => {
-        if (active) setPin(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, [room?.id, room?.number, room?.guest_name, room?.notes, loadKey]);
-
-  return (
-    <Dialog open={!!room} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="border-cream/20 bg-ink text-cream sm:max-w-md">
-        {room ? (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-3xl">Room {room.number}</DialogTitle>
-              <DialogDescription className="text-cream/60">
-                {room.bed_type} · Floor {room.floor} · updated {stamp(room.updated_at)}
-              </DialogDescription>
-            </DialogHeader>
-
-            {!staff ? (
-              <p className="border border-amber/45 bg-amber/10 px-3 py-2 text-xs text-cream/75">
-                Pick who is on the desk at the top of the board so changes are attributed to you.
-              </p>
-            ) : null}
-
-            <div>
-              <p className="signage text-cream/55">Status</p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {STATUS_ORDER.map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    disabled={!canEdit}
-                    onClick={() => void onSave(room, { status })}
-                    className={`border px-3 py-2 text-left text-xs transition-colors duration-200 disabled:opacity-45 ${STATUS_CARD[status]} ${room.status === status ? "ring-2 ring-amber" : ""}`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${STATUS_DOT[status]}`}
-                    />
-                    {STATUS_LABEL[status]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <p className="signage text-cream/55">Guest status</p>
-                <select
-                  value={room.guest_status ?? toGuestStatus({ ...room, status: room.status })}
-                  disabled={!canEdit}
-                  onChange={(e) => void onSave(room, { guest_status: e.target.value })}
-                  className="mt-2 h-10 w-full border border-cream/20 bg-ink px-3 text-sm text-cream disabled:opacity-45"
-                >
-                  {GUEST_STATUSES.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="signage text-cream/55">Priority</p>
-                <div className="mt-2 flex gap-2">
-                  {PRIORITY_LEVELS.map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      disabled={!canEdit}
-                      onClick={() => void onSave(room, { priority: level })}
-                      className={`signage border px-3 py-2 text-[11px] disabled:opacity-45 ${
-                        (room.priority ?? "Normal") === level
-                          ? "border-amber text-amber"
-                          : "border-cream/20 text-cream/60"
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="signage text-cream/55">Cleaning stage</p>
-                <div className="mt-2 flex gap-2">
-                  {[
-                    { value: null, label: "None" },
-                    { value: "in_progress", label: "In progress" },
-                    { value: "inspected", label: "Inspected" },
-                  ].map((stage) => (
-                    <button
-                      key={stage.label}
-                      type="button"
-                      disabled={!canEdit}
-                      onClick={() => void onSave(room, { hk_stage: stage.value })}
-                      className={`signage border px-3 py-2 text-[11px] disabled:opacity-45 ${
-                        (room.hk_stage ?? null) === stage.value
-                          ? "border-amber text-amber"
-                          : "border-cream/20 text-cream/60"
-                      }`}
-                    >
-                      {stage.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="flex items-end gap-2 pb-2 text-sm text-cream/75">
-                <input
-                  type="checkbox"
-                  disabled={!canEdit}
-                  checked={Boolean(room.linen_change)}
-                  onChange={(e) => void onSave(room, { linen_change: e.target.checked })}
-                />
-                Linen change needed
-              </label>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="signage text-cream/55">Guest name</p>
-                <Input
-                  value={guest}
-                  disabled={!canEdit}
-                  onChange={(e) => setGuest(e.target.value)}
-                  placeholder="Unassigned"
-                  className="mt-2 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
-                />
-              </div>
-              <div>
-                <p className="signage text-cream/55">Notes</p>
-                <Textarea
-                  value={notes}
-                  disabled={!canEdit}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="AC repaired, late checkout requested…"
-                  className="mt-2 min-h-20 border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
-                />
-              </div>
-            </div>
-
-            {requests.length ? (
-              <div>
-                <p className="signage text-amber">Open guest requests</p>
-                <ul className="mt-2 space-y-3 text-sm text-cream/75">
-                  {requests.map((req) => (
-                    <li key={req.id} className="border border-cream/15 bg-cream/[0.03] px-3 py-2">
-                      <p className="text-cream">
-                        {req.type} · {REQUEST_STATUS_LABEL[req.status] ?? req.status}
-                      </p>
-                      {req.details ? (
-                        <p className="mt-1 text-xs text-cream/65">{req.details}</p>
-                      ) : null}
-                      <RequestWorkflowPanel request={req} canEdit={canEdit} staff={staff} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <div>
-              <p className="signage text-amber">Digital room key</p>
-              <p className="mt-2 font-display text-2xl tracking-[0.3em] tabular-nums">
-                {pin ?? "— — — — — —"}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!canEdit || keyBusy}
-                  onClick={() => void issueKey(room.number)}
-                  className="bg-amber text-ink hover:bg-amber/90"
-                >
-                  {pin ? "Re-issue PIN" : "Issue PIN"}
-                </Button>
-                {pin ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={!canEdit || keyBusy}
-                    onClick={() => void clearKey(room.number)}
-                    className="border-cream/25 bg-transparent text-cream hover:bg-cream/10"
-                  >
-                    Clear
-                  </Button>
-                ) : null}
-              </div>
-              <p className="mt-2 text-xs text-cream/55">
-                The guest sees this instantly in their room portal.
-              </p>
-            </div>
-
-            <div>
-              <p className="signage text-amber">Guest chat</p>
-              <div className="mt-2">
-                <GuestChatPanel
-                  room={room.number}
-                  canEdit={canEdit}
-                  staffName={staff?.name ?? null}
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowHistory((v) => !v)}
-                className="signage text-cream/60 underline-offset-4 transition-colors duration-200 hover:text-amber hover:underline"
-              >
-                {showHistory ? "Hide room history" : "Room history"} ({history.length})
-              </button>
-              {showHistory ? (
-                <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1 text-xs">
-                  {history.length === 0 ? (
-                    <li className="text-cream/45">No status changes logged yet.</li>
-                  ) : (
-                    history.slice(0, 12).map((event) => (
-                      <li
-                        key={event.id}
-                        className="border border-cream/15 bg-cream/[0.03] px-3 py-2"
-                      >
-                        <p className="text-cream/85">
-                          {event.old_status ? STATUS_LABEL[event.old_status as RoomStatus] : "—"} →{" "}
-                          {STATUS_LABEL[event.new_status as RoomStatus]}
-                        </p>
-                        <p className="mt-1 text-cream/50">
-                          {event.staff_name ?? "Unattributed"} · {stamp(event.changed_at)}
-                          {event.is_turnover && event.duration_seconds != null
-                            ? ` · turnover ${formatDuration(event.duration_seconds)}`
-                            : ""}
-                        </p>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              ) : null}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                className="bg-amber text-ink hover:bg-amber/90"
-                disabled={!canEdit || saving}
-                onClick={async () => {
-                  setSaving(true);
-                  await onSave(room, {
-                    guest_name: guest.trim() || null,
-                    notes: notes.trim() || null,
-                  });
-                  setSaving(false);
-                  onClose();
-                }}
-              >
-                Save changes
-              </Button>
-              <Button
-                variant="outline"
-                className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
-                onClick={() => onQr(room)}
-              >
-                Guest QR
-              </Button>
-            </div>
-          </>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function BookingsLog({
-  bookings,
-  canEdit,
-  arrivals,
-  departures,
-}: {
-  bookings: BookingRow[];
-  canEdit: boolean;
-  arrivals: BookingRow[];
-  departures: BookingRow[];
-}) {
-  const [form, setForm] = useState({
-    guest_name: "",
-    room: "",
-    phone: "",
-    check_in: today(),
-    check_out: today(),
-    notes: "",
-  });
-  const [busy, setBusy] = useState(false);
-
-  async function add() {
-    if (!form.guest_name.trim() || !form.room.trim()) {
-      toast.error("Guest name and room number are required.");
-      return;
-    }
-    if (form.check_out < form.check_in) {
-      toast.error("Check-out can't be before check-in.");
-      return;
-    }
-    setBusy(true);
-    const { error } = await supabase.from("bookings").insert({
-      guest_name: form.guest_name.trim(),
-      room: form.room.trim(),
-      phone: form.phone.trim() || null,
-      check_in: form.check_in,
-      check_out: form.check_out,
-      notes: form.notes.trim() || null,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error("Couldn't save that booking.");
-      return;
-    }
-    toast.success("Booking added.");
-    setForm({
-      guest_name: "",
-      room: "",
-      phone: "",
-      check_in: today(),
-      check_out: today(),
-      notes: "",
-    });
-  }
-
-  async function remove(id: string) {
-    const { error } = await supabase.from("bookings").delete().eq("id", id);
-    if (error) {
-      toast.error("Couldn't remove that booking.");
-      return;
-    }
-    toast.success("Booking removed.");
-  }
-
-  const field = "border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35";
-
-  return (
-    <section className="mt-12 border-t border-cream/15 pt-8">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
-        Bookings log
-      </p>
-      <h2 className="mt-3 text-3xl">
-        {bookings.length} booking{bookings.length === 1 ? "" : "s"} on file
-      </h2>
-
-      {canEdit ? (
-        <div className="mt-6 grid gap-3 border border-cream/15 bg-cream/[0.03] p-4 md:grid-cols-3 xl:grid-cols-6">
-          <Input
-            value={form.guest_name}
-            onChange={(e) => setForm({ ...form, guest_name: e.target.value })}
-            placeholder="Guest name"
-            className={field}
-          />
-          <Input
-            value={form.room}
-            onChange={(e) => setForm({ ...form, room: e.target.value })}
-            placeholder="Room"
-            className={field}
-          />
-          <Input
-            value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            placeholder="Phone (optional)"
-            className={field}
-          />
-          <Input
-            type="date"
-            aria-label="Check-in date"
-            value={form.check_in}
-            onChange={(e) => setForm({ ...form, check_in: e.target.value })}
-            className={field}
-          />
-          <Input
-            type="date"
-            aria-label="Check-out date"
-            value={form.check_out}
-            onChange={(e) => setForm({ ...form, check_out: e.target.value })}
-            className={field}
-          />
-          <Input
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Notes (optional)"
-            className={field}
-          />
-          <Button
-            className="bg-amber text-ink hover:bg-amber/90 md:col-span-3 xl:col-span-2"
-            disabled={busy}
-            onClick={() => void add()}
-          >
-            Add booking
-          </Button>
-        </div>
-      ) : null}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <BookingList title="Arriving today" rows={arrivals} canEdit={false} onRemove={remove} />
-        <BookingList title="Departing today" rows={departures} canEdit={false} onRemove={remove} />
-      </div>
-
-      <div className="mt-6">
-        <BookingList
-          title="All bookings"
-          rows={[...bookings].sort((a, b) => a.check_in.localeCompare(b.check_in))}
-          canEdit={canEdit}
-          onRemove={remove}
-        />
-      </div>
-    </section>
-  );
-}
-
-function BookingList({
-  title,
-  rows,
-  canEdit,
-  onRemove,
-}: {
-  title: string;
-  rows: BookingRow[];
-  canEdit: boolean;
-  onRemove: (id: string) => Promise<void>;
-}) {
-  return (
-    <div>
-      <p className="signage text-cream/55">{title}</p>
-      <ul className="mt-3 space-y-2">
-        {rows.length === 0 ? (
-          <li className="text-sm text-cream/45">Nothing here yet.</li>
-        ) : (
-          rows.map((b) => (
-            <li
-              key={b.id}
-              className="flex flex-wrap items-center justify-between gap-3 border border-cream/15 bg-cream/[0.03] px-4 py-3 text-sm"
-            >
-              <div>
-                <p className="text-cream">
-                  {b.guest_name} · Room {b.room}
-                </p>
-                <p className="text-xs text-cream/55">
-                  {b.check_in} → {b.check_out}
-                  {b.phone ? ` · ${b.phone}` : ""}
-                  {b.notes ? ` · ${b.notes}` : ""}
-                </p>
-              </div>
-              {canEdit ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
-                  onClick={() => void onRemove(b.id)}
-                >
-                  Remove
-                </Button>
-              ) : null}
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
-  );
-}
-
-function RoomQrDialog({ room, onClose }: { room: RoomRow | null; onClose: () => void }) {
-  const rotate = useServerFn(rotateRoomQr);
-  const revoke = useServerFn(revokeRoomQr);
-  const [state, setState] = useState<{ url: string; expiresAt: string } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
-  const number = room?.number ?? null;
-
-  const issue = useCallback(
-    async (roomNumber: string) => {
-      setBusy(true);
-      try {
-        const result = await rotate({ data: { room: roomNumber } });
-        setState({
-          url: `${window.location.origin}/checkin?room=${encodeURIComponent(
-            roomNumber,
-          )}&t=${result.token}`,
-          expiresAt: result.expiresAt,
-        });
-      } catch {
-        toast.error("Could not issue a sign-in code.");
-        setState(null);
-      } finally {
-        setBusy(false);
-      }
-    },
-    [rotate],
-  );
-
-  useEffect(() => {
-    setState(null);
-    if (number) void issue(number);
-  }, [number, issue]);
-
-  useEffect(() => {
-    if (!state) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [state]);
-
-  const msLeft = state ? Date.parse(state.expiresAt) - now : 0;
-  const expired = state !== null && msLeft <= 0;
-  const countdown = (() => {
-    const total = Math.max(0, Math.floor(msLeft / 1000));
-    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-  })();
-
-  return (
-    <Dialog open={room !== null} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Room {room?.number} sign-in</DialogTitle>
-          <DialogDescription>
-            Single-use code. It expires on its own and is burned the moment the guest signs in, so
-            an old scan or screenshot won't work later.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col items-center gap-3">
-          {state && !expired ? (
-            <>
-              <QrCode value={state.url} size={220} alt={`Sign-in QR for room ${room?.number}`} />
-              <p className="signage text-amber">Expires in {countdown}</p>
-              <p className="break-all text-center text-xs text-muted-foreground">{state.url}</p>
-            </>
-          ) : (
-            <p className="py-10 text-sm text-muted-foreground">
-              {busy
-                ? "Issuing a fresh code…"
-                : expired
-                  ? "This code expired. Generate a new one."
-                  : "No active code."}
-            </p>
-          )}
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={busy || !room}
-              onClick={() => room && void issue(room.number)}
-            >
-              {state ? "New code" : "Generate code"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={busy || !room || !state}
-              onClick={async () => {
-                if (!room) return;
-                setBusy(true);
-                try {
-                  await revoke({ data: { room: room.number } });
-                  setState(null);
-                  toast.success("Codes for this room are revoked.");
-                } catch {
-                  toast.error("Could not revoke codes.");
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              Revoke
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={!state || expired}
-              onClick={() => window.print()}
-            >
-              Print
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="border border-cream/15 bg-cream/[0.03] px-5 py-4">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
-        {label}
-      </p>
-      <p className="mt-2 text-4xl">{value}</p>
     </div>
   );
 }

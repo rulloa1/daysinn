@@ -2,16 +2,30 @@ import type {
   BuildingName,
   GuestStatus,
   PriorityLevel,
-  Room,
   RoomStatus,
   WingName,
 } from "@/types/operations";
 
 export type { BuildingName };
 
-/** The room_status enum stored in the database. */
+/**
+ * The room_status enum stored in the database. These six labels are the only
+ * values Postgres will accept for `rooms.status` — see the `public.room_status`
+ * enum in supabase/migrations. Never write a string into that column that did
+ * not come from this union.
+ */
 export type DbRoomStatus =
   "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
+
+/** Display order for the status filters and counters on the boards. */
+export const DB_STATUS_ORDER: DbRoomStatus[] = [
+  "vacant_clean",
+  "vacant_dirty",
+  "occupied",
+  "occupied_dnd",
+  "reserved",
+  "out_of_order",
+];
 
 /** Shape returned by `rooms_board()` / `select` on `rooms`. */
 export type DbRoomRow = {
@@ -160,44 +174,120 @@ export function fromRoomStatus(next: RoomStatus): {
   }
 }
 
-export function toRoom(row: DbRoomRow): Room {
-  return {
-    id: row.id,
-    number: row.number,
-    wing: ((row.wing as WingName | null) ?? wingForRoom(row.number)) as WingName,
-    building: row.building ?? buildingForRoom(row.number),
-    floor: (row.floor === 2 ? 2 : 1) as 1 | 2,
-    side: row.side ?? sideForRoom(row.number),
-    type: row.bed_type ?? "Standard",
-    status: toRoomStatus(row),
-    guest_status: toGuestStatus(row),
-    assigned_to: row.assigned_name ?? "",
-    priority: ((row.priority as PriorityLevel | null) ?? "Normal") as PriorityLevel,
-    linen_change: Boolean(row.linen_change),
-    notes: row.notes ?? "",
-    last_updated: row.updated_at ?? "",
-  };
-}
+/**
+ * Status vocabulary exposed to the ops assistant and the MCP tools. It is a
+ * deliberately plain-English surface for a language model, so it does NOT match
+ * the database enum — `fromAssistantRoomStatus` is the only sanctioned bridge.
+ */
+export const ASSISTANT_ROOM_STATUSES = [
+  "clean",
+  "dirty",
+  "in_progress",
+  "inspected",
+  "out_of_order",
+  "occupied",
+  "vacant",
+] as const;
 
-/** Tailwind classes keyed by the domain status, reusing the status tokens. */
-export const ROOM_STATUS_CARD: Record<RoomStatus, string> = {
-  Clean: "border-status-clean/55 bg-status-clean/12",
-  Dirty: "border-status-dirty/60 bg-status-dirty/16",
-  "In Progress": "border-amber/60 bg-amber/15",
-  Inspected: "border-status-clean/70 bg-status-clean/20",
-  DND: "border-status-dnd/60 bg-status-dnd/16",
-  Maintenance: "border-status-ooo/60 bg-status-ooo/14",
-  Stayover: "border-status-occupied/60 bg-status-occupied/14",
+export type AssistantRoomStatus = (typeof ASSISTANT_ROOM_STATUSES)[number];
+
+/**
+ * `vacant` maps to Dirty rather than Clean on purpose: a room reported vacant
+ * has almost always just been checked out of, and re-cleaning a clean room
+ * costs labour while skipping a dirty one puts a guest in it.
+ */
+const ASSISTANT_TO_ROOM_STATUS: Record<AssistantRoomStatus, RoomStatus> = {
+  clean: "Clean",
+  dirty: "Dirty",
+  in_progress: "In Progress",
+  inspected: "Inspected",
+  out_of_order: "Maintenance",
+  occupied: "Stayover",
+  vacant: "Dirty",
 };
 
-export const ROOM_STATUS_TEXT: Record<RoomStatus, string> = {
-  Clean: "text-status-clean",
-  Dirty: "text-status-dirty",
-  "In Progress": "text-amber",
-  Inspected: "text-status-clean",
-  DND: "text-status-dnd",
-  Maintenance: "text-status-ooo",
-  Stayover: "text-status-occupied",
+/**
+ * Translate an assistant-supplied status into the columns to write. Returns the
+ * same shape as `fromRoomStatus`, so `status` is absent for stages that only
+ * move `hk_stage` and must not clobber the stored status.
+ */
+export function fromAssistantRoomStatus(status: AssistantRoomStatus): {
+  status?: DbRoomStatus;
+  hk_stage: string | null;
+  dnd?: boolean;
+} {
+  return fromRoomStatus(ASSISTANT_TO_ROOM_STATUS[status]);
+}
+
+/**
+ * Presentation tokens keyed by the database status. The boards read the raw
+ * `rooms.status` column, so these — not the domain-status maps — are what the
+ * front desk and housekeeping views render from.
+ */
+export const DB_STATUS_LABEL: Record<DbRoomStatus, string> = {
+  vacant_clean: "Vacant clean",
+  vacant_dirty: "Vacant dirty",
+  occupied: "Occupied",
+  occupied_dnd: "Occupied / DND",
+  reserved: "Reserved / arriving",
+  out_of_order: "Out of order",
+};
+
+/** Card fill for the front-desk board, which is clickable and so has a hover state. */
+export const DB_STATUS_CARD: Record<DbRoomStatus, string> = {
+  vacant_clean: "border-status-clean/55 bg-status-clean/12 hover:bg-status-clean/20",
+  vacant_dirty: "border-status-dirty/55 bg-status-dirty/12 hover:bg-status-dirty/20",
+  occupied: "border-status-occupied/55 bg-status-occupied/14 hover:bg-status-occupied/22",
+  occupied_dnd: "border-status-dnd/55 bg-status-dnd/14 hover:bg-status-dnd/22",
+  reserved: "border-status-reserved/55 bg-status-reserved/12 hover:bg-status-reserved/20",
+  out_of_order: "border-status-ooo/55 bg-status-ooo/12 hover:bg-status-ooo/20",
+};
+
+/**
+ * Card fill for the housekeeping board. Identical to `DB_STATUS_CARD` except
+ * the two states a housekeeper must act on — dirty and DND — carry a heavier
+ * fill so they read first on a phone in a corridor.
+ */
+export const DB_STATUS_CARD_STRONG: Record<DbRoomStatus, string> = {
+  vacant_clean: "border-status-clean/55 bg-status-clean/12",
+  vacant_dirty: "border-status-dirty/70 bg-status-dirty/20",
+  occupied: "border-status-occupied/55 bg-status-occupied/14",
+  occupied_dnd: "border-status-dnd/70 bg-status-dnd/20",
+  reserved: "border-status-reserved/55 bg-status-reserved/12",
+  out_of_order: "border-status-ooo/55 bg-status-ooo/12",
+};
+
+export const DB_STATUS_DOT: Record<DbRoomStatus, string> = {
+  vacant_clean: "bg-status-clean",
+  vacant_dirty: "bg-status-dirty",
+  occupied: "bg-status-occupied",
+  occupied_dnd: "bg-status-dnd",
+  reserved: "bg-status-reserved",
+  out_of_order: "bg-status-ooo",
+};
+
+export const DB_STATUS_TEXT: Record<DbRoomStatus, string> = {
+  vacant_clean: "text-status-clean",
+  vacant_dirty: "text-status-dirty",
+  occupied: "text-status-occupied",
+  occupied_dnd: "text-status-dnd",
+  reserved: "text-status-reserved",
+  out_of_order: "text-status-ooo",
+};
+
+export const DB_STATUS_PILL: Record<DbRoomStatus, string> = {
+  vacant_clean: "border-status-clean/40 bg-status-clean/15 text-status-clean",
+  vacant_dirty: "border-status-dirty/45 bg-status-dirty/15 text-status-dirty",
+  occupied: "border-status-occupied/40 bg-status-occupied/15 text-status-occupied",
+  occupied_dnd: "border-status-dnd/45 bg-status-dnd/15 text-status-dnd",
+  reserved: "border-status-reserved/40 bg-status-reserved/15 text-status-reserved",
+  out_of_order: "border-status-ooo/45 bg-status-ooo/15 text-status-ooo",
+};
+
+/** Labels for the transient housekeeping stages stored in `hk_stage`. */
+export const HK_STAGE_LABEL: Record<string, string> = {
+  in_progress: "In progress",
+  inspected: "Inspected",
 };
 
 export const PRIORITY_BADGE: Record<PriorityLevel, string> = {

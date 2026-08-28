@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { DbRoomStatus } from "@/lib/room-model";
 
-export type RoomStatusValue =
-  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "out_of_order" | "reserved";
+/** @deprecated Alias kept for existing call sites — prefer `DbRoomStatus`. */
+export type RoomStatusValue = DbRoomStatus;
 
 export type StaffMember = {
   id: string;
@@ -72,6 +73,24 @@ export function startOfToday() {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   return now.toISOString();
+}
+
+/** Today as `YYYY-MM-DD` in the property's local timezone, for date columns. */
+export function todayIso() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+/** Coarse "how long ago" label for board timestamps. */
+export function timeAgo(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
 }
 
 export function formatDuration(seconds: number | null | undefined) {

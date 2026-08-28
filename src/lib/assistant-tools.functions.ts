@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { average } from "@/lib/ops";
+import { ASSISTANT_ROOM_STATUSES, fromAssistantRoomStatus } from "@/lib/room-model";
 import type { Database } from "@/integrations/supabase/types";
 
 type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
@@ -68,31 +69,28 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
     z
       .object({
         room_number: z.string().trim().min(1).max(10),
-        status: z.enum([
-          "clean",
-          "dirty",
-          "in_progress",
-          "inspected",
-          "out_of_order",
-          "occupied",
-          "vacant",
-        ]),
+        status: z.enum(ASSISTANT_ROOM_STATUSES),
         dnd: z.boolean().optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    // The assistant speaks plain English ("clean", "in_progress"); none of those
+    // are members of the room_status enum, so the mapping is not optional.
+    const next = fromAssistantRoomStatus(data.status);
     const patch: Partial<RoomRow> = {
-      status: data.status as RoomRow["status"],
+      hk_stage: next.hk_stage,
       updated_at: new Date().toISOString(),
     };
+    if (next.status) patch["status"] = next.status;
+    if (typeof next.dnd === "boolean") patch["dnd"] = next.dnd;
     if (typeof data.dnd === "boolean") patch["dnd"] = data.dnd;
 
     const { data: room, error } = await context.supabase
       .from("rooms")
       .update(patch)
       .eq("number", data.room_number)
-      .select("id, number, status, dnd, floor")
+      .select("id, number, status, hk_stage, dnd, floor")
       .maybeSingle();
 
     if (error) throw new Error(error.message);
