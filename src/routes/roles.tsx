@@ -2,27 +2,26 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { BrandLockup } from "@/components/brand-lockup";
 import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { useStaffIdentity } from "@/hooks/use-staff-identity";
+import { NavRail } from "@/components/front-desk/nav-rail";
 
 export const Route = createFileRoute("/roles")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Role management — Days Inn® by Wyndham Wildwood" },
+      { title: "Team & Role Management — Days Inn Hub" },
       {
         name: "description",
         content:
-          "Managers grant and revoke manager, staff, and viewer access for the Days Inn Wildwood team portal.",
+          "Manager team roster, role permissions matrix, and shift scheduling for Days Inn Wildwood.",
       },
-      { property: "og:title", content: "Role management — Days Inn Wildwood" },
+      { property: "og:title", content: "Team & Role Management — Days Inn Hub" },
       {
         property: "og:description",
-        content: "Grant or revoke manager access for the Days Inn Wildwood staff portal.",
+        content: "Grant or update role access and team PINs for Days Inn staff.",
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -33,6 +32,7 @@ function RolesPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const role = useStaffRole();
+  const { staff } = useStaffIdentity();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -46,47 +46,49 @@ function RolesPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-ink text-cream">
-      <div className="mx-auto max-w-5xl px-5 py-10">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <BrandLockup />
-          <nav className="flex flex-wrap gap-4 text-sm text-cream/70">
-            <Link to="/staff" className="hover:text-cream">
-              Staff queue
-            </Link>
-            <Link to="/front-desk" className="hover:text-cream">
-              Front desk
-            </Link>
-            <Link to="/housekeeping" className="hover:text-cream">
-              Housekeeping
-            </Link>
-          </nav>
-        </header>
+    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+      <NavRail current="roles" staff={staff} />
 
-        <h1 className="mt-10 font-display text-3xl">Role management</h1>
-        <p className="mt-2 max-w-2xl text-sm text-cream/60">
-          Move people between manager and non-manager access. Managers can change roles and invite
-          staff; staff can triage the queue; viewers can only watch.
-        </p>
+      <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-10">
+        <div className="mx-auto max-w-5xl">
+          <div>
+            <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+              Management &amp; Access Control
+            </p>
+            <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#004986]">
+              Team &amp; Role Management
+            </h1>
+            <p className="mt-1.5 text-xs text-slate-500">
+              Manage team members, assign department roles, configure staff PINs, and enforce security policies.
+            </p>
+          </div>
 
-        {!ready || role.loading ? (
-          <p className="mt-10 text-sm text-cream/60">Loading…</p>
-        ) : !session ? (
-          <p className="mt-10 text-sm text-cream/70">
-            Please{" "}
-            <Link to="/staff" className="text-amber underline">
-              sign in
-            </Link>{" "}
-            to manage roles.
-          </p>
-        ) : !role.isManager ? (
-          <p className="mt-10 text-sm text-cream/70">
-            Only managers can change roles. Ask a manager to grant you access.
-          </p>
-        ) : (
-          <TeamPanel />
-        )}
-      </div>
-    </main>
+          {!ready || role.loading ? (
+            <div className="mt-12 flex h-32 items-center justify-center text-xs font-semibold text-slate-400">
+              Loading team permissions…
+            </div>
+          ) : !session ? (
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xs">
+              <p className="text-sm font-semibold text-slate-700">
+                Please{" "}
+                <Link to="/staff" className="font-bold text-[#004986] underline">
+                  sign in to the staff portal
+                </Link>{" "}
+                to manage team roles.
+              </p>
+            </div>
+          ) : !role.isManager ? (
+            <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-xs">
+              <p className="text-xs font-bold text-amber-800 uppercase">Manager Access Required</p>
+              <p className="mt-1 text-xs text-amber-900">
+                Only property managers can view and modify role assignments.
+              </p>
+            </div>
+          ) : (
+            <TeamPanel />
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

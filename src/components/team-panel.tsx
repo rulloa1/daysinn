@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Shield, Key, AlertTriangle, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,8 +16,8 @@ import { forceStaffPasswordReset } from "@/lib/password-policy.functions";
 const ROLES: AppRole[] = ["manager", "staff", "housekeeper", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
   manager: "Manager",
-  staff: "Staff",
-  housekeeper: "Housekeeper",
+  staff: "Front Desk",
+  housekeeper: "Housekeeping",
   viewer: "Viewer",
 };
 
@@ -56,7 +57,6 @@ export function TeamPanel() {
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function change(userId: string, role: AppRole) {
@@ -84,78 +84,104 @@ export function TeamPanel() {
   }
 
   return (
-    <section className="mt-12 border border-cream/15 bg-cream/[0.04] p-6">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
-        Permissions
-      </p>
-      <h2 className="mt-3 font-display text-2xl">Team access</h2>
-      <p className="mt-2 max-w-2xl text-sm text-cream/60">
-        Managers grant and revoke roles. Staff and managers can triage the queue; viewers can only
-        watch it. Revoked members keep no access until a role is granted again.
-      </p>
-
-      <div className="mt-5 flex flex-wrap items-center gap-3 border border-cream/15 bg-ink/40 p-4">
-        <div className="min-w-[14rem] flex-1">
-          <p className="text-sm">Force a password reset</p>
-          <p className="mt-1 text-xs text-cream/55">
-            Flags every account with a role and emails a reset link. Breached and weak passwords are
-            now blocked at sign-up and reset.
-          </p>
+    <div className="mt-8 space-y-6">
+      {/* Security & Password Policy Action Box */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="flex items-start gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#E7EDF5] text-[#004986]">
+            <Key className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Enforce Password Policy &amp; Resets</p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Flags staff accounts for a secure password reset on their next sign-in.
+            </p>
+          </div>
         </div>
+
         <Button
           size="sm"
-          variant="outline"
           disabled={resetting}
-          className="border-amber/60 bg-transparent text-cream hover:bg-amber/15 hover:text-cream"
           onClick={forceResetAll}
+          className="rounded-xl border border-slate-300 bg-white text-xs font-bold text-[#004986] shadow-2xs hover:bg-slate-50"
         >
-          {resetting ? "Working…" : "Reset all staff passwords"}
+          {resetting ? "Sending resets…" : "Reset all passwords"}
         </Button>
       </div>
 
-      <ul className="mt-6 divide-y divide-cream/10">
-        {members.map((member) => {
-          const current = member.roles[0] as AppRole | undefined;
-          return (
-            <li key={member.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
-              <div>
-                <p className="text-sm">{member.email}</p>
-                <Badge className="mt-2 bg-cream/15 text-cream">
-                  {current ? ROLE_LABEL[current] : "No access"}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {ROLES.map((role) => (
+      {/* Team Roster & Permissions Table */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <h2 className="font-serif text-lg font-bold text-[#004986]">Property Roster &amp; Roles</h2>
+            <p className="text-xs text-slate-500">
+              Click a role button to adjust member privileges in real time.
+            </p>
+          </div>
+          <span className="rounded-full bg-[#E7EDF5] px-3 py-1 text-xs font-bold text-[#004986]">
+            {members.length} members
+          </span>
+        </div>
+
+        <ul className="divide-y divide-slate-100">
+          {members.map((member) => {
+            const current = member.roles[0] as AppRole | undefined;
+            return (
+              <li key={member.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-xs font-bold text-[#004986]">
+                    {member.email.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{member.email}</p>
+                    <Badge
+                      className={`mt-1 text-[10px] font-bold uppercase tracking-wider ${
+                        current === "manager"
+                          ? "bg-[#D4AF37] text-[#004986]"
+                          : current === "staff"
+                            ? "bg-[#004986] text-white"
+                            : current === "housekeeper"
+                              ? "bg-[#0F7B4F] text-white"
+                              : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      {current ? ROLE_LABEL[current] : "No Role"}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {ROLES.map((role) => (
+                    <Button
+                      key={role}
+                      size="sm"
+                      variant="outline"
+                      disabled={busy === member.id || current === role}
+                      className={`h-8 rounded-lg text-xs font-bold transition ${
+                        current === role
+                          ? "border-[#004986] bg-[#004986] text-white shadow-xs"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                      onClick={() => change(member.id, role)}
+                    >
+                      {ROLE_LABEL[role]}
+                    </Button>
+                  ))}
                   <Button
-                    key={role}
                     size="sm"
-                    variant="outline"
-                    disabled={busy === member.id || current === role}
-                    className={
-                      current === role
-                        ? "border-amber bg-amber text-ink"
-                        : "border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
-                    }
-                    onClick={() => change(member.id, role)}
+                    variant="ghost"
+                    disabled={busy === member.id || !current}
+                    className="h-8 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    onClick={() => revoke(member.id)}
                   >
-                    {ROLE_LABEL[role]}
+                    Revoke
                   </Button>
-                ))}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={busy === member.id || !current}
-                  className="border-clay/50 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
-                  onClick={() => revoke(member.id)}
-                >
-                  Revoke
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
   );
 }

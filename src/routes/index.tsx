@@ -96,10 +96,10 @@ function GuestView() {
   const availability = useAvailability();
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-amber/30 selection:text-ink">
+    <div className="min-h-screen bg-[#DCE4ED] text-slate-800 selection:bg-[#D4AF37]/30 selection:text-[#004986]">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pb-16 md:px-8">
+      <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-6 md:px-8">
         <BookingHero availability={availability} />
         <RoomTypesSection bookingLink={availability.bookingLink} />
         <AmenitiesAndPolicies />
@@ -113,13 +113,15 @@ function GuestView() {
         <ContactSection />
       </main>
 
-      <footer className="mt-8 border-t border-border/80 bg-card/60 px-5 py-8 backdrop-blur md:px-10">
-        <div className="mx-auto max-w-6xl space-y-5">
+      <footer className="border-t border-[#D2DBE6] bg-[#004986] px-5 py-12 text-white md:px-10">
+        <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <BrandLockup />
-            <p className="signage text-muted-foreground">Warm hospitality · Effortless service</p>
+            <BrandLockup tone="cream" />
+            <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+              Warm hospitality · Effortless service
+            </p>
           </div>
-          <FranchiseLegal />
+          <FranchiseLegal className="text-xs text-white/50" />
         </div>
       </footer>
 

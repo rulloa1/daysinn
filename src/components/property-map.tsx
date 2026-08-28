@@ -48,36 +48,40 @@ const AMENITIES = [
 
 export function PropertyMap() {
   return (
-    <section className="mt-10 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-lg">
+    <section className="mt-16 overflow-hidden rounded-3xl border border-[#D2DBE6] bg-[#F5F8FB] shadow-sm">
       <div className="grid gap-0 lg:grid-cols-[1.2fr_1fr]">
         {/* Location & Navigation Card */}
-        <div className="flex flex-col justify-between bg-muted/20 p-6 md:p-8">
+        <div className="flex flex-col justify-between p-6 md:p-8">
           <div>
             <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#004986] text-white">
                 <MapPin className="h-4 w-4" />
               </span>
-              <span className="signage text-accent font-bold">Location & Access</span>
+              <span className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">
+                Location &amp; Access
+              </span>
             </div>
-            <h2 className="mt-2 font-serif text-2xl font-bold text-foreground md:text-3xl">
+            <h2 className="mt-2 font-serif text-2xl font-bold text-[#004986] md:text-3xl">
               Getting to Days Inn® Wildwood
             </h2>
-            <address className="mt-2 not-italic text-sm text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">Days Inn® by Wyndham Wildwood I-75</strong>
+            <address className="mt-2 text-xs leading-relaxed not-italic text-slate-600">
+              <strong className="text-slate-900">Days Inn® by Wyndham Wildwood I-75</strong>
               <br />
               {ADDRESS}
             </address>
-            <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+            <p className="mt-3 text-xs leading-relaxed text-slate-600">
               Conveniently located directly off{" "}
-              <strong className="text-foreground">I-75 Exit 329</strong> and Florida&apos;s
+              <strong className="text-slate-900">I-75 Exit 329</strong> and Florida&apos;s
               Turnpike. Easy access to The Villages, local dining, fuel stations, and central
               Florida attractions.
             </p>
           </div>
 
-          <div className="mt-8 border-t border-border/70 pt-6">
-            <span className="signage text-primary font-bold">Turn-by-Turn GPS Navigation</span>
-            <p className="mt-1 text-xs text-muted-foreground">
+          <div className="mt-8 border-t border-[#D2DBE6] pt-6">
+            <span className="text-[11px] font-bold tracking-wider text-[#004986] uppercase">
+              Turn-by-Turn GPS Navigation
+            </span>
+            <p className="mt-1 text-xs text-slate-500">
               Open instant directions in your favorite navigation app:
             </p>
             <div className="mt-3 flex flex-wrap gap-2.5">
@@ -86,42 +90,44 @@ export function PropertyMap() {
                   key={item.label}
                   href={item.href}
                   target="_blank"
-                  rel="noreferrer"
-                  className="spring-hover inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background px-4 py-2.5 text-xs font-bold text-foreground shadow-sm hover:border-primary/40 hover:bg-primary/5"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-[#004986] shadow-2xs hover:bg-slate-50"
                 >
-                  <Navigation className="h-3.5 w-3.5 text-primary" />
+                  <Navigation className="h-3.5 w-3.5 text-[#004986]" />
                   {item.label} ↗
                 </a>
               ))}
             </div>
-            <p className="mt-3 text-[11px] text-muted-foreground">
+            <p className="mt-3 text-[11px] text-slate-400">
               Free on-site parking for all cars, SUVs, buses, RVs, and commercial trucks.
             </p>
           </div>
         </div>
 
         {/* Property Highlights */}
-        <div className="border-t border-border/80 p-6 lg:border-t-0 lg:border-l md:p-8">
-          <span className="signage text-accent font-bold">On-Site Highlights</span>
-          <h3 className="mt-1 font-serif text-xl font-bold text-foreground">Property Amenities</h3>
+        <div className="border-t border-[#D2DBE6] p-6 lg:border-t-0 lg:border-l md:p-8">
+          <span className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">
+            On-Site Highlights
+          </span>
+          <h3 className="mt-1 font-serif text-xl font-bold text-[#004986]">Property Amenities</h3>
 
           <div className="mt-5 space-y-3.5">
             {AMENITIES.map((item) => (
               <div
                 key={item.title}
-                className="flex items-start gap-3.5 rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
+                className="flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#E7EDF5] text-[#004986]">
                   <item.icon className="h-4 w-4" />
                 </span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-serif text-xs font-bold text-foreground">{item.title}</h4>
-                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[9px] font-bold text-amber">
+                    <h4 className="font-serif text-xs font-bold text-[#004986]">{item.title}</h4>
+                    <span className="rounded-full bg-[#D4AF37]/20 px-2 py-0.5 text-[9px] font-bold text-[#004986]">
                       {item.badge}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
                     {item.desc}
                   </p>
                 </div>
