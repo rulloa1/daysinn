@@ -32,15 +32,29 @@ export type FloorView = FloorKey | "both";
 
 const STORAGE_KEY = "daysinn_custom_room_coords_v10";
 
-/** Solid background colors per status for high contrast over the photo */
+/**
+ * Solid pill colours per status, taken from the `--status-*` design tokens so
+ * the map, the boards and the legend below it stay in step. Red is reserved
+ * for out-of-order alone, so a genuine problem is the only red on the plan.
+ */
 const PILL_BG: Record<RoomStatus, string> = {
-  vacant_clean: "border-emerald-700 bg-emerald-500 text-white",
-  vacant_dirty: "border-amber-600 bg-amber-300 text-slate-950",
-  occupied: "border-red-800 bg-red-600 text-white",
-  occupied_dnd: "border-red-950 bg-red-800 text-white",
-  reserved: "border-sky-700 bg-sky-400 text-slate-950",
-  out_of_order: "border-slate-500 bg-slate-400 text-slate-950",
+  vacant_clean: "border-status-clean/70 bg-status-clean text-white",
+  vacant_dirty: "border-status-dirty/70 bg-status-dirty text-slate-950",
+  occupied: "border-status-occupied/70 bg-status-occupied text-white",
+  occupied_dnd: "border-status-dnd/70 bg-status-dnd text-white",
+  reserved: "border-status-reserved/70 bg-status-reserved text-slate-950",
+  out_of_order: "border-status-ooo/70 bg-status-ooo text-white",
 };
+
+/** Legend rows under the plan, in the order the boards list statuses. */
+const STATUS_LEGEND: ReadonlyArray<{ status: RoomStatus; label: string; dot: string }> = [
+  { status: "vacant_clean", label: "Vacant clean", dot: "bg-status-clean" },
+  { status: "vacant_dirty", label: "Vacant dirty", dot: "bg-status-dirty" },
+  { status: "occupied", label: "Occupied", dot: "bg-status-occupied" },
+  { status: "occupied_dnd", label: "Occupied / DND", dot: "bg-status-dnd" },
+  { status: "reserved", label: "Reserved / arriving", dot: "bg-status-reserved" },
+  { status: "out_of_order", label: "Out of order", dot: "bg-status-ooo" },
+];
 
 type Props = {
   floor: FloorView;
@@ -272,22 +286,22 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
       {
         label: "Dirty",
         count: floorRooms.filter((room) => room.status === "vacant_dirty").length,
-        tone: "bg-amber-100 text-amber-900",
+        tone: "bg-status-dirty/20 text-slate-900",
       },
       {
         label: "DND",
         count: floorRooms.filter((room) => room.status === "occupied_dnd").length,
-        tone: "bg-red-100 text-red-900",
+        tone: "bg-status-dnd/20 text-slate-900",
       },
       {
         label: "Maintenance",
         count: floorRooms.filter((room) => room.status === "out_of_order").length,
-        tone: "bg-slate-200 text-slate-800",
+        tone: "bg-status-ooo/20 text-slate-900",
       },
       {
         label: "Open requests",
         count: floorRooms.reduce((total, room) => total + (openRequests?.get(room.number) ?? 0), 0),
-        tone: "bg-sky-100 text-sky-900",
+        tone: "bg-status-occupied/20 text-slate-900",
       },
     ],
     [floorRooms, openRequests],
@@ -731,25 +745,25 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
               </button>
             );
           })}
-
-          <div className="absolute bottom-2 right-2 z-20 rounded-xl bg-white/95 p-2.5 text-[10px] font-bold text-slate-800 shadow-lg sm:bottom-3 sm:right-3 sm:p-3 sm:text-xs">
-            <p className="mb-1.5 text-[9px] uppercase tracking-wider text-slate-500">Room status</p>
-            <div className="grid gap-1">
-              {[
-                ["bg-emerald-500", "Available"],
-                ["bg-red-600", "Occupied"],
-                ["bg-amber-300", "Dirty / cleaning"],
-                ["border border-slate-950 bg-amber-300", "Exterior stairs"],
-                ["bg-slate-400", "Maintenance"],
-              ].map(([color, label]) => (
-                <span key={label} className="flex items-center gap-1.5">
-                  <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
+      </div>
+
+      <div className="border-t border-slate-200 bg-white px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          {STATUS_LEGEND.map((entry) => (
+            <span
+              key={entry.status}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-700"
+            >
+              <span className={`h-2.5 w-2.5 rounded-full ${entry.dot}`} />
+              {entry.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          {floorRooms.length} rooms · {activeFloor === 1 ? "ground floor" : "upper floor"} · tap a
+          room for details
+        </p>
       </div>
 
       {normalizedQuery && !visibleRooms.length ? (

@@ -39,7 +39,8 @@ VPARK_COL = (1245.0, VWING_X1)             # parking-facing column  (odds)
 VWING_Y0, VWING_Y1 = 100.0, 700.0          # 14 bays, south -> north
 
 COURT = (MAIN_X0, 150.0, MAIN_X1, WING_TOP)  # courtyard
-POOL = (700.0, 250.0, 1000.0, 430.0)
+POOL = (860.0, 355.0, 1000.0, 600.0)   # portrait, long axis parallel to the east wing
+POOL_HOUSE = (790.0, 320.0, 1060.0, 625.0)
 
 coords = {}          # room number -> (left%, top%)
 cells = []           # (x0, y0, x1, y1, label, kind)
@@ -101,23 +102,34 @@ for gone in ("237", "239"):
     coords.pop(gone, None)
 
 
-
+# ---------------------------------------------------------------------------
+# Drawing.  Palette and composition follow the property site-plan reference:
+# dark asphalt lot, planted perimeter, lawns either side of the courtyard
+# walk, portrait pool beside the east wing, porte-cochere and entry canopy.
+# ---------------------------------------------------------------------------
 C = {
-    "pave":   "#d9dce1",
-    "pave2":  "#cfd3d9",
-    "stall":  "#ffffff",
-    "grass":  "#bcd3a4",
-    "grass2": "#a9c78e",
-    "walk":   "#e8eaed",
-    "roof":   "#f4f5f7",
-    "roofl":  "#ffffff",
-    "line":   "#8b93a1",
-    "line2":  "#5c6473",
-    "ink":    "#2b3240",
-    "pool":   "#5fc0e8",
-    "pooldk": "#2f9dcb",
-    "svc":    "#e6e1d3",
-    "brand":  "#1f3864",
+    "page":    "#dfe6ee",
+    "asphalt": "#5b6068",
+    "asphalt2": "#53575f",
+    "stall":   "#ffffff",
+    "grass":   "#78ab55",
+    "grass2":  "#6b9d49",
+    "grass3":  "#8cbb66",
+    "tree":    "#4f8f3b",
+    "treel":   "#6fb04c",
+    "treesh":  "#3c6b2d",
+    "walk":    "#e9ecef",
+    "roof":    "#f3f5f7",
+    "roofl":   "#ffffff",
+    "roofed":  "#c6ccd4",
+    "line":    "#aeb5bf",
+    "line2":   "#7b828d",
+    "ink":     "#2b3240",
+    "pool":    "#3fb3e0",
+    "pooldk":  "#1f93c4",
+    "svc":     "#ece7d8",
+    "brand":   "#1f3864",
+    "acc":     "#2f6fb5",
 }
 
 p = []
@@ -128,97 +140,145 @@ a('<linearGradient id="roofg" x1="0" y1="0" x2="0" y2="1">'
   f'<stop offset="0" stop-color="{C["roofl"]}"/><stop offset="1" stop-color="{C["roof"]}"/></linearGradient>')
 a('<linearGradient id="poolg" x1="0" y1="0" x2="1" y2="1">'
   f'<stop offset="0" stop-color="{C["pool"]}"/><stop offset="1" stop-color="{C["pooldk"]}"/></linearGradient>')
+a('<pattern id="hatch" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+  f'<rect width="14" height="14" fill="none"/><line x1="0" y1="0" x2="0" y2="14" stroke="{C["stall"]}" stroke-width="5"/></pattern>')
 a('</defs>')
 
-# ---- ground ---------------------------------------------------------------
-a(f'<rect width="{W:.0f}" height="{H:.0f}" fill="{C["pave"]}"/>')
-# grass verges
-a(f'<rect x="0" y="0" width="{W:.0f}" height="34" fill="{C["grass2"]}"/>')
-a(f'<rect x="0" y="{H-34:.0f}" width="{W:.0f}" height="34" fill="{C["grass2"]}"/>')
-a(f'<rect x="0" y="0" width="34" height="{H:.0f}" fill="{C["grass2"]}"/>')
-a(f'<rect x="{W-34:.0f}" y="0" width="34" height="{H:.0f}" fill="{C["grass2"]}"/>')
+# ---- lot -------------------------------------------------------------------
+a(f'<rect width="{W:.0f}" height="{H:.0f}" fill="{C["page"]}"/>')
+a(f'<rect x="18" y="18" width="{W-36:.0f}" height="{H-36:.0f}" rx="26" fill="{C["asphalt"]}"/>')
 
-def stalls(x0, y0, x1, y1, vertical, step=42):
-    """Parking stall striping."""
-    out = [f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{x1-x0:.1f}" height="{y1-y0:.1f}" fill="{C["pave2"]}"/>']
+# ---- planted perimeter -----------------------------------------------------
+def tree(x, y, r=15.0):
+    return (f'<circle cx="{x:.0f}" cy="{y+3:.0f}" r="{r:.0f}" fill="{C["treesh"]}" opacity="0.5"/>'
+            f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.0f}" fill="{C["tree"]}"/>'
+            f'<circle cx="{x-r*0.3:.0f}" cy="{y-r*0.3:.0f}" r="{r*0.52:.0f}" fill="{C["treel"]}"/>')
+
+# grass verges hugging the lot edge
+a(f'<rect x="18" y="18" width="{W-36:.0f}" height="60" rx="24" fill="{C["grass2"]}"/>')
+a(f'<rect x="18" y="{H-60:.0f}" width="{W-36:.0f}" height="42" rx="22" fill="{C["grass2"]}"/>')
+a(f'<rect x="18" y="18" width="62" height="{H-36:.0f}" rx="24" fill="{C["grass2"]}"/>')
+a(f'<rect x="{W-80:.0f}" y="18" width="62" height="{H-36:.0f}" rx="24" fill="{C["grass2"]}"/>')
+# east landscape strip
+a(f'<rect x="{W-150:.0f}" y="80" width="66" height="{H-190:.0f}" rx="14" fill="{C["grass"]}"/>')
+
+STEP = 52.0
+for i in range(int((W - 150) / STEP) + 1):
+    x = 78 + i * STEP
+    if x < W - 70:
+        a(tree(x, 48))
+        a(tree(x, H - 39, 13))
+for i in range(int((H - 150) / STEP) + 1):
+    y = 96 + i * STEP
+    if y < H - 80:
+        a(tree(48, y))
+        a(tree(W - 48, y))
+        a(tree(W - 117, y))
+
+# ---- lawns either side of the courtyard walk -------------------------------
+a(f'<rect x="250" y="232" width="400" height="408" rx="12" fill="{C["grass"]}"/>')
+a(f'<rect x="676" y="232" width="104" height="408" rx="12" fill="{C["grass"]}"/>')
+for tx, ty in ((330, 320), (470, 290), (590, 400), (360, 520), (520, 590), (728, 300), (728, 470), (728, 600)):
+    a(tree(tx, ty, 19))
+
+# ---- parking ---------------------------------------------------------------
+def stalls(x0, y0, x1, y1, vertical, step=46.0):
+    """A parking band: apron plus stall striping."""
+    out = [f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{x1-x0:.1f}" height="{y1-y0:.1f}" fill="{C["asphalt2"]}"/>']
     if vertical:
-        n = int((x1 - x0) / step)
+        n = max(1, int((x1 - x0) / step))
         for i in range(1, n + 1):
             x = x0 + i * (x1 - x0) / (n + 1)
-            out.append(f'<line x1="{x:.1f}" y1="{y0:.1f}" x2="{x:.1f}" y2="{y1:.1f}" stroke="{C["stall"]}" stroke-width="2.5"/>')
+            out.append(f'<line x1="{x:.1f}" y1="{y0:.1f}" x2="{x:.1f}" y2="{y1:.1f}" stroke="{C["stall"]}" stroke-width="3"/>')
     else:
-        n = int((y1 - y0) / step)
+        n = max(1, int((y1 - y0) / step))
         for i in range(1, n + 1):
             y = y0 + i * (y1 - y0) / (n + 1)
-            out.append(f'<line x1="{x0:.1f}" y1="{y:.1f}" x2="{x1:.1f}" y2="{y:.1f}" stroke="{C["stall"]}" stroke-width="2.5"/>')
+            out.append(f'<line x1="{x0:.1f}" y1="{y:.1f}" x2="{x1:.1f}" y2="{y:.1f}" stroke="{C["stall"]}" stroke-width="3"/>')
     return "".join(out)
 
-# parking bands
-a(stalls(60, 890, 1180, 962, True))        # front / south parking
-a(stalls(1360, 120, 1552, 860, False))     # east / front parking
-a(stalls(60, 60, 1140, 128, True))         # north / back parking
-a(stalls(60, 170, 300, 640, False))        # west truck parking
+# back-of-house rows either side of the north drive aisle
+a(stalls(300, 96, 1140, 150, True))
+a(stalls(300, 158, 1000, 212, True))
+# east rows either side of the drive aisle serving the vertical wing
+a(stalls(1345, 120, 1450, 700, False))
+a(stalls(1345, 700, 1450, 860, False))
+# front rows along the main entrance drive
+a(stalls(500, 858, 1150, 930, True))
 
-# landscaping islands
-a(f'<rect x="330" y="170" width="820" height="500" rx="10" fill="{C["grass"]}"/>')
-a(f'<rect x="1200" y="150" width="120" height="0" fill="none"/>')
+# accessible stalls beside each entrance
+def accessible(x, y, w=62.0, h=54.0):
+    cx, cy = x + w / 2, y + h / 2
+    return (f'<rect x="{x:.0f}" y="{y:.0f}" width="{w:.0f}" height="{h:.0f}" fill="{C["acc"]}"/>'
+            f'<circle cx="{cx:.0f}" cy="{cy-11:.0f}" r="5" fill="#ffffff"/>'
+            f'<path d="M{cx-9:.0f} {cy+13:.0f} a11 11 0 1 1 15 -9" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>'
+            f'<path d="M{cx-1:.0f} {cy-4:.0f} h8 l5 12" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
 
-# courtyard walkways
-a(f'<rect x="330" y="640" width="820" height="30" fill="{C["walk"]}"/>')
-a(f'<rect x="690" y="170" width="26" height="500" fill="{C["walk"]}"/>')
+a(accessible(506, 866))
+a(accessible(1074, 866))
 
-# pool deck + pool
+# painted crosswalk hatching at the two entries
+a(f'<path d="M1152 858 h70 v72 h-70 Z" fill="url(#hatch)" opacity="0.85"/>')
+a(f'<path d="M228 130 h96 v46 h-96 Z" fill="url(#hatch)" opacity="0.85"/>')
+
+# ---- drives ----------------------------------------------------------------
+a(f'<path d="M96 210 q0 -96 108 -96 h120" fill="none" stroke="{C["stall"]}" stroke-width="4"/>')
+a(f'<path d="M96 210 V820 q0 96 108 96 h150" fill="none" stroke="{C["stall"]}" stroke-width="4"/>')
+
+# ---- courtyard walkways ----------------------------------------------------
+a(f'<rect x="{MAIN_X0:.0f}" y="640" width="{MAIN_X1-MAIN_X0:.0f}" height="30" fill="{C["walk"]}"/>')
+a(f'<rect x="650" y="232" width="26" height="408" fill="{C["walk"]}"/>')
+
+# ---- pool house + pool -----------------------------------------------------
+hx0, hy0, hx1, hy1 = POOL_HOUSE
+a(f'<rect x="{hx0:.0f}" y="{hy0:.0f}" width="{hx1-hx0:.0f}" height="{hy1-hy0:.0f}" rx="6" fill="{C["roof"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
 px0, py0, px1, py1 = POOL
-a(f'<rect x="{px0-38:.0f}" y="{py0-38:.0f}" width="{px1-px0+76:.0f}" height="{py1-py0+76:.0f}" rx="8" fill="{C["walk"]}" stroke="{C["line"]}" stroke-width="1.5"/>')
-a(f'<rect x="{px0:.0f}" y="{py0:.0f}" width="{px1-px0:.0f}" height="{py1-py0:.0f}" rx="6" fill="url(#poolg)" stroke="{C["pooldk"]}" stroke-width="2"/>')
-a(f'<text x="{(px0+px1)/2:.0f}" y="{(py0+py1)/2+7:.0f}" text-anchor="middle" font-size="21" font-weight="700" fill="#ffffff" letter-spacing="2">SWIM POOL</text>')
-# pool equipment
-a(f'<rect x="1030" y="292" width="86" height="70" rx="4" fill="{C["svc"]}" stroke="{C["line2"]}" stroke-width="1.5"/>')
-a(f'<text x="1073" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="{C["ink"]}">POOL</text>')
-a(f'<text x="1073" y="337" text-anchor="middle" font-size="11" font-weight="700" fill="{C["ink"]}">EQUIP.</text>')
+a(f'<rect x="{px0:.0f}" y="{py0:.0f}" width="{px1-px0:.0f}" height="{py1-py0:.0f}" rx="5" fill="url(#poolg)" stroke="{C["pooldk"]}" stroke-width="3"/>')
+# lounge chairs down the deck
+for i in range(8):
+    cy = hy0 + 34 + i * 33
+    a(f'<rect x="{hx0+14:.0f}" y="{cy:.0f}" width="26" height="22" rx="3" fill="{C["roofl"]}" stroke="{C["line"]}" stroke-width="1.6"/>')
+# pool ladders
+for ly in (py0 + 12, py1 - 34):
+    a(f'<rect x="{px0+18:.0f}" y="{ly:.0f}" width="22" height="22" rx="2" fill="none" stroke="{C["roofl"]}" stroke-width="3"/>')
+a(f'<text x="{(px0+px1)/2:.0f}" y="{(py0+py1)/2-4:.0f}" text-anchor="middle" font-size="19" font-weight="800" fill="#ffffff" letter-spacing="1.5">SWIM</text>')
+a(f'<text x="{(px0+px1)/2:.0f}" y="{(py0+py1)/2+18:.0f}" text-anchor="middle" font-size="19" font-weight="800" fill="#ffffff" letter-spacing="1.5">POOL</text>')
+# pool equipment / restrooms
+a(f'<rect x="{hx0+6:.0f}" y="{hy0-62:.0f}" width="62" height="52" rx="4" fill="{C["svc"]}" stroke="{C["line2"]}" stroke-width="2"/>')
 
-# ---- building shell -------------------------------------------------------
+# ---- building shell --------------------------------------------------------
 a(f'<path d="M{LOBBY_X0} {WING_TOP} H{VWING_X1} V{VWING_Y0-46} H{VPARK_COL[0]} V{VWING_Y0} H{VWING_X0} V{WING_BOT} H{LOBBY_X0} Z" '
-  f'fill="url(#roofg)" stroke="{C["line2"]}" stroke-width="3" stroke-linejoin="round"/>')
+  f'fill="url(#roofg)" stroke="{C["roofed"]}" stroke-width="3" stroke-linejoin="round"/>')
 
-# room + service cells
 for x0, y0, x1, y1, label, kind in cells:
     fill = C["svc"] if kind == "service" else "none"
     a(f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{x1-x0:.1f}" height="{y1-y0:.1f}" fill="{fill}" stroke="{C["line"]}" stroke-width="1.2"/>')
     if label:
         a(f'<text x="{(x0+x1)/2:.0f}" y="{y1-9:.0f}" text-anchor="middle" font-size="8.5" font-weight="800" fill="{C["ink"]}" letter-spacing="0.4">{label}</text>')
 
-# row divider between the two room depths
 a(f'<line x1="{LOBBY_X1}" y1="{COURT_ROW[1]}" x2="{MAIN_X1}" y2="{COURT_ROW[1]}" stroke="{C["line2"]}" stroke-width="2"/>')
 a(f'<line x1="{VCOURT_COL[1]}" y1="{VWING_Y0}" x2="{VCOURT_COL[1]}" y2="{VWING_Y1}" stroke="{C["line2"]}" stroke-width="2"/>')
-# lobby block separation
 a(f'<line x1="{LOBBY_X1}" y1="{WING_TOP}" x2="{LOBBY_X1}" y2="{WING_BOT}" stroke="{C["line2"]}" stroke-width="2.5"/>')
-# corner block
-a(f'<rect x="{VWING_X0}" y="{WING_TOP}" width="{VWING_X1-VWING_X0}" height="{WING_BOT-WING_TOP}" fill="{C["walk"]}" stroke="{C["line2"]}" stroke-width="2"/>')
-a(f'<text x="{(VWING_X0+VWING_X1)/2:.0f}" y="{WING_TOP+70:.0f}" text-anchor="middle" font-size="11" font-weight="700" fill="{C["ink"]}">BREEZEWAY</text>')
 
-# laundry / storage outbuilding
-a(f'<rect x="90" y="880" width="180" height="72" rx="4" fill="{C["svc"]}" stroke="{C["line2"]}" stroke-width="2"/>')
-a(f'<text x="180" y="910" text-anchor="middle" font-size="11.5" font-weight="700" fill="{C["ink"]}">LAUNDRY AND</text>')
-a(f'<text x="180" y="926" text-anchor="middle" font-size="11.5" font-weight="700" fill="{C["ink"]}">STORAGE</text>')
+# porte-cochere off the lobby, entry canopy at the east elbow
+a(f'<rect x="180" y="{WING_BOT:.0f}" width="300" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
+a(f'<text x="330" y="{WING_BOT+53:.0f}" text-anchor="middle" font-size="13" font-weight="800" fill="{C["ink"]}" letter-spacing="1">PORTE-COCHÈRE</text>')
+a(f'<rect x="{VWING_X0:.0f}" y="{WING_BOT:.0f}" width="{VWING_X1-VWING_X0:.0f}" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
+a(f'<text x="{(VWING_X0+VWING_X1)/2:.0f}" y="{WING_BOT+53:.0f}" text-anchor="middle" font-size="13" font-weight="800" fill="{C["ink"]}" letter-spacing="1">CANOPY</text>')
 
-# ---- area labels ----------------------------------------------------------
-def tag(x, y, text, anchor="middle"):
+# ---- labels ----------------------------------------------------------------
+def tag(x, y, text):
     wpx = len(text) * 8.7 + 34
-    a(f'<rect x="{x-wpx/2:.0f}" y="{y-15:.0f}" width="{wpx:.0f}" height="24" rx="5" fill="{C["brand"]}"/>')
-    a(f'<text x="{x:.0f}" y="{y+2:.0f}" text-anchor="{anchor}" font-size="12" font-weight="700" fill="#ffffff" letter-spacing="1.2">{text}</text>')
+    a(f'<rect x="{x-wpx/2:.0f}" y="{y-16:.0f}" width="{wpx:.0f}" height="26" rx="5" fill="{C["brand"]}"/>')
+    a(f'<text x="{x:.0f}" y="{y+2:.0f}" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff" letter-spacing="1.2">{text}</text>')
 
-tag(600, 96, "BACK PARKING")
-tag(192, 160, "TRUCK PARKING (GUEST)")
-tag(1450, 160, "FRONT PARKING")
-tag(620, 986, "MAIN ENTRANCE")
-a(f'<text x="500" y="560" text-anchor="middle" font-size="19" font-weight="700" fill="#5d7a44" letter-spacing="4">COURTYARD</text>')
+tag(1072, 190, "BACK ENTRANCE")
+tag(760, 970, "MAIN ENTRANCE")
 
-# north arrow + scale
-a(f'<g transform="translate(1440,930)"><circle r="26" fill="#ffffff" stroke="{C["line2"]}" stroke-width="2"/>'
-  f'<path d="M0 -17 L9 13 L0 6 L-9 13 Z" fill="{C["ink"]}"/>'
-  f'<text x="0" y="-30" text-anchor="middle" font-size="13" font-weight="800" fill="{C["ink"]}">N</text></g>')
-
+# north arrow
+a(f'<g transform="translate(1462,905)"><circle r="27" fill="#ffffff" stroke="{C["line2"]}" stroke-width="2"/>'
+  f'<path d="M0 -18 L10 14 L0 6 L-10 14 Z" fill="{C["ink"]}"/></g>')
+a(f'<text x="1462" y="958" text-anchor="middle" font-size="15" font-weight="800" fill="#ffffff">N</text>')
 a('</svg>')
 svg = "\n".join(p)
 open(OUT_SVG, 'w', encoding='utf-8').write(svg)
