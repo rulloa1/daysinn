@@ -65,8 +65,11 @@ export function ManualShell({
 
         <div className="mt-12 border-t border-border-guest pt-5 print:mt-8">
           <p className="text-xs text-slate-500">
-            Front desk · <a href="tel:+13527487766" className="font-semibold">(352) 748-7766</a> ·
-            Guest Hub staff portal
+            Front desk ·{" "}
+            <a href="tel:+13527487766" className="font-semibold">
+              (352) 748-7766
+            </a>{" "}
+            · Guest Hub staff portal
           </p>
           <div className="mt-2">
             <FranchiseLegal />
@@ -78,15 +81,7 @@ export function ManualShell({
 }
 
 /** Numbered chapter heading, e.g. "3 · Status words and who owns them". */
-export function Section({
-  n,
-  title,
-  children,
-}: {
-  n: number;
-  title: string;
-  children: ReactNode;
-}) {
+export function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
     <section className="mt-10 break-inside-avoid print:mt-8">
       <h2 className="font-serif text-xl font-bold text-brand-blue">
@@ -146,13 +141,7 @@ export function Bullets({ items }: { items: ReactNode[] }) {
   );
 }
 
-export function ManualTable({
-  columns,
-  rows,
-}: {
-  columns: string[];
-  rows: ReactNode[][];
-}) {
+export function ManualTable({ columns, rows }: { columns: string[]; rows: ReactNode[][] }) {
   return (
     <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0 print:overflow-visible">
       <table className="w-full min-w-[34rem] border-collapse text-left text-sm print:min-w-0">

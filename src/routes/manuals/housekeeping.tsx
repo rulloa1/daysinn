@@ -182,21 +182,21 @@ function HousekeepingManual() {
       <Section n={1} title="Installing the app">
         <p>
           Guest Hub runs in your phone's browser, but you should install it to the home screen.
-          Installed, it keeps you signed in, keeps working when the Wi-Fi drops, and can send you room
-          alerts from the front desk.
+          Installed, it keeps you signed in, keeps working when the Wi-Fi drops, and can send you
+          room alerts from the front desk.
         </p>
         <Steps
           items={[
             "Open the link your manager texts you.",
             <>
-              Tap <strong>Add to Home Screen</strong> on the welcome screen. If your browser does not
-              show the prompt, tap the browser's <strong>Share</strong> button, then{" "}
+              Tap <strong>Add to Home Screen</strong> on the welcome screen. If your browser does
+              not show the prompt, tap the browser's <strong>Share</strong> button, then{" "}
               <strong>Add to Home Screen</strong>.
             </>,
             "Open Guest Hub from your home screen from now on — not from the browser tab.",
             <>
-              When the phone asks to <strong>allow notifications</strong>, tap allow. This is how the
-              front desk tells you a room jumped the queue.
+              When the phone asks to <strong>allow notifications</strong>, tap allow. This is how
+              the front desk tells you a room jumped the queue.
             </>,
           ]}
         />
@@ -211,16 +211,16 @@ function HousekeepingManual() {
         <Steps
           items={[
             <>
-              <strong>Tap your name.</strong> The list shows everyone on today's schedule by name and
-              role only — nobody's room count or workload is visible until they sign in. If your name
-              is not there, tap <em>I'm not on this list</em> and call the front desk; you may be
-              scheduled under a different date.
+              <strong>Tap your name.</strong> The list shows everyone on today's schedule by name
+              and role only — nobody's room count or workload is visible until they sign in. If your
+              name is not there, tap <em>I'm not on this list</em> and call the front desk; you may
+              be scheduled under a different date.
             </>,
             <>
               <strong>Enter your 4-digit PIN.</strong> Your manager sets it with you when you are
               added to the team. There is no submit button — sign-on happens on the fourth digit. A
-              wrong PIN clears the dots so you can try again; nothing locks after one mistake. Do not
-              share it, and do not write it on the phone case.
+              wrong PIN clears the dots so you can try again; nothing locks after one mistake. Do
+              not share it, and do not write it on the phone case.
             </>,
           ]}
         />
@@ -231,16 +231,16 @@ function HousekeepingManual() {
         <Callout title="If you forget your PIN">
           <p>
             Tap <em>Forgot PIN</em> and the front desk gets a message. A manager resets it in a few
-            seconds — you do not need to wait for a new invite link. Never borrow someone else's PIN:
-            room work is recorded under whoever signed in.
+            seconds — you do not need to wait for a new invite link. Never borrow someone else's
+            PIN: room work is recorded under whoever signed in.
           </p>
         </Callout>
       </Section>
 
       <Section n={3} title="Starting a shift">
         <p>
-          Open the app when you arrive and tap <strong>Start shift</strong>. This is your clock-in and
-          it sets the start time on every room you turn today.
+          Open the app when you arrive and tap <strong>Start shift</strong>. This is your clock-in
+          and it sets the start time on every room you turn today.
         </p>
         <p>
           The front desk pre-assigns your rooms overnight — usually one wing or floor so you are not
@@ -257,15 +257,15 @@ function HousekeepingManual() {
           ]}
         />
         <p>
-          The estimate next to your room count uses a 40-minute average turn. Treat it as a guide, not
-          a target you have to beat.
+          The estimate next to your room count uses a 40-minute average turn. Treat it as a guide,
+          not a target you have to beat.
         </p>
       </Section>
 
       <Section n={4} title="Room status words">
         <p>
-          Every room on the property carries one status. The front desk sells rooms from these words,
-          so they have to be accurate.
+          Every room on the property carries one status. The front desk sells rooms from these
+          words, so they have to be accurate.
         </p>
         <ManualTable
           columns={["Status", "What it means", "What you do"]}
@@ -276,8 +276,8 @@ function HousekeepingManual() {
           ])}
         />
         <p>
-          <strong>Stayover</strong> means the guest has not checked out yet — refresh the room, change
-          linens if they asked, and never pack or move their belongings.{" "}
+          <strong>Stayover</strong> means the guest has not checked out yet — refresh the room,
+          change linens if they asked, and never pack or move their belongings.{" "}
           <strong>Do not disturb</strong> means you do not knock at all: leave it, and it stays on
           your list until the flag clears or the front desk calls the guest.
         </p>
@@ -292,8 +292,8 @@ function HousekeepingManual() {
         <Steps
           items={[
             <>
-              <strong>Tap Start room.</strong> This tells the front desk the room is being worked, so
-              they stop asking.
+              <strong>Tap Start room.</strong> This tells the front desk the room is being worked,
+              so they stop asking.
             </>,
             <>
               <strong>Clean to the standard in section 6.</strong>
@@ -310,24 +310,24 @@ function HousekeepingManual() {
           ]}
         />
         <p>
-          If the room needs more than a normal turn — a stain that will not lift, a smell, a bed that
-          needs a mattress change — mark the issue (section 7) instead of quietly spending an extra 40
-          minutes. Someone else can be moved to cover your route.
+          If the room needs more than a normal turn — a stain that will not lift, a smell, a bed
+          that needs a mattress change — mark the issue (section 7) instead of quietly spending an
+          extra 40 minutes. Someone else can be moved to cover your route.
         </p>
         <Callout tone="gold" title="When the front desk changes your order">
           <p>
-            Sometimes a room jumps the queue — usually an arrival landing earlier than booked. A gold{" "}
-            <em>Route changed</em> banner appears with the room number and the reason.{" "}
-            <strong>Go to</strong> moves that room to the top; <strong>Later</strong> only closes the
-            banner — the route has already been reordered either way, so the room is still coming. If
-            you were part-way through a room when it appears, finish that room first.
+            Sometimes a room jumps the queue — usually an arrival landing earlier than booked. A
+            gold <em>Route changed</em> banner appears with the room number and the reason.{" "}
+            <strong>Go to</strong> moves that room to the top; <strong>Later</strong> only closes
+            the banner — the route has already been reordered either way, so the room is still
+            coming. If you were part-way through a room when it appears, finish that room first.
           </p>
         </Callout>
         <Callout tone="amber" title="Never mark a room clean early">
           <p>
-            Marking clean puts the room on sale. A guest can be standing at the desk holding a key for
-            it thirty seconds later. If you are interrupted mid-room, leave it started — do not mark
-            it clean to keep your numbers tidy.
+            Marking clean puts the room on sale. A guest can be standing at the desk holding a key
+            for it thirty seconds later. If you are interrupted mid-room, leave it started — do not
+            mark it clean to keep your numbers tidy.
           </p>
         </Callout>
       </Section>
@@ -341,9 +341,9 @@ function HousekeepingManual() {
           <Checklist key={c.area} area={c.area} items={c.items} />
         ))}
         <p>
-          <strong>Stayover rooms</strong> get the bathroom, trash, towels, bed straightening, amenity
-          restock and a floor pass — not a full strip. <strong>Suites</strong> add the sitting area,
-          sofa cushions and the second TV surface.
+          <strong>Stayover rooms</strong> get the bathroom, trash, towels, bed straightening,
+          amenity restock and a floor pass — not a full strip. <strong>Suites</strong> add the
+          sitting area, sofa cushions and the second TV surface.
         </p>
         <p>
           Guest property found in a departure room goes to the front desk the same day with the room
@@ -354,8 +354,9 @@ function HousekeepingManual() {
 
       <Section n={7} title="Flagging a maintenance issue">
         <p>
-          Anything broken, leaking, stained or missing gets flagged from inside the room while you are
-          looking at it. A flagged issue becomes a maintenance ticket the front desk can dispatch.
+          Anything broken, leaking, stained or missing gets flagged from inside the room while you
+          are looking at it. A flagged issue becomes a maintenance ticket the front desk can
+          dispatch.
         </p>
         <Steps
           items={[
@@ -372,9 +373,9 @@ function HousekeepingManual() {
               <em>“AC broken”</em>.
             </>,
             <>
-              Choose whether the room can still be sold. If it cannot — no hot water, no AC in summer,
-              a bed that cannot be slept in — mark it <strong>out of order</strong>. That takes the
-              room off sale immediately.
+              Choose whether the room can still be sold. If it cannot — no hot water, no AC in
+              summer, a bed that cannot be slept in — mark it <strong>out of order</strong>. That
+              takes the room off sale immediately.
             </>,
           ]}
         />
@@ -400,22 +401,22 @@ function HousekeepingManual() {
         />
         <p>
           Each of those is saved on your phone and shows in a <strong>Waiting to send</strong> list
-          with a count. When you walk back into coverage they send by themselves, usually within a few
-          seconds. Nothing is lost and you do not need to redo anything.
+          with a count. When you walk back into coverage they send by themselves, usually within a
+          few seconds. Nothing is lost and you do not need to redo anything.
         </p>
         <p>
-          Two rules: do not force-close the app while the waiting list has items in it, and do not end
-          your shift on a dead spot. The app will not let you clock out while changes are still
+          Two rules: do not force-close the app while the waiting list has items in it, and do not
+          end your shift on a dead spot. The app will not let you clock out while changes are still
           waiting — walk back into coverage, watch the header change to <em>All synced</em>, then
-          clock out. If it will not clear, tell the front desk before you leave so they know the board
-          is behind.
+          clock out. If it will not clear, tell the front desk before you leave so they know the
+          board is behind.
         </p>
       </Section>
 
       <Section n={9} title="Guests">
         <p>
-          Most guest contact is a few seconds in a hallway. What you say in those seconds is what they
-          remember about the stay.
+          Most guest contact is a few seconds in a hallway. What you say in those seconds is what
+          they remember about the stay.
         </p>
         <ManualTable
           columns={["Situation", "What to do"]}
@@ -441,17 +442,19 @@ function HousekeepingManual() {
         <Steps
           items={[
             <>
-              <strong>Nothing is waiting to send.</strong> The header should read <em>All synced</em>.
+              <strong>Nothing is waiting to send.</strong> The header should read{" "}
+              <em>All synced</em>.
             </>,
             <>
-              <strong>Every room you touched has a status.</strong> A room left <em>started</em> looks
-              like work in progress to the next shift.
+              <strong>Every room you touched has a status.</strong> A room left <em>started</em>{" "}
+              looks like work in progress to the next shift.
             </>,
             <>
               <strong>Anything unfinished is written down.</strong> Rooms you could not get into,
               rooms you skipped or flagged, and anything still on your route appear automatically
               under <em>Left for the next shift</em> — you do not type this, the app builds it from
-              your day. Read it before you tap clock out and tell the desk if a reason is not obvious.
+              your day. Read it before you tap clock out and tell the desk if a reason is not
+              obvious.
             </>,
           ]}
         />

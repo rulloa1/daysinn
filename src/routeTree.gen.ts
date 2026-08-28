@@ -17,6 +17,7 @@ import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
 import { Route as LiveRoomStatusRouteImport } from './routes/live-room-status'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PitchRouteImport } from './routes/pitch'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -24,6 +25,7 @@ import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as ManualsIndexRouteImport } from './routes/manuals/index'
 import { Route as ManualsFrontDeskRouteImport } from './routes/manuals/front-desk'
 import { Route as ManualsHousekeepingRouteImport } from './routes/manuals/housekeeping'
 import { Route as ManualsManagerRouteImport } from './routes/manuals/manager'
@@ -71,6 +73,11 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PitchRoute = PitchRouteImport.update({
+  id: '/pitch',
+  path: '/pitch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RolesRoute = RolesRouteImport.update({
   id: '/roles',
   path: '/roles',
@@ -108,6 +115,11 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ManualsIndexRoute = ManualsIndexRouteImport.update({
+  id: '/manuals/',
+  path: '/manuals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManualsFrontDeskRoute = ManualsFrontDeskRouteImport.update({
   id: '/manuals/front-desk',
   path: '/manuals/front-desk',
@@ -149,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -159,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/manuals/front-desk': typeof ManualsFrontDeskRoute
   '/manuals/housekeeping': typeof ManualsHousekeepingRoute
   '/manuals/manager': typeof ManualsManagerRoute
+  '/manuals/': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -172,6 +186,7 @@ export interface FileRoutesByTo {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -182,6 +197,7 @@ export interface FileRoutesByTo {
   '/manuals/front-desk': typeof ManualsFrontDeskRoute
   '/manuals/housekeeping': typeof ManualsHousekeepingRoute
   '/manuals/manager': typeof ManualsManagerRoute
+  '/manuals': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -196,6 +212,7 @@ export interface FileRoutesById {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -206,6 +223,7 @@ export interface FileRoutesById {
   '/manuals/front-desk': typeof ManualsFrontDeskRoute
   '/manuals/housekeeping': typeof ManualsHousekeepingRoute
   '/manuals/manager': typeof ManualsManagerRoute
+  '/manuals/': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -221,6 +239,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/pitch'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
@@ -231,6 +250,7 @@ export interface FileRouteTypes {
     | '/manuals/front-desk'
     | '/manuals/housekeeping'
     | '/manuals/manager'
+    | '/manuals/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -244,6 +264,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/pitch'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
@@ -254,6 +275,7 @@ export interface FileRouteTypes {
     | '/manuals/front-desk'
     | '/manuals/housekeeping'
     | '/manuals/manager'
+    | '/manuals'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -267,6 +289,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/pitch'
     | '/roles'
     | '/room'
     | '/sitemap.xml'
@@ -277,6 +300,7 @@ export interface FileRouteTypes {
     | '/manuals/front-desk'
     | '/manuals/housekeeping'
     | '/manuals/manager'
+    | '/manuals/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -291,6 +315,7 @@ export interface RootRouteChildren {
   HousekeepingRoute: typeof HousekeepingRoute
   LiveRoomStatusRoute: typeof LiveRoomStatusRoute
   McpRoute: typeof McpRoute
+  PitchRoute: typeof PitchRoute
   RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -301,6 +326,7 @@ export interface RootRouteChildren {
   ManualsFrontDeskRoute: typeof ManualsFrontDeskRoute
   ManualsHousekeepingRoute: typeof ManualsHousekeepingRoute
   ManualsManagerRoute: typeof ManualsManagerRoute
+  ManualsIndexRoute: typeof ManualsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
@@ -364,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pitch': {
+      id: '/pitch'
+      path: '/pitch'
+      fullPath: '/pitch'
+      preLoaderRoute: typeof PitchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roles': {
       id: '/roles'
       path: '/roles'
@@ -411,6 +444,13 @@ declare module '@tanstack/react-router' {
       path: '/.well-known/oauth-protected-resource'
       fullPath: '/.well-known/oauth-protected-resource'
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuals/': {
+      id: '/manuals/'
+      path: '/manuals'
+      fullPath: '/manuals/'
+      preLoaderRoute: typeof ManualsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manuals/front-desk': {
@@ -467,6 +507,7 @@ const rootRouteChildren: RootRouteChildren = {
   HousekeepingRoute: HousekeepingRoute,
   LiveRoomStatusRoute: LiveRoomStatusRoute,
   McpRoute: McpRoute,
+  PitchRoute: PitchRoute,
   RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -478,6 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManualsFrontDeskRoute: ManualsFrontDeskRoute,
   ManualsHousekeepingRoute: ManualsHousekeepingRoute,
   ManualsManagerRoute: ManualsManagerRoute,
+  ManualsIndexRoute: ManualsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
@@ -485,13 +527,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

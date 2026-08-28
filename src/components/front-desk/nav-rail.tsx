@@ -29,11 +29,13 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
         ? "rooms"
         : path.startsWith("/collateral")
           ? "print"
-          : path.startsWith("/roles")
-            ? "roles"
-            : path.startsWith("/staff")
-              ? "queue"
-              : "board");
+          : path.startsWith("/manuals")
+            ? "manuals"
+            : path.startsWith("/roles")
+              ? "roles"
+              : path.startsWith("/staff")
+                ? "queue"
+                : "board");
 
   const items = [
     {

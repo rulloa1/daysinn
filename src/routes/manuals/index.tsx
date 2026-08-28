@@ -20,8 +20,11 @@ export const Route = createFileRoute("/manuals/")({
   component: ManualsIndex,
 });
 
+type DocPath =
+  "/manuals/front-desk" | "/manuals/housekeeping" | "/manuals/manager" | "/pitch" | "/collateral";
+
 type Doc = {
-  to: string;
+  to: DocPath;
   icon: LucideIcon;
   kicker: string;
   title: string;
@@ -70,13 +73,13 @@ const RELATED: Doc[] = [
     meta: "Press → to advance · N toggles speaker notes",
   },
   {
-    to: "/print/room-collateral",
+    to: "/collateral",
     icon: Printer,
     kicker: "In-room print",
     title: "Guest room collateral",
     blurb:
-      "Tent card, desk placard and bathroom mirror card with live QR codes pointing at the in-room request flow.",
-    meta: "Two sheets · print at 100%, no scaling",
+      "Table tents, keycard sleeve inserts and desk placards with a live per-room QR code into the request flow.",
+    meta: "Three formats · print at 100%, no scaling",
   },
 ];
 
@@ -89,7 +92,7 @@ function DocCard({ doc }: { doc: Doc }) {
     >
       <span className="flex items-center gap-2.5">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-canvas-ops text-brand-blue">
-          <Icon className="h-4.5 w-4.5" />
+          <Icon className="h-4 w-4" />
         </span>
         <span className="signage text-brand-gold">{doc.kicker}</span>
       </span>
@@ -125,8 +128,8 @@ function ManualsIndex() {
           Staff manuals
         </h1>
         <p className="mt-3 max-w-2xl text-lg leading-relaxed text-slate-600">
-          How the property is run on Guest Hub — one manual per role, written to be read on a phone at
-          the start of a shift and printed for the back office.
+          How the property is run on Guest Hub — one manual per role, written to be read on a phone
+          at the start of a shift and printed for the back office.
         </p>
 
         <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -144,7 +147,10 @@ function ManualsIndex() {
 
         <div className="mt-14 border-t border-border-guest pt-5">
           <p className="text-xs text-slate-500">
-            Front desk · <a href="tel:+13527487766" className="font-semibold">(352) 748-7766</a>
+            Front desk ·{" "}
+            <a href="tel:+13527487766" className="font-semibold">
+              (352) 748-7766
+            </a>
           </p>
           <div className="mt-2">
             <FranchiseLegal />

@@ -36,10 +36,7 @@ const CARDS: [string, string][] = [
     "Avg turnover",
     "How long a departure room is taking to turn today, against the 45-minute target.",
   ],
-  [
-    "Open requests",
-    "Guest and staff requests not yet closed, with today's average response time.",
-  ],
+  ["Open requests", "Guest and staff requests not yet closed, with today's average response time."],
 ];
 
 const STATUSES: { name: string; color: string; owner: string; action: string }[] = [
@@ -84,7 +81,11 @@ const STATUSES: { name: string; color: string; owner: string; action: string }[]
 const REQUEST_TYPES: [string, string, string][] = [
   ["Fresh towels & linens", "Housekeeping on shift", "20 minutes"],
   ["Housekeeping refresh", "Housekeeping route", "Same day, guest picks window"],
-  ["Maintenance & repairs", "Maintenance, manager if urgent", "Acknowledge 10 min, on site same day"],
+  [
+    "Maintenance & repairs",
+    "Maintenance, manager if urgent",
+    "Acknowledge 10 min, on site same day",
+  ],
   ["Late checkout", "Front desk — you decide", "Answer immediately"],
   ["Anything else", "Front desk, reassign as needed", "Acknowledge 10 minutes"],
 ];
@@ -176,11 +177,11 @@ function FrontDeskManual() {
           <p>
             Seven icons, always in the same order. <strong>Board</strong> is your home screen and
             where you should sit by default. <strong>Queue</strong> is guest requests.{" "}
-            <strong>Rooms</strong> shows housekeeping's routes as they see them. <strong>Team</strong>,{" "}
-            <strong>Roles</strong>, <strong>Shifts</strong> and <strong>Reports</strong> are manager
-            screens — you can open Team to look up who is on today and Shifts to check who is
-            covering tomorrow, but you cannot add people, change roles, publish a rota or see
-            per-person timings.
+            <strong>Rooms</strong> shows housekeeping's routes as they see them.{" "}
+            <strong>Team</strong>, <strong>Roles</strong>, <strong>Shifts</strong> and{" "}
+            <strong>Reports</strong> are manager screens — you can open Team to look up who is on
+            today and Shifts to check who is covering tomorrow, but you cannot add people, change
+            roles, publish a rota or see per-person timings.
           </p>
         </Callout>
       </Section>
@@ -200,10 +201,10 @@ function FrontDeskManual() {
         </p>
         <Callout title="Do this next">
           <p>
-            The blue panel at the top of the board names the single most urgent thing on the property
-            — usually arrivals landing against rooms that are not turned. Clear it or dismiss it
-            deliberately. If it has been sitting untouched for an hour, something is going wrong that
-            a guest is about to notice.
+            The blue panel at the top of the board names the single most urgent thing on the
+            property — usually arrivals landing against rooms that are not turned. Clear it or
+            dismiss it deliberately. If it has been sitting untouched for an hour, something is
+            going wrong that a guest is about to notice.
           </p>
         </Callout>
       </Section>
@@ -225,8 +226,8 @@ function FrontDeskManual() {
           <p>
             If a room is late and you are under pressure, the temptation is to flip it to clean and
             hand over the key. Do not. Call the housekeeper on the room instead — the app tells you
-            who is in it and when they started. A guest walking into an unturned room costs more than
-            fifteen minutes of waiting.
+            who is in it and when they started. A guest walking into an unturned room costs more
+            than fifteen minutes of waiting.
           </p>
         </Callout>
       </Section>
@@ -245,12 +246,13 @@ function FrontDeskManual() {
             </>,
             <>
               <strong>At check-in.</strong> Confirm ID and card, assign from <em>ready</em> rooms
-              only, and hand over the Wi-Fi and Guest Hub card. Mention that towels, housekeeping and
-              maintenance can be requested from the room.
+              only, and hand over the Wi-Fi and Guest Hub card. Mention that towels, housekeeping
+              and maintenance can be requested from the room.
             </>,
             <>
-              <strong>Early arrival.</strong> Never promise a time you do not control. Say the room is
-              being turned, take their mobile number, and message them when the board flips to ready.
+              <strong>Early arrival.</strong> Never promise a time you do not control. Say the room
+              is being turned, take their mobile number, and message them when the board flips to
+              ready.
             </>,
             <>
               <strong>At check-out.</strong> Close the folio and let the room fall to{" "}
@@ -258,28 +260,28 @@ function FrontDeskManual() {
             </>,
             <>
               <strong>Late checkout.</strong> Approve it in the portal so housekeeping sees the new
-              time on their route. An approval that only exists in your head is a knock on the guest's
-              door.
+              time on their route. An approval that only exists in your head is a knock on the
+              guest's door.
             </>,
           ]}
         />
         <p>
-          Guests aged under 21 cannot check in. Photo ID and a credit card in the guest's own name are
-          required every time, including for prepaid bookings.
+          Guests aged under 21 cannot check in. Photo ID and a credit card in the guest's own name
+          are required every time, including for prepaid bookings.
         </p>
       </Section>
 
       <Section n={5} title="Working the request queue">
         <p>
           Requests arrive from guest phones, from housekeeping, and from you when a guest calls or
-          walks up. They all land in one queue with four filters that switch the list: urgent, new, in
-          progress, done.
+          walks up. They all land in one queue with four filters that switch the list: urgent, new,
+          in progress, done.
         </p>
         <Steps
           items={[
             <>
-              <strong>Acknowledge within the target.</strong> Every request should be picked up inside
-              ten minutes. Acknowledging is not fixing — it tells the guest a person has it.
+              <strong>Acknowledge within the target.</strong> Every request should be picked up
+              inside ten minutes. Acknowledging is not fixing — it tells the guest a person has it.
             </>,
             <>
               <strong>Assign it to a name</strong>, not to a department. Unassigned requests are the
@@ -290,8 +292,8 @@ function FrontDeskManual() {
               goes into the queue in front of them, so it survives your shift.
             </>,
             <>
-              <strong>Close it only when the work is done</strong> — not when you have dispatched it.
-              The guest sees the status change.
+              <strong>Close it only when the work is done</strong> — not when you have dispatched
+              it. The guest sees the status change.
             </>,
           ]}
         />
@@ -300,22 +302,22 @@ function FrontDeskManual() {
           rows={REQUEST_TYPES.map((r) => [...r])}
         />
         <p>
-          A request marked <strong>urgent</strong> means a guest cannot use the room as sold — no hot
-          water, no AC in summer, a lock that will not close, a safety issue. Urgent goes to the
+          A request marked <strong>urgent</strong> means a guest cannot use the room as sold — no
+          hot water, no AC in summer, a lock that will not close, a safety issue. Urgent goes to the
           manager as well as the assignee. Do not use it for towels.
         </p>
       </Section>
 
       <Section n={6} title="Working with housekeeping">
         <p>
-          You can see every housekeeper's route, who claimed which room, and how long a room has been
-          started. Use it instead of the radio for anything that is not urgent.
+          You can see every housekeeper's route, who claimed which room, and how long a room has
+          been started. Use it instead of the radio for anything that is not urgent.
         </p>
         <Bullets
           items={[
             <>
-              <strong>Need a room sooner:</strong> prioritise it on the board. It moves to the top of
-              that housekeeper's route and they get a notification.
+              <strong>Need a room sooner:</strong> prioritise it on the board. It moves to the top
+              of that housekeeper's route and they get a notification.
             </>,
             <>
               <strong>Room unassigned with a guest arriving:</strong> assign it, or tell the manager
@@ -326,8 +328,8 @@ function FrontDeskManual() {
               it is nearly done. Long turns usually mean a problem in the room.
             </>,
             <>
-              <strong>Skipped room:</strong> read the reason. Do-not-disturb rooms come back to you —
-              call the guest, do not send anyone back up.
+              <strong>Skipped room:</strong> read the reason. Do-not-disturb rooms come back to you
+              — call the guest, do not send anyone back up.
             </>,
           ]}
         />
@@ -363,8 +365,8 @@ function FrontDeskManual() {
       <Section n={9} title="When the portal is down">
         <p>
           If the System panel shows the database disconnected, or the board has not synced in more
-          than five minutes, switch to paper and tell the manager. Do not keep taking bookings into a
-          screen that is not saving them.
+          than five minutes, switch to paper and tell the manager. Do not keep taking bookings into
+          a screen that is not saving them.
         </p>
         <Steps
           items={[
@@ -394,8 +396,8 @@ function FrontDeskManual() {
               anything waiting on the manager.
             </>,
             <>
-              <strong>Guests to watch</strong> — a complaint in progress, a late checkout approved, a
-              guest owed a call back.
+              <strong>Guests to watch</strong> — a complaint in progress, a late checkout approved,
+              a guest owed a call back.
             </>,
           ]}
         />
