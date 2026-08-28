@@ -311,6 +311,68 @@
   letter-spacing: 0.18em;
 }
 
+/*
+ * Guest homepage (/) — Guest Hub brand surface.
+ *
+ * Congress Blue and gold on a cool neutral canvas. Scoped to `.guest-home`
+ * on purpose: the staff routes keep the app theme, so nothing here touches
+ * the global tokens above.
+ */
+.guest-home {
+  --gh-blue: #004986;
+  --gh-blue-deep: #00243f;
+  --gh-link: #0065ab;
+  --gh-gold: #d4af37;
+
+  --gh-canvas: #dce4ed;
+  --gh-surface: #f5f8fb;
+  --gh-chip: #e7edf5;
+  --gh-border: #d2dbe6;
+  --gh-rule: #c6d1de;
+  --gh-field-border: #bcc9d8;
+
+  --gh-ink: #1e293b;
+  --gh-body: #475569;
+  --gh-body-strong: #334155;
+  --gh-muted: #94a3b8;
+
+  background-color: var(--gh-canvas);
+  color: var(--gh-ink);
+}
+
+/* Centred 1180px measure shared by every homepage section. */
+@utility gh-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1180px;
+  padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+}
+
+/* Gold kicker above every section title. */
+@utility gh-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gh-gold);
+}
+
+/* Section title. Colour is set per section — blue on the canvas, white on bands. */
+@utility gh-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 1.15rem + 1.7vw, 2.1rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@utility gh-card {
+  border: 1px solid var(--gh-border);
+  border-radius: 16px;
+  background-color: var(--gh-surface);
+}
+
 /* Micro-interaction Spring Transitions */
 .spring-hover {
   transition:

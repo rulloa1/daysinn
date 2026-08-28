@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { BrandLockup } from "@/components/brand-lockup";
 import { PropertyMap } from "@/components/property-map";
@@ -6,15 +6,15 @@ import { FranchiseLegal } from "@/components/franchise-footer";
 import { AMENITIES, FAQS, type ServiceRequest } from "@/components/home/content";
 import { BookingHero } from "@/components/home/booking-hero";
 import { RequestDialog } from "@/components/home/request-dialog";
-import { ContactSection, RewardsSection } from "@/components/home/rewards-section";
+import { RewardsSection } from "@/components/home/rewards-section";
 import { SiteHeader } from "@/components/home/site-header";
 import {
-  AmenitiesAndPolicies,
+  AmenitiesSection,
   FaqSection,
   GallerySection,
   GuestToolsSection,
-  LateCheckoutSection,
   NearbyStopsSection,
+  PoliciesSection,
   RoomTypesSection,
 } from "@/components/home/stay-sections";
 import { useAvailability } from "@/components/home/use-availability";
@@ -96,30 +96,37 @@ function GuestView() {
   const availability = useAvailability();
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-amber/30 selection:text-ink">
+    <div className="guest-home min-h-screen selection:bg-[var(--gh-gold)]/30 selection:text-[var(--gh-ink)]">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pb-16 md:px-8">
+      <main>
         <BookingHero availability={availability} />
         <RoomTypesSection bookingLink={availability.bookingLink} />
-        <AmenitiesAndPolicies />
+        <AmenitiesSection />
+        <PoliciesSection />
         <GuestToolsSection onRequest={setOpenRequest} />
-        <LateCheckoutSection onRequest={setOpenRequest} />
         <NearbyStopsSection />
         <GallerySection />
         <FaqSection />
         <RewardsSection />
         <PropertyMap />
-        <ContactSection />
       </main>
 
-      <footer className="mt-8 border-t border-border/80 bg-card/60 px-5 py-8 backdrop-blur md:px-10">
-        <div className="mx-auto max-w-6xl space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <BrandLockup />
-            <p className="signage text-muted-foreground">Warm hospitality · Effortless service</p>
+      <footer className="mt-[clamp(2.5rem,6vw,4.5rem)] bg-[var(--gh-blue)] py-11">
+        <div className="gh-shell">
+          <div className="flex flex-wrap items-start justify-between gap-7">
+            <BrandLockup tone="cream" plate />
+            <div className="flex flex-wrap items-center gap-5">
+              <Link
+                to="/staff"
+                className="signage font-bold text-white/70 transition-colors hover:text-white"
+              >
+                Staff portal
+              </Link>
+              <p className="gh-eyebrow">Warm hospitality · Effortless service</p>
+            </div>
           </div>
-          <FranchiseLegal />
+          <FranchiseLegal className="mt-7 text-[0.76rem] leading-[1.65] text-white/45" />
         </div>
       </footer>
 
