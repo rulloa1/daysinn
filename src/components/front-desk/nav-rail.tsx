@@ -7,12 +7,13 @@ import {
   Shield,
   Calendar,
   BarChart3,
+  Printer,
 } from "lucide-react";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import type { StaffIdentity } from "@/lib/ops";
 
 interface NavRailProps {
-  current?: "board" | "queue" | "rooms" | "team" | "roles" | "shifts" | "reports";
+  current?: "board" | "queue" | "rooms" | "team" | "roles" | "shifts" | "reports" | "print";
   staff?: StaffIdentity | null;
 }
 
@@ -26,11 +27,13 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
       ? "board"
       : path.startsWith("/housekeeping")
         ? "rooms"
-        : path.startsWith("/roles")
-          ? "roles"
-          : path.startsWith("/staff")
-            ? "queue"
-            : "board");
+        : path.startsWith("/collateral")
+          ? "print"
+          : path.startsWith("/roles")
+            ? "roles"
+            : path.startsWith("/staff")
+              ? "queue"
+              : "board");
 
   const items = [
     {
@@ -52,10 +55,10 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
       icon: DoorClosed,
     },
     {
-      id: "team",
-      label: "Team",
-      href: "/staff",
-      icon: Users,
+      id: "print",
+      label: "Print",
+      href: "/collateral",
+      icon: Printer,
     },
     {
       id: "roles",
@@ -64,15 +67,9 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
       icon: Shield,
     },
     {
-      id: "shifts",
-      label: "Shifts",
-      href: "/staff",
-      icon: Calendar,
-    },
-    {
       id: "reports",
       label: "Reports",
-      href: "/front-desk",
+      href: "/staff",
       icon: BarChart3,
     },
   ] as const;

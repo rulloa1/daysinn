@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckinRouteImport } from './routes/checkin'
+import { Route as CollateralRouteImport } from './routes/collateral'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
@@ -23,6 +24,9 @@ import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as ManualsFrontDeskRouteImport } from './routes/manuals/front-desk'
+import { Route as ManualsHousekeepingRouteImport } from './routes/manuals/housekeeping'
+import { Route as ManualsManagerRouteImport } from './routes/manuals/manager'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push-dispatch'
@@ -35,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const CheckinRoute = CheckinRouteImport.update({
   id: '/checkin',
   path: '/checkin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollateralRoute = CollateralRouteImport.update({
+  id: '/collateral',
+  path: '/collateral',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FrontDeskRoute = FrontDeskRouteImport.update({
@@ -99,6 +108,21 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ManualsFrontDeskRoute = ManualsFrontDeskRouteImport.update({
+  id: '/manuals/front-desk',
+  path: '/manuals/front-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManualsHousekeepingRoute = ManualsHousekeepingRouteImport.update({
+  id: '/manuals/housekeeping',
+  path: '/manuals/housekeeping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManualsManagerRoute = ManualsManagerRouteImport.update({
+  id: '/manuals/manager',
+  path: '/manuals/manager',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -119,6 +143,7 @@ const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
+  '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
@@ -131,6 +156,9 @@ export interface FileRoutesByFullPath {
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/manuals/front-desk': typeof ManualsFrontDeskRoute
+  '/manuals/housekeeping': typeof ManualsHousekeepingRoute
+  '/manuals/manager': typeof ManualsManagerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -138,6 +166,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
+  '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
@@ -150,6 +179,9 @@ export interface FileRoutesByTo {
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/manuals/front-desk': typeof ManualsFrontDeskRoute
+  '/manuals/housekeeping': typeof ManualsHousekeepingRoute
+  '/manuals/manager': typeof ManualsManagerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -158,6 +190,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkin': typeof CheckinRoute
+  '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
   '/guide': typeof GuideRoute
   '/housekeeping': typeof HousekeepingRoute
@@ -170,6 +203,9 @@ export interface FileRoutesById {
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/manuals/front-desk': typeof ManualsFrontDeskRoute
+  '/manuals/housekeeping': typeof ManualsHousekeepingRoute
+  '/manuals/manager': typeof ManualsManagerRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
@@ -179,6 +215,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/checkin'
+    | '/collateral'
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
@@ -191,6 +228,9 @@ export interface FileRouteTypes {
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/manuals/front-desk'
+    | '/manuals/housekeeping'
+    | '/manuals/manager'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -198,6 +238,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/checkin'
+    | '/collateral'
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
@@ -210,6 +251,9 @@ export interface FileRouteTypes {
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/manuals/front-desk'
+    | '/manuals/housekeeping'
+    | '/manuals/manager'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -217,6 +261,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/checkin'
+    | '/collateral'
     | '/front-desk'
     | '/guide'
     | '/housekeeping'
@@ -229,6 +274,9 @@ export interface FileRouteTypes {
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/manuals/front-desk'
+    | '/manuals/housekeeping'
+    | '/manuals/manager'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/push-dispatch'
@@ -237,6 +285,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckinRoute: typeof CheckinRoute
+  CollateralRoute: typeof CollateralRoute
   FrontDeskRoute: typeof FrontDeskRoute
   GuideRoute: typeof GuideRoute
   HousekeepingRoute: typeof HousekeepingRoute
@@ -249,6 +298,9 @@ export interface RootRouteChildren {
   TrackRoute: typeof TrackRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ManualsFrontDeskRoute: typeof ManualsFrontDeskRoute
+  ManualsHousekeepingRoute: typeof ManualsHousekeepingRoute
+  ManualsManagerRoute: typeof ManualsManagerRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
@@ -268,6 +320,13 @@ declare module '@tanstack/react-router' {
       path: '/checkin'
       fullPath: '/checkin'
       preLoaderRoute: typeof CheckinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collateral': {
+      id: '/collateral'
+      path: '/collateral'
+      fullPath: '/collateral'
+      preLoaderRoute: typeof CollateralRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/front-desk': {
@@ -354,6 +413,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manuals/front-desk': {
+      id: '/manuals/front-desk'
+      path: '/manuals/front-desk'
+      fullPath: '/manuals/front-desk'
+      preLoaderRoute: typeof ManualsFrontDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuals/housekeeping': {
+      id: '/manuals/housekeeping'
+      path: '/manuals/housekeeping'
+      fullPath: '/manuals/housekeeping'
+      preLoaderRoute: typeof ManualsHousekeepingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuals/manager': {
+      id: '/manuals/manager'
+      path: '/manuals/manager'
+      fullPath: '/manuals/manager'
+      preLoaderRoute: typeof ManualsManagerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -381,6 +461,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckinRoute: CheckinRoute,
+  CollateralRoute: CollateralRoute,
   FrontDeskRoute: FrontDeskRoute,
   GuideRoute: GuideRoute,
   HousekeepingRoute: HousekeepingRoute,
@@ -394,6 +475,9 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ManualsFrontDeskRoute: ManualsFrontDeskRoute,
+  ManualsHousekeepingRoute: ManualsHousekeepingRoute,
+  ManualsManagerRoute: ManualsManagerRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,

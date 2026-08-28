@@ -10,9 +10,10 @@ const SHEET_LINK =
 
 /** Destinations shared by the desktop nav and the mobile sheet. */
 function navTargets(isManager: boolean) {
-  const targets: { to: "/front-desk" | "/housekeeping" | "/roles" | "/"; label: string }[] = [
+  const targets: { to: "/front-desk" | "/housekeeping" | "/collateral" | "/roles" | "/"; label: string }[] = [
     { to: "/front-desk", label: "Front desk" },
     { to: "/housekeeping", label: "Housekeeping" },
+    { to: "/collateral", label: "Print Cards" },
   ];
   if (isManager) targets.push({ to: "/roles", label: "Roles" });
   targets.push({ to: "/", label: "Guest view" });
