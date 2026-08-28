@@ -46,6 +46,13 @@ const PILL_BG: Record<RoomStatus, string> = {
   out_of_order: "border-status-ooo/70 bg-status-ooo text-white",
 };
 
+/** Caption wording per floor view. "both" is the default on /live-room-status. */
+const FLOOR_LABEL: Record<FloorView, string> = {
+  1: "ground floor",
+  2: "upper floor",
+  both: "both floors",
+};
+
 /** Legend rows under the plan, in the order the boards list statuses. */
 const STATUS_LEGEND: ReadonlyArray<{ status: RoomStatus; label: string; dot: string }> = [
   { status: "vacant_clean", label: "Vacant clean", dot: "bg-status-clean" },
@@ -761,8 +768,7 @@ export function FloorPlan({ floor, rooms, openRequests, dimmed, onFloorChange, o
           ))}
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          {floorRooms.length} rooms · {activeFloor === 1 ? "ground floor" : "upper floor"} · tap a
-          room for details
+          {floorRooms.length} rooms · {FLOOR_LABEL[activeFloor]} · tap a room for details
         </p>
       </div>
 
