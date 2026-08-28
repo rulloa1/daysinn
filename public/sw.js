@@ -53,7 +53,9 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/assets/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/__l5e/") ||
+    url.pathname.startsWith("/property/") ||
     url.pathname.endsWith(".webp") ||
+    url.pathname.endsWith(".avif") ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".jpg") ||
     url.pathname.endsWith(".css") ||
