@@ -16,6 +16,9 @@
     "test:integration": "node scripts/run-integration-tests.mjs",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build"
   },
+  "engines": {
+    "node": "22"
+  },
   "dependencies": {
     "@block65/webcrypto-web-push": "^1.0.2",
     "@hookform/resolvers": "^5.2.2",

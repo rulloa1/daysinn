@@ -9,6 +9,11 @@ import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 export default defineConfig({
   plugins: [mcpPlugin()],
+  // Firebase App Hosting runs the server on Cloud Run, which needs a Node process
+  // listening on $PORT. The default cloudflare-module preset emits a WinterCG
+  // fetch export instead. Lovable's own builds pin Cloudflare via
+  // LOVABLE_NITRO_PRESET, so previews there are unaffected.
+  nitro: { preset: "firebase_app_hosting" },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
