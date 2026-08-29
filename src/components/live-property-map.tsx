@@ -99,7 +99,7 @@ export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onS
           />
 
           {pins.map((pin) => {
-            const coords = DEFAULT_ROOM_COORDS[pin.number];
+            const coords = SITE_PLAN_COORDS[pin.number];
             if (!coords) return null;
             const meta = LIVE_STATUS_META[pin.status];
             const isSelected = selected === pin.number;
