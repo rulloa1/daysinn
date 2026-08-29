@@ -222,7 +222,9 @@ function HousekeepingManualContent() {
               <strong>Enter your 4-digit PIN.</strong> Your manager sets it with you when you are
               added to the team. There is no submit button — sign-on happens on the fourth digit. A
               wrong PIN clears the dots so you can try again; nothing locks after one mistake. Do
-              not share it, and do not write it on the phone case.
+              not share it, and do not write it on the phone case. If no PIN has been set for you
+              yet, tapping your name signs you straight in — tell your manager, because your room
+              work is recorded under that name either way.
             </>,
           ]}
         />
@@ -232,9 +234,10 @@ function HousekeepingManualContent() {
         </p>
         <Callout title="If you forget your PIN">
           <p>
-            Tap <em>Forgot PIN</em> and the front desk gets a message. A manager resets it in a few
-            seconds — you do not need to wait for a new invite link. Never borrow someone else's
-            PIN: room work is recorded under whoever signed in.
+            Tap <em>Forgot PIN</em> and the app tells you to ask the front desk — it does not notify
+            anyone for you, so go and ask. A manager resets it from the staff portal in a few
+            seconds; you do not need a new invite link. Never borrow someone else's PIN: room work
+            is recorded under whoever signed in.
           </p>
         </Callout>
       </Section>

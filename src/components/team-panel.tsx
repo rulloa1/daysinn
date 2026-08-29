@@ -12,6 +12,7 @@ import {
   type TeamMember,
 } from "@/lib/roles.functions";
 import { forceStaffPasswordReset } from "@/lib/password-policy.functions";
+import { StaffPinPanel } from "@/components/staff-pin-panel";
 
 const ROLES: AppRole[] = ["manager", "staff", "housekeeper", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
@@ -109,11 +110,15 @@ export function TeamPanel() {
         </Button>
       </div>
 
+      <StaffPinPanel />
+
       {/* Team Roster & Permissions Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div>
-            <h2 className="font-serif text-lg font-bold text-[#004986]">Property Roster &amp; Roles</h2>
+            <h2 className="font-serif text-lg font-bold text-[#004986]">
+              Property Roster &amp; Roles
+            </h2>
             <p className="text-xs text-slate-500">
               Click a role button to adjust member privileges in real time.
             </p>
@@ -127,7 +132,10 @@ export function TeamPanel() {
           {members.map((member) => {
             const current = member.roles[0] as AppRole | undefined;
             return (
-              <li key={member.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+              <li
+                key={member.id}
+                className="flex flex-wrap items-center justify-between gap-4 py-4"
+              >
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-xs font-bold text-[#004986]">
                     {member.email.slice(0, 2).toUpperCase()}

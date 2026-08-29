@@ -214,22 +214,23 @@ function ManagerManualContent() {
       <Section n={2} title="PINs">
         <p>
           Housekeeping and maintenance sign on with a name tap and a 4-digit PIN. You set it when
-          you add them and you reset it when they forget.
+          you add them and you reset it when they forget. Until you set one, that person signs on
+          with their name alone — so setting PINs is what makes the record of who did which room
+          mean anything.
         </p>
         <Bullets
           items={[
             <>
-              Set the PIN together on their first shift and let them choose the four digits — the
-              add-person form offers <em>Set PIN with them now</em> or <em>Set on first sign-on</em>
-              . Never 1234, never the room number they work, never a sequence you assign down a
-              list.
+              Set the PIN together on their first shift and let them choose the four digits, under{" "}
+              <strong>Team → Staff sign-on PINs</strong>. Never the room number they work; the
+              obvious sequences (1234, 0000 and the like) are rejected.
             </>,
             <>
-              Reset from <strong>Team &amp; invites</strong>. Forgot-PIN taps arrive as a text at
-              the desk; a reset takes seconds and does not require a new invite. A PIN locked by
-              repeated wrong attempts shows in the access table and clears the same way.
+              Reset from the same panel — the list shows who has a PIN and who is still on name-only
+              sign-on, but never the PINs themselves. A forgotten PIN is a conversation at the desk,
+              not a notification: the app only tells the person to come and ask you.
             </>,
-            "Reset immediately if a phone is lost or a PIN is shared. Then sign that device out remotely from the person's record.",
+            "Reset immediately if a phone is lost or a PIN is shared. Clearing a PIN drops that person back to name-only sign-on, so set a new one in the same sitting.",
             "Front desk and manager accounts keep email and password, and go through the password-reset gate on first sign-in.",
           ]}
         />

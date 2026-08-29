@@ -38,13 +38,22 @@ export function HousekeeperLogin({
         setShake(true);
         setTimeout(() => setShake(false), 500);
         setPin("");
-        toast.error(res.reason === "bad_pin" ? "Incorrect PIN. Try again." : "Staff member not found.");
+        toast.error(
+          res.reason === "bad_pin" ? "Incorrect PIN. Try again." : "Staff member not found.",
+        );
         return;
       }
       toast.success(`Welcome, ${res.name}`);
       onSelect({ id: res.id, name: res.name });
-    } catch {
-      toast.error("Couldn't verify PIN. Please try again.");
+    } catch (error) {
+      // The PIN check requires a housekeeping, front-desk or manager role on the
+      // signed-in account; a brand-new account has none until a manager grants it.
+      const forbidden = error instanceof Error && /forbidden|authentication/i.test(error.message);
+      toast.error(
+        forbidden
+          ? "This device is signed in to an account without housekeeping access. Ask a manager to grant it."
+          : "Couldn't verify PIN. Please try again.",
+      );
       setPin("");
     } finally {
       setBusy(false);
@@ -110,9 +119,7 @@ export function HousekeeperLogin({
             {initials}
           </div>
 
-          <h1 className="mt-3 font-serif text-2xl font-bold text-center">
-            {selectedMember.name}
-          </h1>
+          <h1 className="mt-3 font-serif text-2xl font-bold text-center">{selectedMember.name}</h1>
           <p className="mt-1 text-xs text-white/70">
             {busy ? "Signing you in…" : "Enter your 4-digit PIN"}
           </p>
@@ -200,21 +207,13 @@ export function HousekeeperLogin({
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center">
           <div className="flex w-16 items-center justify-center rounded-xl bg-white p-2 shadow-sm">
-            <img
-              src={logoAsset.url}
-              alt="Days Inn"
-              className="h-auto w-full object-contain"
-            />
+            <img src={logoAsset.url} alt="Days Inn" className="h-auto w-full object-contain" />
           </div>
           <p className="mt-4 text-[11px] font-bold tracking-widest text-slate-400 uppercase">
             Housekeeping · Shift sign in
           </p>
-          <h1 className="mt-1 font-serif text-3xl font-bold text-[#004986]">
-            Good morning
-          </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Tap your name to start your shift
-          </p>
+          <h1 className="mt-1 font-serif text-3xl font-bold text-[#004986]">Good morning</h1>
+          <p className="mt-1 text-xs text-slate-500">Tap your name to start your shift</p>
         </div>
 
         {/* Schedule List */}
@@ -244,9 +243,7 @@ export function HousekeeperLogin({
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{member.name}</p>
-                    <p className="text-xs text-slate-400">
-                      {member.zone ?? "Main building"}
-                    </p>
+                    <p className="text-xs text-slate-400">{member.zone ?? "Main building"}</p>
                   </div>
                 </div>
                 <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-[#004986]">
@@ -271,10 +268,7 @@ export function HousekeeperLogin({
           >
             I'm not on this list
           </button>
-          <Link
-            to="/staff"
-            className="text-xs font-bold text-[#004986] hover:underline"
-          >
+          <Link to="/staff" className="text-xs font-bold text-[#004986] hover:underline">
             ← Staff portal
           </Link>
         </div>
