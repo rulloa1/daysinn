@@ -75,9 +75,22 @@ only by `service_role` and `SECURITY DEFINER` functions.
 - Breached-password protection (HIBP) is enabled on the auth service; weak or
   known-leaked passwords are rejected at sign-up, reset, and change.
 - Managers can force a fleet-wide reset from Role management → Team access.
-  It flags every account holding a role with `password_reset_required` and
-  emails a reset link. Flagged accounts hit `PasswordResetGate` on `/staff`
-  and cannot reach the board until they set a new password (min 12 chars).
+  It writes a row per role-holding account into
+  `public.password_reset_requirements` and emails a reset link.
+- That table is the enforcement point, and it is server-owned: an account may
+  `SELECT` its own row, but `authenticated` holds no INSERT/UPDATE/DELETE
+  grant, so only `service_role` can raise or clear a requirement. The flag was
+  previously kept in `user_metadata`, which the account itself can rewrite.
+- `assertManager` / `assertStaff` / `assertHousekeeperOrStaff` refuse while a
+  requirement is pending, so every guarded server function is closed to a
+  flagged account. `PasswordResetGate` on `/staff` is a convenience surface,
+  not the boundary; skipping it gains nothing. Both the guard lookup and the
+  gate fail closed if the requirement cannot be read.
+- `completePasswordReset` is the only path out. It sets the new password via
+  the auth service's user-facing endpoint, as the caller, and clears the
+  requirement _only_ if that call succeeded — so the minimum length and the
+  breached-password check are applied by the auth service, and the requirement
+  cannot be cleared without a real password change.
 - Both the force-reset and each completion are written to `audit_events`.
 
 ## Guest name masking
