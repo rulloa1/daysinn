@@ -6,6 +6,7 @@ import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 
 export const Route = createFileRoute("/roles")({
@@ -51,8 +52,10 @@ function RolesPage() {
     <div className="ops-portal flex min-h-screen">
       <NavRail current="roles" staff={staff} />
 
-      <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-10">
-        <div className="mx-auto max-w-5xl">
+      <main className="flex-1 overflow-y-auto">
+        <OpsScreenSwitcher current="roles" />
+        <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 lg:px-10">
+
           <div>
             <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
               Management &amp; Access Control
@@ -61,9 +64,9 @@ function RolesPage() {
               Team &amp; Role Management
             </h1>
             <p className="mt-1.5 text-xs text-slate-500">
-              Manage team members, assign department roles, configure staff PINs, and enforce
-              security policies.
+              Manage team members, assign department roles, and enforce security policies.
             </p>
+
           </div>
 
           {!ready || role.loading ? (

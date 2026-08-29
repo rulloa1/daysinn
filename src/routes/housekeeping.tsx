@@ -26,6 +26,7 @@ import { IssueDialog } from "@/components/housekeeping/issue-dialog";
 import { RoomDetailDialog } from "@/components/housekeeping/room-detail-dialog";
 import { RoomSyncBanner } from "@/components/room-sync-banner";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { toast } from "sonner";
 import type { StaffIdentity } from "@/lib/ops";
 import type { RoomRow } from "@/components/housekeeping/types";
@@ -158,7 +159,11 @@ function HousekeepingWorkspace({
       <NavRail current="rooms" staff={staff} />
 
       <main className="flex-1 overflow-y-auto pb-20 lg:pb-10">
+        <div className="hidden md:block">
+          <OpsScreenSwitcher current="housekeeping" />
+        </div>
         <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
+
           <RoomSyncBanner
             summary={board.syncSummary}
             onRetry={board.flushQueuedRoomStatusChanges}
