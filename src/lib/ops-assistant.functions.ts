@@ -64,14 +64,14 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<AssistantResponse> => {
+.handler(async ({ data }): Promise<AssistantResponse> => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) {
       logAssistantFailure("LOVABLE_API_KEY is not configured");
       return UNAVAILABLE_RESPONSE;
     }
 
-const messages = data.messages.filter((message) => message.role !== "system");
+    const messages = data.messages.filter((message) => message.role !== "system");
 
     try {
       const gateway = createLovableAiGatewayProvider(key);
@@ -89,7 +89,7 @@ const messages = data.messages.filter((message) => message.role !== "system");
         return UNAVAILABLE_RESPONSE;
       }
 
-try {
+      try {
         const jsonText = content.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
         const parsed = JSON.parse(jsonText) as Partial<AssistantResponse>;
         if (typeof parsed.reply !== "string" || !parsed.reply.trim()) {
