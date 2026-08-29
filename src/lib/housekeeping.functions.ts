@@ -48,7 +48,13 @@ export function validatePin(pin: string): { ok: true } | { ok: false; reason: st
 export const verifyStaffPin = createServerFn({ method: "POST" })
   .validator((input: { memberId: string; pin: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertHousekeeperOrStaff(context.supabase, context.userId);
+    // This device may not be signed in to a staff account yet. Report it as a
+    // result instead of throwing, so the sign-in screen can explain it.
+    try {
+      await assertHousekeeperOrStaff(context.supabase, context.userId);
+    } catch {
+      return { ok: false as const, reason: "no_access" as const };
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
