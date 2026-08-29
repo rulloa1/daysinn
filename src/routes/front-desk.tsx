@@ -57,7 +57,7 @@ function FrontDeskPage() {
 
   if (!ready || roleLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Front Desk…
       </div>
     );
@@ -151,7 +151,7 @@ function Board() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+    <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail */}
       <NavRail current="board" staff={board.staff} />
 
@@ -212,7 +212,7 @@ function Board() {
 
             {/* 2x2 Metric Cards */}
             <div className="grid grid-cols-2 gap-3.5">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Occupancy
                 </p>
@@ -224,7 +224,7 @@ function Board() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Ready to sell
                 </p>
@@ -236,7 +236,7 @@ function Board() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Avg turnover
                 </p>
@@ -246,7 +246,7 @@ function Board() {
                 <p className="mt-2 text-xs font-semibold text-emerald-600">7m under target</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Open requests
                 </p>

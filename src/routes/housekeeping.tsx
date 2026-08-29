@@ -66,7 +66,7 @@ function HousekeepingPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Housekeeping…
       </div>
     );
@@ -153,7 +153,7 @@ function HousekeepingWorkspace({
   const progressPct = totalCount ? Math.round((cleanCount / totalCount) * 100) : 0;
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+    <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail for >= 1024px */}
       <NavRail current="rooms" staff={staff} />
 
@@ -354,7 +354,7 @@ function HousekeepingWorkspace({
             ) : (
               /* Shift Tab */
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="op-card p-5">
                   <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                     Shift Summary
                   </p>
@@ -501,7 +501,7 @@ function HousekeepingWorkspace({
 
             {/* 4-Column Stat Grid */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Rooms to turn
                 </p>
@@ -511,7 +511,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-slate-500">3 tied to arrivals</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Unassigned
                 </p>
@@ -519,7 +519,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Avg turnover
                 </p>
@@ -527,7 +527,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Done today
                 </p>
@@ -590,7 +590,7 @@ function HousekeepingWorkspace({
               ].map((member) => (
                 <div
                   key={member.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="op-card p-5"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
