@@ -103,6 +103,11 @@ function HousekeepingPage() {
     );
   }
 
+  // Signed in, but viewers (and accounts with no role yet) get no room data.
+  if (!canViewScreen(roles, "housekeeping")) {
+    return <ScreenDenied screen="housekeeping" suggestion={null} />;
+  }
+
   return <HousekeepingFlow />;
 }
 
