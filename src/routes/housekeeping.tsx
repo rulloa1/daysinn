@@ -159,7 +159,11 @@ function HousekeepingWorkspace({
       <NavRail current="rooms" staff={staff} />
 
       <main className="flex-1 overflow-y-auto pb-20 lg:pb-10">
+        <div className="hidden md:block">
+          <OpsScreenSwitcher current="housekeeping" />
+        </div>
         <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
+
           <RoomSyncBanner
             summary={board.syncSummary}
             onRetry={board.flushQueuedRoomStatusChanges}
