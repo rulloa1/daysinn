@@ -267,16 +267,30 @@ function HousekeepingWorkspace({
                           {nextRoom.floor}.
                         </p>
 
+                        {nextRoom.hk_stage === "in_progress" ? (
+                          <p className="mt-2.5 text-[0.82rem] font-bold tabular-nums text-[#D4AF37]">
+                            In progress
+                          </p>
+                        ) : null}
+
                         <button
                           type="button"
                           onClick={() => {
-                            board.setStatus(nextRoom, "vacant_clean");
+                            if (nextRoom.hk_stage === "in_progress") {
+                              void board.setStatus(nextRoom, "vacant_clean");
+                              void board.setStage(nextRoom, null);
+                            } else {
+                              void board.setStage(nextRoom, "in_progress");
+                            }
                           }}
                           className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
                         >
                           <Sparkles className="h-4 w-4" />
-                          Mark room {nextRoom.number} clean
+                          {nextRoom.hk_stage === "in_progress"
+                            ? `Finish room ${nextRoom.number}`
+                            : `Start room ${nextRoom.number}`}
                         </button>
+
 
                         <div className="mt-2.5 grid grid-cols-2 gap-2">
                           <button
