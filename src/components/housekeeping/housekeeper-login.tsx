@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -22,14 +22,7 @@ export function HousekeeperLogin({
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState(false);
 
-  // Auto-submit on 4 digits
-  useEffect(() => {
-    if (pin.length === 4 && selectedMember && !busy) {
-      void handleSubmitPin();
-    }
-  }, [pin, selectedMember]);
-
-  async function handleSubmitPin() {
+  const handleSubmitPin = useCallback(async () => {
     if (!selectedMember) return;
     setBusy(true);
     try {
@@ -58,7 +51,14 @@ export function HousekeeperLogin({
     } finally {
       setBusy(false);
     }
-  }
+  }, [onSelect, pin, selectedMember, verify]);
+
+  // Auto-submit on 4 digits
+  useEffect(() => {
+    if (pin.length === 4 && selectedMember && !busy) {
+      void handleSubmitPin();
+    }
+  }, [busy, handleSubmitPin, pin, selectedMember]);
 
   function handleDigit(d: string) {
     if (pin.length < 4 && !busy) {

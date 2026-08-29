@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Shield, Key, AlertTriangle, UserCheck } from "lucide-react";
@@ -48,17 +48,17 @@ export function TeamPanel() {
     setResetting(false);
   }
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       setMembers(await fetchTeam({ data: undefined }));
     } catch {
       toast.error("Couldn't load the team list.");
     }
-  }
+  }, [fetchTeam]);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   async function change(userId: string, role: AppRole) {
     setBusy(userId);

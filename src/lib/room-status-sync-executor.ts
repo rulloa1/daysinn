@@ -42,15 +42,30 @@ export async function syncQueuedRoomStatusChange(
   });
 
   const rpc = supabase.rpc.bind(supabase) as unknown as RpcClient;
-  const { data, error } = await rpc("apply_room_status_change", {
-    p_operation_id: change.id,
-    p_room_id: change.roomId,
-    p_expected_updated_at: change.expectedUpdatedAt,
-    p_new_status: change.newStatus,
-    p_staff_member_id: change.staff.id,
-    p_staff_name: change.staff.name,
-    p_changed_at: change.createdAt,
-  });
+  let data: ApplyRoomStatusResult[] | null = null;
+  let error: { message: string } | null = null;
+
+  try {
+    ({ data, error } = await rpc("apply_room_status_change", {
+      p_operation_id: change.id,
+      p_room_id: change.roomId,
+      p_expected_updated_at: change.expectedUpdatedAt,
+      p_new_status: change.newStatus,
+      p_staff_member_id: change.staff.id,
+      p_staff_name: change.staff.name,
+      p_changed_at: change.createdAt,
+    }));
+  } catch (cause) {
+    const message =
+      cause instanceof Error ? cause.message : "The live room-status service could not be reached.";
+    updateQueuedRoomStatusChange(change.id, {
+      state: "error",
+      attempts,
+      lastAttemptAt: new Date().toISOString(),
+      lastError: message,
+    });
+    return "error";
+  }
 
   if (error) {
     updateQueuedRoomStatusChange(change.id, {
