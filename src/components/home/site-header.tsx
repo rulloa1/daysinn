@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import logoAsset from "@/assets/days-inn-logo.png.asset.json";
+import { BrandLockup } from "@/components/brand-lockup";
 import { BOOKING_URL } from "@/components/franchise-footer";
 
 /** In-page anchors, matching the section ids on the homepage. */

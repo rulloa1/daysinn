@@ -130,8 +130,8 @@ export function PropertyMap() {
                 High-Speed Guest Network
               </p>
               <p className="mt-2 text-[0.86rem] leading-[1.5] text-[var(--gh-body)]">
-                Connect to <strong className="text-[var(--gh-blue)]">DaysInn_Guest</strong> (No
-                password needed).
+                Connect to <strong className="text-[var(--gh-blue)]">Days Inn</strong> — password{" "}
+                <strong className="text-[var(--gh-blue)]">Sunshine</strong>.
               </p>
               <a
                 href="tel:+13527487766"
