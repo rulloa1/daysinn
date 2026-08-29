@@ -54,22 +54,25 @@ export function useAvailability() {
       return;
     }
     setSearching(true);
-    const { data, error } = await supabase.rpc("check_availability", {
-      _check_in: checkIn,
-      _check_out: checkOut,
-      _guests: Number(guests) || 1,
-    });
-    setSearching(false);
-    if (error) {
+    try {
+      const result = await fetchAvailability({
+        data: {
+          check_in: checkIn,
+          check_out: checkOut,
+          guests: Math.min(Math.max(Number(guests) || 1, 1), 8),
+        },
+      });
+      setRows(result);
+      if (!result.some((row) => row.available_count > 0)) {
+        toast.info("No rooms open for those dates — try nearby dates or call us.");
+      }
+    } catch {
       toast.error("We couldn't check availability. Please call the front desk.");
-      return;
-    }
-    const result = (data ?? []) as AvailabilityRow[];
-    setRows(result);
-    if (!result.some((row) => row.available_count > 0)) {
-      toast.info("No rooms open for those dates — try nearby dates or call us.");
+    } finally {
+      setSearching(false);
     }
   }
+
 
   return {
     checkIn,
