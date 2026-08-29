@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { ScreenDenied } from "@/components/ops/screen-guard";
+import { canViewScreen } from "@/lib/screen-access";
 import { formatDuration } from "@/lib/ops";
 import { FloorPlan } from "@/components/floor-plan";
 import { NavRail } from "@/components/front-desk/nav-rail";
