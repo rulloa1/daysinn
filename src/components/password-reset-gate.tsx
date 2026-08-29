@@ -6,14 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-lockup";
-import { completePasswordReset, MIN_PASSWORD_LENGTH } from "@/lib/password-policy.functions";
+import {
+  completePasswordReset,
+  getPasswordResetStatus,
+  MIN_PASSWORD_LENGTH,
+} from "@/lib/password-policy.functions";
 
 /**
- * Blocks the staff portal until an account flagged for a forced reset
- * chooses a new password. Weak or breached passwords are rejected by the
- * auth service itself.
+ * Blocks the staff portal until an account flagged for a forced reset chooses a
+ * new password. Weak or breached passwords are rejected by the auth service.
+ *
+ * This is a convenience surface, not the enforcement point: the requirement is
+ * held server-side and the role guards refuse every guarded server function
+ * while it stands, so skipping this component buys nothing.
  */
 export function PasswordResetGate({ children }: { children: ReactNode }) {
+  const checkStatus = useServerFn(getPasswordResetStatus);
   const finish = useServerFn(completePasswordReset);
   const [required, setRequired] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
@@ -22,15 +30,19 @@ export function PasswordResetGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!active) return;
-      const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-      setRequired(meta["password_reset_required"] === true);
-    });
+    checkStatus({ data: undefined })
+      .then((status) => {
+        if (active) setRequired(status.required);
+      })
+      .catch(() => {
+        // Fail closed: if we cannot confirm the account is clear, ask for a
+        // password rather than handing over the board.
+        if (active) setRequired(true);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [checkStatus]);
 
   if (required === null) {
     return (
@@ -53,18 +65,14 @@ export function PasswordResetGate({ children }: { children: ReactNode }) {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) {
-      setBusy(false);
-      toast.error(error.message);
-      return;
-    }
+    // The server changes the password and clears the requirement in one call;
+    // it will not clear anything if the auth service refuses the password.
     try {
-      await finish({ data: undefined });
+      await finish({ data: { password } });
       setRequired(false);
       toast.success("Password updated.");
-    } catch {
-      toast.error("Password saved, but we couldn't clear the reset flag.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update that password.");
     }
     setBusy(false);
   }
