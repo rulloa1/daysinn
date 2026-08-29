@@ -108,7 +108,12 @@ export async function advanceRequest(
     return { error: "Invalid request status.", updated: false } satisfies RequestTransitionResult;
   }
 
-  const { error } = await supabase.rpc("advance_request", {
+  // Cast: this RPC is not present in the generated types yet.
+  const rpc = supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ error: { message: string } | null }>;
+  const { error } = await rpc("advance_request", {
     p_request_id: current.id,
     p_next_status: next,
     p_author_staff_id: staff?.id ?? null,
