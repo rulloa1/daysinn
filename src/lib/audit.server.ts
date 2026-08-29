@@ -78,12 +78,7 @@ export async function allowGuestAttempt(
     // after credentials are checked. Volumetric scopes reserve capacity atomically
     // before their action runs, preventing concurrent requests from overrunning a limit.
     if (!failuresOnly) {
-      // Cast: this SECURITY DEFINER RPC is not present in the generated types yet.
-      const rpc = supabaseAdmin.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
-      const { data: allowed, error } = await rpc("consume_guest_attempt", {
+      const { data: allowed, error } = await supabaseAdmin.rpc("consume_guest_attempt", {
         p_scope: scope,
         p_identifier: keyOf(identifier),
         p_max: max,

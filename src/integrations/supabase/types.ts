@@ -958,6 +958,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_request: {
+        Args: {
+          p_author_name?: string
+          p_author_staff_id?: string
+          p_next_status: string
+          p_note?: string
+          p_request_id: string
+        }
+        Returns: boolean
+      }
       check_availability: {
         Args: { _check_in: string; _check_out: string; _guests?: number }
         Returns: {
@@ -968,6 +978,16 @@ export type Database = {
           nightly_rate: number
           room_type: string
         }[]
+      }
+      consume_guest_attempt: {
+        Args: {
+          p_failures_only?: boolean
+          p_identifier: string
+          p_max: number
+          p_scope: string
+          p_window_minutes: number
+        }
+        Returns: boolean
       }
       current_staff_member_id: { Args: never; Returns: string }
       is_supervisor: { Args: never; Returns: boolean }

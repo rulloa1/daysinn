@@ -94,7 +94,6 @@ describe("request workflow", () => {
       p_next_status: "in_progress",
       p_author_staff_id: "staff-1",
       p_author_name: "Jordan",
-      p_note: null,
     });
     expect(mocks.from).not.toHaveBeenCalled();
   });
