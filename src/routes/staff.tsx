@@ -48,6 +48,7 @@ export const Route = createFileRoute("/staff")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: StaffPage,
 });
 
