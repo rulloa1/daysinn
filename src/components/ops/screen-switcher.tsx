@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useStaffRole } from "@/hooks/use-staff-role";
+import { canViewScreen } from "@/lib/screen-access";
 
 export type OpsScreen = "front-desk" | "housekeeping" | "queue" | "team" | "roles" | "shifts";
 
@@ -16,14 +18,20 @@ const TARGETS: Target[] = [
 /**
  * Sticky screen switcher from the Ops Portal v3 design: a translucent white bar
  * with an uppercase eyebrow, pill buttons per screen, and a right-side note.
+ *
+ * Only screens the signed-in role may open are listed, so navigation never
+ * offers a destination the guard will refuse.
  */
 export function OpsScreenSwitcher({ current }: { current: OpsScreen }) {
+  const { roles, loading } = useStaffRole();
+  const targets = loading ? [] : TARGETS.filter((t) => canViewScreen(roles, t.id));
+
   return (
     <div className="sticky top-0 z-40 flex flex-wrap items-center gap-2.5 border-b border-[#D8E0EA] bg-white/92 px-4 py-2.5 backdrop-blur-md md:px-6">
       <span className="mr-1.5 text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase">
         Ops portal
       </span>
-      {TARGETS.map((target) => {
+      {targets.map((target) => {
         const on = target.id === current;
         return (
           <Link

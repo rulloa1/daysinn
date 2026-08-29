@@ -18,6 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
+import { useStaffRole } from "@/hooks/use-staff-role";
+import { ScreenDenied } from "@/components/ops/screen-guard";
+import { canViewScreen } from "@/lib/screen-access";
 import { HousekeeperLogin } from "@/components/housekeeping/housekeeper-login";
 import { useHousekeepingBoard } from "@/components/housekeeping/use-housekeeping-board";
 import { FloorPlan } from "@/components/floor-plan";
@@ -55,6 +58,7 @@ export const Route = createFileRoute("/housekeeping")({
 function HousekeepingPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const { roles, loading: roleLoading } = useStaffRole();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
@@ -65,7 +69,7 @@ function HousekeepingPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (!ready) {
+  if (!ready || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Housekeeping…
@@ -97,6 +101,11 @@ function HousekeepingPage() {
         </div>
       </div>
     );
+  }
+
+  // Signed in, but viewers (and accounts with no role yet) get no room data.
+  if (!canViewScreen(roles, "housekeeping")) {
+    return <ScreenDenied screen="housekeeping" suggestion={null} />;
   }
 
   return <HousekeepingFlow />;
@@ -163,7 +172,6 @@ function HousekeepingWorkspace({
           <OpsScreenSwitcher current="housekeeping" />
         </div>
         <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
-
           <RoomSyncBanner
             summary={board.syncSummary}
             onRetry={board.flushQueuedRoomStatusChanges}
@@ -198,7 +206,6 @@ function HousekeepingWorkspace({
                 Sign out
               </button>
             </div>
-
 
             {/* Mobile Tab Views */}
             {mobileTab === "route" ? (
@@ -597,10 +604,7 @@ function HousekeepingWorkspace({
                   ],
                 },
               ].map((member) => (
-                <div
-                  key={member.id}
-                  className="op-card p-5"
-                >
+                <div key={member.id} className="op-card p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">

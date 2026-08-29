@@ -31,6 +31,8 @@ import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
+import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
+import { canActOnScreen, canViewScreen, type OpsScreenId } from "@/lib/screen-access";
 import type { DashboardTab } from "@/components/staff/types";
 
 const TABS = [
@@ -112,10 +114,24 @@ function StaffPage() {
   );
 }
 
+/** Each dashboard tab maps to the screen policy that governs it. */
+const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
+  queue: "queue",
+  map: "map",
+  crm: "crm",
+  maintenance: "maintenance",
+  analytics: "analytics",
+  schedules: "shifts",
+  assignments: "assignments",
+  team: "team",
+};
+
 function Dashboard({ session }: { session: Session }) {
   const role = useStaffRole();
-  const { isManager, canTriage, loading: roleLoading, refresh } = role;
-  const canEditCrm = isManager || role.roles.includes("staff");
+  const { isManager, roles, loading: roleLoading, refresh } = role;
+  const canTriage = canActOnScreen(roles, "queue");
+  const canEditCrm = canActOnScreen(roles, "crm");
+  const canViewTab = (tab: DashboardTab) => canViewScreen(roles, TAB_SCREEN[tab]);
   const { staff, members, select, error: rosterError } = useStaffIdentity();
   const [pickerSkipped, setPickerSkipped] = useState(false);
 
@@ -124,6 +140,12 @@ function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     if (search.tab) setActiveTab(search.tab);
   }, [search.tab]);
+
+  // A deep link such as ?tab=team must not open for a role without it.
+  useEffect(() => {
+    if (roleLoading) return;
+    if (!canViewScreen(roles, TAB_SCREEN[activeTab])) setActiveTab("queue");
+  }, [roleLoading, roles, activeTab]);
 
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -186,6 +208,11 @@ function Dashboard({ session }: { session: Session }) {
     );
   }
 
+  // Accounts with no operational role (viewers, or invites not yet granted a
+  // role) get no queue at all rather than a read-only copy of guest data.
+  if (!roleLoading && !canViewScreen(roles, "queue")) {
+    return <ScreenDenied screen="queue" suggestion={null} />;
+  }
 
   return (
     <div className="ops-portal flex min-h-screen">
@@ -246,7 +273,12 @@ function Dashboard({ session }: { session: Session }) {
               { label: "Open requests", value: queue.openCount },
               { label: "Rooms", value: roomStats.total },
               { label: "Ready", value: roomStats.ready, trend: "clean", trendTone: "up" },
-              { label: "Vacant dirty", value: roomStats.dirty, trend: "to turn", trendTone: "down" },
+              {
+                label: "Vacant dirty",
+                value: roomStats.dirty,
+                trend: "to turn",
+                trendTone: "down",
+              },
               { label: "Occupied", value: roomStats.occupied },
             ]}
           />
@@ -279,14 +311,16 @@ function Dashboard({ session }: { session: Session }) {
           <DashboardTabs
             active={activeTab}
             onSelect={setActiveTab}
-            isManager={isManager}
+            canViewTab={canViewTab}
             openCount={queue.openCount}
             roomCount={queue.rooms.length}
           />
 
-
-          {/* Tab Views */}
-          {activeTab === "queue" ? (
+          {/* Tab Views — the strip already hides these, and this refuses a
+              tab reached any other way. */}
+          {!canViewTab(activeTab) ? (
+            <PanelDenied screen={TAB_SCREEN[activeTab]} />
+          ) : activeTab === "queue" ? (
             <RequestQueue
               visible={queue.visible}
               counts={queue.counts}

@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { canViewScreen } from "@/lib/screen-access";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
@@ -55,7 +56,6 @@ function RolesPage() {
       <main className="flex-1 overflow-y-auto">
         <OpsScreenSwitcher current="roles" />
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 lg:px-10">
-
           <div>
             <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
               Management &amp; Access Control
@@ -66,7 +66,6 @@ function RolesPage() {
             <p className="mt-1.5 text-xs text-slate-500">
               Manage team members, assign department roles, and enforce security policies.
             </p>
-
           </div>
 
           {!ready || role.loading ? (
@@ -83,7 +82,7 @@ function RolesPage() {
                 to manage team roles.
               </p>
             </div>
-          ) : !role.isManager ? (
+          ) : !canViewScreen(role.roles, "roles") ? (
             <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-xs">
               <p className="text-xs font-bold text-amber-800 uppercase">Manager Access Required</p>
               <p className="mt-1 text-xs text-amber-900">
