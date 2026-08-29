@@ -224,7 +224,9 @@ function Dashboard({ session }: { session: Session }) {
           ) : activeTab === "team" ? (
             <div className="space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <TeamPanel />
+                <StaffErrorBoundary id="staff-team">
+                  <TeamPanel />
+                </StaffErrorBoundary>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <InvitePanel />
