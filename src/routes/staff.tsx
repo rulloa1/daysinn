@@ -27,6 +27,7 @@ import { SignIn } from "@/components/staff/sign-in";
 import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import type { DashboardTab } from "@/components/staff/types";
 
 export const Route = createFileRoute("/staff")({
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/staff")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: StaffPage,
 });
 
@@ -224,7 +226,9 @@ function Dashboard({ session }: { session: Session }) {
           ) : activeTab === "team" ? (
             <div className="space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <TeamPanel />
+                <StaffErrorBoundary id="staff-team">
+                  <TeamPanel />
+                </StaffErrorBoundary>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <InvitePanel />
