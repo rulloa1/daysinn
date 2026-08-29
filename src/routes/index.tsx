@@ -8,14 +8,15 @@ import { BookingHero } from "@/components/home/booking-hero";
 import { RequestDialog } from "@/components/home/request-dialog";
 import { RewardsSection } from "@/components/home/rewards-section";
 import { SiteHeader } from "@/components/home/site-header";
+import { RoomShowcaseSection } from "@/components/home/room-showcase";
+import { InteractiveAmenitiesSection } from "@/components/home/interactive-amenities";
+import { AttractionsGuideSection } from "@/components/home/attractions-guide";
+import { GuestReviewsSection } from "@/components/home/guest-reviews-section";
 import {
-  AmenitiesSection,
   FaqSection,
   GallerySection,
   GuestToolsSection,
-  NearbyStopsSection,
   PoliciesSection,
-  RoomTypesSection,
 } from "@/components/home/stay-sections";
 import { useAvailability } from "@/components/home/use-availability";
 
@@ -101,11 +102,12 @@ function GuestView() {
 
       <main>
         <BookingHero availability={availability} />
-        <RoomTypesSection bookingLink={availability.bookingLink} />
-        <AmenitiesSection />
+        <RoomShowcaseSection bookingLink={availability.bookingLink} />
+        <InteractiveAmenitiesSection />
         <PoliciesSection />
+        <GuestReviewsSection />
         <GuestToolsSection onRequest={setOpenRequest} />
-        <NearbyStopsSection />
+        <AttractionsGuideSection />
         <GallerySection />
         <FaqSection />
         <RewardsSection />
@@ -134,3 +136,4 @@ function GuestView() {
     </div>
   );
 }
+

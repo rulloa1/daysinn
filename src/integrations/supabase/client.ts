@@ -51,7 +51,6 @@ export const LEGACY_SUPABASE_PROJECT = {
   publishableKey: LEGACY_SUPABASE_PUBLISHABLE_KEY,
 };
 
-
 const DAYS_INN_SUPABASE_CONFIG = resolveDaysInnConfiguration();
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {

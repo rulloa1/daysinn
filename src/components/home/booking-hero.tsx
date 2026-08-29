@@ -1,5 +1,7 @@
+import { Coffee, Waves, Wifi, Car, Dog, MapPin, Sparkles, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { HERO_PHOTO } from "./content";
 import type { AvailabilityRow, useAvailability } from "./use-availability";
 
@@ -22,11 +24,20 @@ function AvailabilityCard({
   bookingLink: (roomType?: string) => string;
 }) {
   const open = row.available_count > 0;
+  const estimatedTotal = Number(row.nightly_rate) * nights;
+  const estimatedPoints = Math.max(1000, Math.round(estimatedTotal * 10));
 
   return (
-    <div className="gh-card flex items-center justify-between gap-3 p-4">
+    <div className="gh-card flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center">
       <div>
-        <p className="font-serif text-sm font-bold text-[var(--gh-blue)]">{row.label}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-serif text-sm font-bold text-[var(--gh-blue)]">{row.label}</p>
+          {open && (
+            <Badge className="bg-[var(--gh-gold)] text-[9px] font-bold text-[var(--gh-blue-deep)]">
+              +{estimatedPoints.toLocaleString()} Wyndham Pts
+            </Badge>
+          )}
+        </div>
         <p className="text-[11px] text-[var(--gh-body)]">
           {open
             ? `${row.available_count} room${row.available_count === 1 ? "" : "s"} open · sleeps up to ${row.max_occupancy}`
@@ -38,7 +49,7 @@ function AvailabilityCard({
             {nights > 1 ? (
               <span className="font-medium text-[var(--gh-body)]">
                 {" "}
-                · estimated ${(Number(row.nightly_rate) * nights).toFixed(0)} for {nights} nights
+                · estimated ${estimatedTotal.toFixed(0)} for {nights} nights
               </span>
             ) : null}
           </p>
@@ -49,14 +60,14 @@ function AvailabilityCard({
           href={bookingLink(row.room_type)}
           target="_blank"
           rel="noreferrer"
-          className="spring-hover shrink-0 rounded-[10px] bg-[var(--gh-blue)] px-4 py-2.5 text-xs font-bold text-white shadow-sm"
+          className="spring-hover shrink-0 rounded-[10px] bg-[var(--gh-blue)] px-4 py-2.5 text-center text-xs font-bold text-white shadow-sm hover:brightness-110"
         >
           Continue to Wyndham ↗
         </a>
       ) : (
         <a
           href="tel:+13527487766"
-          className="shrink-0 rounded-[10px] border border-[var(--gh-field-border)] bg-white px-4 py-2.5 text-xs font-bold text-[var(--gh-blue)]"
+          className="shrink-0 rounded-[10px] border border-[var(--gh-field-border)] bg-white px-4 py-2.5 text-center text-xs font-bold text-[var(--gh-blue)]"
         >
           Call desk
         </a>
@@ -81,29 +92,52 @@ export function BookingHero({ availability }: { availability: Availability }) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(100deg, rgba(0,36,63,0.92) 0%, rgba(0,36,63,0.72) 48%, rgba(0,36,63,0.25) 100%)",
+            "linear-gradient(100deg, rgba(0,36,63,0.94) 0%, rgba(0,36,63,0.78) 50%, rgba(0,36,63,0.35) 100%)",
         }}
       />
 
-      <div className="gh-shell relative pb-10 pt-[clamp(3rem,8vw,5.5rem)]">
+      <div className="gh-shell relative pb-12 pt-[clamp(3rem,8vw,5.5rem)]">
         <p className="gh-eyebrow flex items-center gap-2.5">
           <span className="h-3 w-[3px] shrink-0 bg-[var(--gh-gold)]" />
           Days Inn® by Wyndham Wildwood I-75 · I-75 Exit 329 · Wildwood, FL
         </p>
 
-        <h1 className="mt-[18px] max-w-[44rem] font-serif text-[clamp(2rem,1.3rem+3vw,3.1rem)] font-bold leading-[1.08] tracking-[-0.015em] text-white text-pretty">
-          Rooms off I-75 with free breakfast, pool &amp; parking.
+        <h1 className="mt-[18px] max-w-[46rem] font-serif text-[clamp(2rem,1.3rem+3vw,3.2rem)] font-bold leading-[1.08] tracking-[-0.015em] text-white text-pretty">
+          Rooms off I-75 with free hot breakfast, pool &amp; parking.
         </h1>
 
-        <p className="mt-[18px] max-w-[38rem] text-[1.05rem] leading-relaxed text-white/80 text-pretty">
-          Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free Wi-Fi, and RV/truck
-          parking — 10 minutes from The Villages.
+        <p className="mt-[18px] max-w-[40rem] text-[1.05rem] leading-relaxed text-white/85 text-pretty">
+          Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free high-speed Wi-Fi, and RV/truck
+          parking — just 10 minutes from The Villages.
         </p>
+
+        {/* Quick Highlights Ribbon */}
+        <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-white/90">
+          {[
+            { icon: Coffee, text: "Free Hot Breakfast" },
+            { icon: Waves, text: "Outdoor Heated Pool" },
+            { icon: Wifi, text: "Free High-Speed Wi-Fi" },
+            { icon: Car, text: "Free Oversized & RV Parking" },
+            { icon: Dog, text: "Pet Friendly" },
+            { icon: MapPin, text: "Exit 329 off I-75" },
+          ].map((pill) => {
+            const Icon = pill.icon;
+            return (
+              <span
+                key={pill.text}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium backdrop-blur-sm"
+              >
+                <Icon className="h-3.5 w-3.5 text-[var(--gh-gold)]" />
+                {pill.text}
+              </span>
+            );
+          })}
+        </div>
 
         {/* Availability Search Bar */}
         <form
           onSubmit={availability.search}
-          className="mt-9 grid max-w-[56rem] grid-cols-1 gap-4 rounded-2xl bg-[var(--gh-surface)] p-5 shadow-[0_20px_25px_rgba(0,26,46,0.25)] sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end lg:gap-0"
+          className="mt-8 grid max-w-[56rem] grid-cols-1 gap-4 rounded-2xl bg-[var(--gh-surface)] p-5 shadow-[0_20px_25px_rgba(0,26,46,0.25)] sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end lg:gap-0"
         >
           <div className="flex flex-col gap-[7px] lg:border-r lg:border-[var(--gh-border)] lg:pr-5">
             <Label htmlFor="check-in" className={FIELD_LABEL}>
@@ -187,3 +221,4 @@ export function BookingHero({ availability }: { availability: Availability }) {
     </section>
   );
 }
+

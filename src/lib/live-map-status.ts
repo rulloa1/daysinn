@@ -5,12 +5,7 @@
  * side panels, kept in one place so the map, counts, legend and feed match.
  */
 export type LiveStatus =
-  | "vacant_clean"
-  | "vacant_dirty"
-  | "occupied"
-  | "occupied_dnd"
-  | "reserved"
-  | "out_of_order";
+  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "reserved" | "out_of_order";
 
 export type LiveStatusMeta = {
   /** Long label used in the legend and the selected-room chip. */

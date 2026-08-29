@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { StaffOnly } from "@/components/staff-only";
-import { Bullets, Callout, ManualShell, ManualTable, Section } from "@/components/manuals/manual-kit";
+import {
+  Bullets,
+  Callout,
+  ManualShell,
+  ManualTable,
+  Section,
+} from "@/components/manuals/manual-kit";
 
 export const Route = createFileRoute("/owner-packet")({
   ssr: false,
@@ -188,7 +194,10 @@ function OwnerPacketContent() {
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {COVER.map((c) => (
-          <div key={c.label} className="break-inside-avoid border border-border-guest bg-canvas-ops px-4 py-3.5">
+          <div
+            key={c.label}
+            className="break-inside-avoid border border-border-guest bg-canvas-ops px-4 py-3.5"
+          >
             <p className="signage text-slate-500">{c.label}</p>
             <p className="mt-1.5 text-[15px] leading-snug font-bold text-brand-blue">{c.value}</p>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">{c.note}</p>
@@ -333,7 +342,10 @@ function OwnerPacketContent() {
           <div className="mt-3 space-y-2.5">
             {DECISIONS.map((d) => (
               <div key={d.name} className="flex items-start gap-3">
-                <span aria-hidden className="mt-1 h-4 w-4 shrink-0 border-[1.5px] border-slate-400" />
+                <span
+                  aria-hidden
+                  className="mt-1 h-4 w-4 shrink-0 border-[1.5px] border-slate-400"
+                />
                 <span className="min-w-0">
                   <span className="block text-[15px] font-bold text-brand-blue">{d.name}</span>
                   <span className="block text-sm leading-relaxed text-slate-700">{d.note}</span>

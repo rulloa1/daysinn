@@ -57,7 +57,8 @@ export const Route = createFileRoute("/live-room-status")({
       { property: "og:title", content: "Live Property Map — Days Inn Hub" },
       {
         property: "og:description",
-        content: "Real-time room readiness, turns, and exceptions on the Days Inn Wildwood site plan.",
+        content:
+          "Real-time room readiness, turns, and exceptions on the Days Inn Wildwood site plan.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -161,7 +162,10 @@ function LiveBoard() {
   }, [load]);
 
   const floorRooms = useMemo(
-    () => rooms.filter((room) => (floor === 1 ? Number(room.number) < 200 : Number(room.number) >= 200)),
+    () =>
+      rooms.filter((room) =>
+        floor === 1 ? Number(room.number) < 200 : Number(room.number) >= 200,
+      ),
     [rooms, floor],
   );
 
@@ -206,9 +210,7 @@ function LiveBoard() {
   );
 
   const occupancy = floorRooms.length
-    ? Math.round(
-        (((counts.occupied ?? 0) + (counts.occupied_dnd ?? 0)) / floorRooms.length) * 100,
-      )
+    ? Math.round((((counts.occupied ?? 0) + (counts.occupied_dnd ?? 0)) / floorRooms.length) * 100)
     : 0;
 
   const floorLabel = floor === 1 ? "ground floor" : "upper floor";
@@ -451,10 +453,7 @@ function LiveBoard() {
                         onClick={() => setSelected(room.number)}
                         className="flex min-h-[52px] w-full items-center gap-3 border-b border-[var(--lm-rule)] py-2.5 text-left"
                       >
-                        <span
-                          className="h-8 w-1 rounded-full"
-                          style={{ background: meta.color }}
-                        />
+                        <span className="h-8 w-1 rounded-full" style={{ background: meta.color }} />
                         <span className="text-[1.05rem] font-bold tabular-nums text-[var(--lm-blue)]">
                           {room.number}
                         </span>
