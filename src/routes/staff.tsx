@@ -119,7 +119,12 @@ function Dashboard({ session }: { session: Session }) {
   const { staff, members, select, error: rosterError } = useStaffIdentity();
   const [pickerSkipped, setPickerSkipped] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<DashboardTab>("queue");
+  const search = Route.useSearch();
+  const [activeTab, setActiveTab] = useState<DashboardTab>(search.tab ?? "queue");
+  useEffect(() => {
+    if (search.tab) setActiveTab(search.tab);
+  }, [search.tab]);
+
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
