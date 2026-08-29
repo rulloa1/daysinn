@@ -137,15 +137,89 @@ function Dashboard({ session }: { session: Session }) {
     );
   }
 
+  const roomStats = useMemo(() => {
+    const total = queue.rooms.length;
+    const dirty = queue.rooms.filter((r) => r.status === "vacant_dirty").length;
+    const ready = queue.rooms.filter((r) => r.status === "vacant_clean").length;
+    const occupied = queue.rooms.filter(
+      (r) => r.status === "occupied" || r.status === "occupied_dnd",
+    ).length;
+    return { total, dirty, ready, occupied };
+  }, [queue.rooms]);
+
+  const today = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      }),
+    [],
+  );
+
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Navigation Rail */}
       <NavRail current="queue" staff={staff} />
 
       {/* Main Container */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6">
-          <DashboardHeader isManager={isManager} />
+      <main className="flex-1 overflow-y-auto">
+        <OpsScreenSwitcher current={activeTab === "team" ? "team" : "queue"} />
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 md:px-8 lg:px-10">
+          <OpsPageHeading
+            eyebrow={`Request queue · ${staff?.name ?? "Front desk"} · ${today}`}
+            title="Today at Wildwood I-75"
+            actions={
+              <>
+                <OpsActionButton onClick={() => setActiveTab("queue")} badge={queue.openCount}>
+                  Requests
+                </OpsActionButton>
+                <OpsActionButton variant="primary" onClick={() => setActiveTab("map")}>
+                  Property map
+                </OpsActionButton>
+                {isManager ? (
+                  <OpsActionButton onClick={() => setActiveTab("analytics")}>
+                    Export metrics
+                  </OpsActionButton>
+                ) : null}
+              </>
+            }
+          />
+
+          {queue.openCount > 0 ? (
+            <NextActionCard
+              headline={
+                queue.counts.new > 0
+                  ? `${queue.counts.new} new guest ${queue.counts.new === 1 ? "request" : "requests"} waiting on triage`
+                  : `${queue.counts.in_progress} open ${queue.counts.in_progress === 1 ? "request is" : "requests are"} in progress`
+              }
+              detail={
+                roomStats.dirty > 0
+                  ? `${roomStats.dirty} ${roomStats.dirty === 1 ? "room is" : "rooms are"} still vacant dirty while the queue is live. Clear the newest asks first, then push turns to housekeeping.`
+                  : "Every room is turned. Work the queue oldest-first so nothing ages past its promise window."
+              }
+              actions={
+                <NextActionButton onClick={() => setActiveTab("queue")}>
+                  Open the queue
+                </NextActionButton>
+              }
+              watch={[
+                { text: `${queue.counts.new} new`, tone: "amber" },
+                { text: `${queue.counts.in_progress} in progress`, tone: "sky" },
+                { text: `${roomStats.dirty} vacant dirty`, tone: "rose" },
+              ]}
+            />
+          ) : null}
+
+          <OpsStatStrip
+            stats={[
+              { label: "Open requests", value: queue.openCount },
+              { label: "Rooms", value: roomStats.total },
+              { label: "Ready", value: roomStats.ready, trend: "clean", trendTone: "up" },
+              { label: "Vacant dirty", value: roomStats.dirty, trend: "to turn", trendTone: "down" },
+              { label: "Occupied", value: roomStats.occupied },
+            ]}
+          />
 
           <PwaInstallPrompt className="mt-1" />
 
@@ -179,6 +253,7 @@ function Dashboard({ session }: { session: Session }) {
             openCount={queue.openCount}
             roomCount={queue.rooms.length}
           />
+
 
           {/* Tab Views */}
           {activeTab === "queue" ? (
