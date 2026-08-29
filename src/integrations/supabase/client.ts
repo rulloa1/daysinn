@@ -11,9 +11,15 @@ function isNewSupabaseApiKey(value: string): boolean {
 // Browser-safe project settings for the active Days Inn operations database.
 // Publishable Supabase keys are designed for browser use; database policies still
 // control what the client can access. Keep server/service-role credentials server-only.
-const DAYS_INN_PROJECT_REF = "dwnyuxkztrhwrathngls";
-const DAYS_INN_SUPABASE_URL = `https://${DAYS_INN_PROJECT_REF}.supabase.co`;
-const DAYS_INN_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_noasUf4o6B24X--d98MgmQ_tnRID04u";
+//
+// The browser MUST target the same project the server functions use. A hardcoded
+// legacy project ref here previously split the app in two: browser sessions were
+// issued by the old project while server functions validated tokens against the
+// managed one, so every authenticated server call (roles, team, invites) saw the
+// caller as signed out.
+const LEGACY_PROJECT_REF = "dwnyuxkztrhwrathngls";
+const LEGACY_SUPABASE_URL = `https://${LEGACY_PROJECT_REF}.supabase.co`;
+const LEGACY_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_noasUf4o6B24X--d98MgmQ_tnRID04u";
 
 function configuredValue(clientValue: string | undefined, serverValue: string | undefined): string {
   return clientValue || serverValue || "";
@@ -29,18 +35,22 @@ function resolveDaysInnConfiguration(): { url: string; publishableKey: string } 
     process.env["SUPABASE_PUBLISHABLE_KEY"],
   );
 
-  // Previous preview environments may still inject a different Supabase project.
-  // Use only an explicit Days Inn project configuration; otherwise use the
-  // approved browser-safe default for this standalone deployment.
-  if (configuredUrl.includes(DAYS_INN_PROJECT_REF) && configuredKey) {
+  if (configuredUrl && configuredKey) {
     return { url: configuredUrl, publishableKey: configuredKey };
   }
 
   return {
-    url: DAYS_INN_SUPABASE_URL,
-    publishableKey: DAYS_INN_SUPABASE_PUBLISHABLE_KEY,
+    url: LEGACY_SUPABASE_URL,
+    publishableKey: LEGACY_SUPABASE_PUBLISHABLE_KEY,
   };
 }
+
+export const LEGACY_SUPABASE_PROJECT = {
+  ref: LEGACY_PROJECT_REF,
+  url: LEGACY_SUPABASE_URL,
+  publishableKey: LEGACY_SUPABASE_PUBLISHABLE_KEY,
+};
+
 
 const DAYS_INN_SUPABASE_CONFIG = resolveDaysInnConfiguration();
 
