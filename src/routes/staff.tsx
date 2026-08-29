@@ -208,6 +208,14 @@ function Dashboard({ session }: { session: Session }) {
     );
   }
 
+  // Accounts with no operational role (viewers, or invites not yet granted a
+  // role) get no queue at all rather than a read-only copy of guest data.
+  if (!roleLoading && !canViewScreen(roles, "queue")) {
+    return <ScreenDenied screen="queue" suggestion={null} />;
+  }
+
+
+
 
   return (
     <div className="ops-portal flex min-h-screen">
