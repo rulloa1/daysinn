@@ -108,12 +108,13 @@ export async function advanceRequest(
     return { error: "Invalid request status.", updated: false } satisfies RequestTransitionResult;
   }
 
+  const trimmedNote = note?.trim();
   const { error } = await supabase.rpc("advance_request", {
     p_request_id: current.id,
     p_next_status: next,
-    p_author_staff_id: staff?.id ?? undefined,
-    p_author_name: staff?.name ?? undefined,
-    p_note: note?.trim() || undefined,
+    ...(staff?.id ? { p_author_staff_id: staff.id } : {}),
+    ...(staff?.name ? { p_author_name: staff.name } : {}),
+    ...(trimmedNote ? { p_note: trimmedNote } : {}),
   });
   if (error) return { error: error.message, updated: false } satisfies RequestTransitionResult;
 
