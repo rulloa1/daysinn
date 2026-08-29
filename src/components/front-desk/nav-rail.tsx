@@ -150,14 +150,28 @@ const initials = staff?.name
         })}
       </div>
 
-      {/* Staff profile badge */}
-      <div className="mt-auto pt-4">
+{/* Staff profile badge + log off */}
+      <div className="mt-auto flex flex-col items-center gap-4 pt-4">
         <div
           title={staff ? staff.name : "Front Desk"}
           className="grid h-9 w-9 place-items-center rounded-full bg-[#D4AF37] text-xs font-bold text-[#004986] shadow-sm ring-2 ring-white/20"
         >
           {initials}
         </div>
+        <button
+          type="button"
+          onClick={logOff}
+          disabled={signingOut}
+          title="Log off"
+          className="group flex flex-col items-center gap-1.5 text-center transition"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/12 text-white transition group-hover:bg-[#B91C1C] group-hover:text-white">
+            <LogOut className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <span className="text-[9px] font-bold tracking-wider uppercase transition text-white/60 group-hover:text-white">
+            {signingOut ? "Bye…" : "Log off"}
+          </span>
+        </button>
       </div>
     </nav>
   );
