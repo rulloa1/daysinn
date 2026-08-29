@@ -88,11 +88,11 @@ export function SiteHeader() {
                   Sign in to room
                 </Link>
                 <Link
-                  to="/staff"
+                  to="/staff-login"
                   onClick={close}
                   className="rounded-xl border border-white/15 bg-transparent px-4 py-3 text-center text-xs font-semibold text-white/60"
                 >
-                  Staff portal
+                  Staff login
                 </Link>
               </nav>
             </SheetContent>
