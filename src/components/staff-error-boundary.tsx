@@ -37,8 +37,9 @@ export function StaffErrorFallback({ error, reset }: { error: unknown; reset?: (
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button asChild className="bg-[#004986] text-white hover:bg-[#004986]/90">
-            <Link to="/staff">Go to staff sign-in</Link>
+            <a href="/staff">Go to staff sign-in</a>
           </Button>
+
           {reset ? (
             <Button variant="outline" onClick={reset}>
               Try again
