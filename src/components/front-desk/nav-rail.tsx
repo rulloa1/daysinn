@@ -11,6 +11,7 @@ import {
   Printer,
   LogOut,
 } from "lucide-react";
+import { toast } from "sonner";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import type { StaffIdentity } from "@/lib/ops";
 import { signOutStaff } from "@/lib/staff-signout";
@@ -91,11 +92,14 @@ const initials = staff?.name
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
-  async function logOff() {
+async function logOff() {
     if (signingOut) return;
     setSigningOut(true);
     try {
       await signOutStaff();
+      toast.success("Logged off successfully. See you next shift!");
+    } catch {
+      toast.error("Couldn't log off — please try again.");
     } finally {
       void navigate({ to: "/staff-login", replace: true });
     }
