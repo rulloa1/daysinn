@@ -33,6 +33,7 @@ import { Route as ManualsHousekeepingRouteImport } from './routes/manuals/housek
 import { Route as ManualsManagerRouteImport } from './routes/manuals/manager'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as ApiPublicMigrationImportRouteImport } from './routes/api/public/migration-import'
 import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push-dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -158,6 +159,12 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMigrationImportRoute =
+  ApiPublicMigrationImportRouteImport.update({
+    id: '/api/public/migration-import',
+    path: '/api/public/migration-import',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
   id: '/api/public/push-dispatch',
   path: '/api/public/push-dispatch',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/manuals/': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/api/public/migration-import': typeof ApiPublicMigrationImportRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesByTo {
@@ -216,6 +224,7 @@ export interface FileRoutesByTo {
   '/manuals': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/api/public/migration-import': typeof ApiPublicMigrationImportRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesById {
@@ -244,6 +253,7 @@ export interface FileRoutesById {
   '/manuals/': typeof ManualsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/api/public/migration-import': typeof ApiPublicMigrationImportRoute
   '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRouteTypes {
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/manuals/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/api/public/migration-import'
     | '/api/public/push-dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/manuals'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/api/public/migration-import'
     | '/api/public/push-dispatch'
   id:
     | '__root__'
@@ -327,6 +339,7 @@ export interface FileRouteTypes {
     | '/manuals/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/api/public/migration-import'
     | '/api/public/push-dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -355,6 +368,7 @@ export interface RootRouteChildren {
   ManualsIndexRoute: typeof ManualsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicMigrationImportRoute: typeof ApiPublicMigrationImportRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
 }
 
@@ -528,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/migration-import': {
+      id: '/api/public/migration-import'
+      path: '/api/public/migration-import'
+      fullPath: '/api/public/migration-import'
+      preLoaderRoute: typeof ApiPublicMigrationImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push-dispatch': {
       id: '/api/public/push-dispatch'
       path: '/api/public/push-dispatch'
@@ -564,6 +585,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManualsIndexRoute: ManualsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicMigrationImportRoute: ApiPublicMigrationImportRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
 }
 export const routeTree = rootRouteImport
