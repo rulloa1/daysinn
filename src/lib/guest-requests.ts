@@ -53,6 +53,6 @@ export function lookupRequestType(typeString: string): RequestTypeDefinition | u
       t.id === norm ||
       t.name.toLowerCase() === norm ||
       t.shortLabel.toLowerCase() === norm ||
-      norm.includes(t.shortLabel.toLowerCase())
+      norm.includes(t.shortLabel.toLowerCase()),
   );
 }

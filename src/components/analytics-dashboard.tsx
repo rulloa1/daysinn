@@ -38,6 +38,18 @@ const STATUS_COLORS: Record<string, string> = {
 
 const REQUEST_COLORS = ["#004986", "#D4AF37", "#0F7B4F", "#B45309", "#7C3AED", "#0E7490"];
 
+/** Turnaround rows as fed to the chart — `minutes` is derived from `avgSeconds`. */
+type TurnaroundRow = { name: string; avgSeconds: number; count: number; minutes: number };
+
+/** Request-volume rows as fed to the chart, with the slice colour attached. */
+type RequestRow = {
+  type: string;
+  count: number;
+  resolved: number;
+  avgResponseSeconds: number | null;
+  fill: string;
+};
+
 export function AnalyticsDashboard() {
   const fetchOccupancy = useServerFn(getOccupancyTrend);
   const fetchStatus = useServerFn(getRoomStatusBreakdown);
@@ -183,7 +195,7 @@ export function AnalyticsDashboard() {
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
-                      formatter={(v: any) => [`${v}%`, "Occupancy"]}
+                      formatter={(value: number) => [`${value}%`, "Occupancy"]}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -280,10 +292,10 @@ export function AnalyticsDashboard() {
                       }}
                     />
                     <Tooltip
-                      formatter={(v: any, _name: any, item: any) => [
-                        `${v} min (${item.payload.count} turns)`,
-                        "Avg Turnover",
-                      ]}
+                      formatter={(value: number, _name, item) => {
+                        const row = item.payload as TurnaroundRow;
+                        return [`${value} min (${row.count} turns)`, "Avg Turnover"];
+                      }}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -321,12 +333,18 @@ export function AnalyticsDashboard() {
                     <XAxis dataKey="type" tick={{ fill: "#64748B", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#64748B", fontSize: 11 }} />
                     <Tooltip
-                      formatter={(v: any, name: any, item: any) => [
-                        name === "resolved"
-                          ? `${v} resolved (${item.payload.avgResponseSeconds ? formatDuration(item.payload.avgResponseSeconds) : "n/a"} avg)`
-                          : `${v} requests`,
-                        name === "resolved" ? "Resolved" : "Total",
-                      ]}
+                      formatter={(value: number, name, item) => {
+                        const row = item.payload as RequestRow;
+                        const avg = row.avgResponseSeconds
+                          ? formatDuration(row.avgResponseSeconds)
+                          : "n/a";
+                        return [
+                          name === "resolved"
+                            ? `${value} resolved (${avg} avg)`
+                            : `${value} requests`,
+                          name === "resolved" ? "Resolved" : "Total",
+                        ];
+                      }}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -337,7 +355,12 @@ export function AnalyticsDashboard() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="count" fill="#004986" name="Total Requests" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="count"
+                      fill="#004986"
+                      name="Total Requests"
+                      radius={[4, 4, 0, 0]}
+                    />
                     <Bar dataKey="resolved" fill="#0F7B4F" name="Resolved" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
