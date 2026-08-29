@@ -55,6 +55,7 @@ export const Route = createFileRoute("/housekeeping")({
 function HousekeepingPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const { roles, loading: roleLoading } = useStaffRole();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
