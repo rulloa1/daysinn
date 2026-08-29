@@ -79,7 +79,7 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
     },
   ] as const;
 
-  const initials = staff?.name
+const initials = staff?.name
     ? staff.name
         .split(" ")
         .map((p) => p[0])
@@ -87,6 +87,19 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
         .toUpperCase()
         .slice(0, 2)
     : "FD";
+
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function logOff() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOutStaff();
+    } finally {
+      void navigate({ to: "/staff-login", replace: true });
+    }
+  }
 
   return (
     <nav
