@@ -1,0 +1,20 @@
+# Normalize line endings. Without this the repo was showing ~430 files as
+# modified purely because the working tree holds CRLF while the index holds LF.
+# text=auto lets git detect text vs binary; eol=lf keeps checkouts LF on every
+# platform, so a Windows editor writing CRLF no longer produces phantom diffs.
+* text=auto eol=lf
+
+# Binary assets: never touch these, regardless of content sniffing.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.avif  binary
+*.gif   binary
+*.ico   binary
+*.xcf   binary
+*.pdf   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
