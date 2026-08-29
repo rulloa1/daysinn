@@ -22,6 +22,7 @@ import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as StaffLoginRouteImport } from './routes/staff-login'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -98,6 +99,11 @@ const StaffRoute = StaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffLoginRoute = StaffLoginRouteImport.update({
+  id: '/staff-login',
+  path: '/staff-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrackRoute = TrackRouteImport.update({
   id: '/track',
   path: '/track',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/room': typeof RoomRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/track': typeof TrackRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/staff-login'
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/staff-login'
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/room'
     | '/sitemap.xml'
     | '/staff'
+    | '/staff-login'
     | '/track'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -320,6 +332,7 @@ export interface RootRouteChildren {
   RoomRoute: typeof RoomRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
+  StaffLoginRoute: typeof StaffLoginRoute
   TrackRoute: typeof TrackRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff-login': {
+      id: '/staff-login'
+      path: '/staff-login'
+      fullPath: '/staff-login'
+      preLoaderRoute: typeof StaffLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/track': {
       id: '/track'
       path: '/track'
@@ -512,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   RoomRoute: RoomRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
+  StaffLoginRoute: StaffLoginRoute,
   TrackRoute: TrackRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
