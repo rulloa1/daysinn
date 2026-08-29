@@ -13,6 +13,8 @@ type PinRow = {
   department: string;
   active: boolean;
   hasPin: boolean;
+  /** How many other accounts hold these same four digits. */
+  sharedWith: number;
 };
 
 const DEPARTMENT_LABEL: Record<string, string> = {
@@ -35,6 +37,8 @@ export function StaffPinPanel() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+
+  const sharedCount = rows.filter((r) => r.hasPin && r.sharedWith > 0).length;
 
   const load = useCallback(async () => {
     try {
@@ -99,10 +103,20 @@ export function StaffPinPanel() {
           <p className="mt-0.5 text-xs text-slate-500">
             Housekeeping signs on with a name tap and four digits. Set the PIN with the person in
             front of you, let them choose the digits, and do not write it down anywhere. Anyone
-            without a PIN can currently sign on with their name alone.
+            without a PIN can sign on with their name alone, and anyone sharing a PIN with a
+            colleague can sign on as them — which is what makes the per-person room timings on
+            Reports mean anything.
           </p>
         </div>
       </div>
+
+      {sharedCount > 0 ? (
+        <p className="mt-4 rounded-lg border border-[#E4BFBB] bg-[#FBEAE9] px-4 py-3 text-xs leading-relaxed text-[#B91C1C]">
+          <strong>{sharedCount} accounts are signing on with a PIN somebody else also has.</strong>{" "}
+          Until each person has their own four digits, the room timings on Reports record a name
+          rather than a person.
+        </p>
+      ) : null}
 
       {loading ? (
         <p className="mt-5 text-xs text-slate-400">Loading roster…</p>
@@ -122,10 +136,23 @@ export function StaffPinPanel() {
 
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide uppercase ${
-                  member.hasPin ? "bg-[#E7F4EE] text-[#0F7B4F]" : "bg-[#FBF0E2] text-[#B45309]"
+                  !member.hasPin
+                    ? "bg-[#FBF0E2] text-[#B45309]"
+                    : member.sharedWith > 0
+                      ? "bg-[#FBEAE9] text-[#B91C1C]"
+                      : "bg-[#E7F4EE] text-[#0F7B4F]"
                 }`}
+                title={
+                  member.sharedWith > 0
+                    ? `${member.name} signs on with the same four digits as ${member.sharedWith} other account(s).`
+                    : undefined
+                }
               >
-                {member.hasPin ? "PIN set" : "Name only"}
+                {!member.hasPin
+                  ? "Name only"
+                  : member.sharedWith > 0
+                    ? `Shared with ${member.sharedWith}`
+                    : "PIN set"}
               </span>
 
               {editing === member.id ? (

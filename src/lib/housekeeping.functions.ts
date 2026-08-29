@@ -118,8 +118,12 @@ export const setStaffPin = createServerFn({ method: "POST" })
   });
 
 /**
- * Who currently has a PIN. Returns a boolean per person and never the PIN
- * itself, so the manager screen can show what still needs setting up.
+ * Who currently has a PIN, and whether it is one they share with somebody else.
+ *
+ * Returns booleans only — never the PIN itself. `sharedPin` is what makes a
+ * roster on a single shared code visible: the count of other active accounts
+ * holding the same four digits, computed here so the comparison never leaves
+ * the server.
  */
 export const listStaffPinStatus = createServerFn({ method: "POST" }).handler(
   async ({ context }) => {
@@ -132,12 +136,20 @@ export const listStaffPinStatus = createServerFn({ method: "POST" }).handler(
       .order("name");
     if (error) throw new Error(error.message);
 
-    return (data ?? []).map((row) => ({
+    const rows = data ?? [];
+    const holders = new Map<string, number>();
+    for (const row of rows) {
+      if (!row.pin) continue;
+      holders.set(row.pin, (holders.get(row.pin) ?? 0) + 1);
+    }
+
+    return rows.map((row) => ({
       id: row.id,
       name: row.name,
       department: row.department,
       active: row.active,
       hasPin: Boolean(row.pin),
+      sharedWith: row.pin ? (holders.get(row.pin) ?? 1) - 1 : 0,
     }));
   },
 );
