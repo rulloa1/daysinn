@@ -47,7 +47,7 @@ export const Route = createFileRoute("/front-desk")({
 function FrontDeskPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const { isFrontDesk, isHousekeeper, loading: roleLoading } = useStaffRole();
+  const { roles, isHousekeeper, loading: roleLoading } = useStaffRole();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
