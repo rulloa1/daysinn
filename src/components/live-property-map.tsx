@@ -1,6 +1,68 @@
-import { DEFAULT_ROOM_COORDS } from "@/components/floor-plan";
-import propertyMapImage from "@/assets/property-site-plan.svg";
+import propertyMapAsset from "@/assets/property-site-plan.jpg.asset.json";
 import { LIVE_STATUS_META, LIVE_STATUS_ORDER, type LiveStatus } from "@/lib/live-map-status";
+
+const propertyMapImage = propertyMapAsset.url;
+
+/**
+ * Pin centers measured directly off the illustrated site plan artwork
+ * (property-site-plan.jpg), expressed as percentages of the image box.
+ */
+export const SITE_PLAN_COORDS: Record<string, [number, number]> = {
+  "108": [27.21, 61.52],
+  "109": [27.21, 68.01],
+  "110": [30.63, 61.52],
+  "111": [30.63, 68.01],
+  "112": [34.06, 61.52],
+  "113": [34.06, 68.01],
+  "114": [37.37, 61.52],
+  "115": [37.37, 68.01],
+  "116": [40.7, 61.52],
+  "117": [40.7, 68.01],
+  "118": [44.01, 61.52],
+  "119": [44.01, 68.01],
+  "120": [47.29, 61.52],
+  "121": [47.29, 68.01],
+  "122": [50.6, 61.52],
+  "123": [50.6, 68.01],
+  "124": [53.88, 61.52],
+  "125": [53.88, 68.01],
+  "126": [57.16, 61.52],
+  "127": [57.16, 68.01],
+  "128": [60.42, 61.52],
+  "129": [60.42, 68.01],
+  "130": [63.7, 61.52],
+  "131": [63.7, 68.01],
+  "132": [66.95, 61.52],
+  "133": [66.95, 68.01],
+  "134": [70.16, 61.52],
+  "135": [70.16, 68.01],
+  "137": [73.65, 65.26],
+  "139": [73.65, 61.56],
+  "140": [69.14, 58.06],
+  "141": [73.67, 58.06],
+  "142": [69.14, 54.27],
+  "143": [73.67, 54.27],
+  "144": [69.14, 50.28],
+  "145": [73.67, 50.28],
+  "146": [69.14, 46.3],
+  "147": [73.67, 46.3],
+  "148": [69.14, 42.32],
+  "149": [73.67, 42.32],
+  "150": [69.14, 38.29],
+  "151": [73.67, 38.29],
+  "152": [69.14, 34.31],
+  "153": [73.67, 34.31],
+  "154": [69.14, 30.38],
+  "155": [73.67, 30.38],
+  "156": [69.14, 26.35],
+  "157": [73.67, 26.35],
+  "158": [69.14, 22.42],
+  "159": [73.67, 22.42],
+  "160": [69.14, 18.39],
+  "161": [73.67, 18.39],
+  "162": [69.14, 14.45],
+  "163": [73.67, 14.45],
+};
 
 export type LivePin = {
   id: string;
@@ -37,7 +99,7 @@ export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onS
           />
 
           {pins.map((pin) => {
-            const coords = DEFAULT_ROOM_COORDS[pin.number];
+            const coords = SITE_PLAN_COORDS[pin.number];
             if (!coords) return null;
             const meta = LIVE_STATUS_META[pin.status];
             const isSelected = selected === pin.number;
