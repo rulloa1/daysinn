@@ -1,8 +1,7 @@
-import { MapPin, Navigation, Waves, Coffee, Truck, Car } from "lucide-react";
-
 const LAT = 28.872883;
 const LNG = -82.093933;
 const ADDRESS = "551 East SR 44, Wildwood, FL 34785";
+const MAP_URL = `https://www.google.com/maps/search/?api=1&query=${LAT},${LNG}`;
 
 const DIRECTIONS = [
   {
@@ -19,120 +18,128 @@ const DIRECTIONS = [
   },
 ];
 
-const AMENITIES = [
+const ONSITE = [
   {
-    icon: Waves,
     title: "Outdoor Heated Swimming Pool",
     desc: "Centrally located courtyard pool with sun deck & lounge seating.",
     badge: "Courtyard",
   },
   {
-    icon: Coffee,
     title: "Daybreak® Breakfast & Lobby",
     desc: "Complimentary morning breakfast, 24/7 hot coffee & guest registration.",
     badge: "Lobby",
   },
   {
-    icon: Truck,
     title: "Truck & RV Parking",
     desc: "Dedicated oversized vehicle, bus, and trailer parking on perimeter.",
     badge: "Free Parking",
   },
   {
-    icon: Car,
     title: "Direct Guest Parking",
     desc: "Walkway-level parking in front of ground and second floor access stairs.",
     badge: "On-Site",
   },
 ];
 
+const MICRO_LABEL = "text-[0.6rem] font-bold uppercase tracking-[0.14em] text-[var(--gh-gold)]";
+
 export function PropertyMap() {
   return (
-    <section className="mt-16 overflow-hidden rounded-3xl border border-[#D2DBE6] bg-[#F5F8FB] shadow-sm">
-      <div className="grid gap-0 lg:grid-cols-[1.2fr_1fr]">
-        {/* Location & Navigation Card */}
-        <div className="flex flex-col justify-between p-6 md:p-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#004986] text-white">
-                <MapPin className="h-4 w-4" />
-              </span>
-              <span className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">
-                Location &amp; Access
-              </span>
-            </div>
-            <h2 className="mt-2 font-serif text-2xl font-bold text-[#004986] md:text-3xl">
-              Getting to Days Inn® Wildwood
-            </h2>
-            <address className="mt-2 text-xs leading-relaxed not-italic text-slate-600">
-              <strong className="text-slate-900">Days Inn® by Wyndham Wildwood I-75</strong>
-              <br />
-              {ADDRESS}
-            </address>
-            <p className="mt-3 text-xs leading-relaxed text-slate-600">
-              Conveniently located directly off{" "}
-              <strong className="text-slate-900">I-75 Exit 329</strong> and Florida&apos;s
-              Turnpike. Easy access to The Villages, local dining, fuel stations, and central
-              Florida attractions.
-            </p>
-          </div>
+    <section id="location" className="gh-shell scroll-mt-24 pt-[clamp(2.5rem,6vw,4.5rem)]">
+      <p className="gh-eyebrow">Location &amp; Access</p>
+      <h2 className="gh-heading mt-2.5 text-[var(--gh-blue)]">Getting to Days Inn® Wildwood</h2>
 
-          <div className="mt-8 border-t border-[#D2DBE6] pt-6">
-            <span className="text-[11px] font-bold tracking-wider text-[#004986] uppercase">
-              Turn-by-Turn GPS Navigation
-            </span>
-            <p className="mt-1 text-xs text-slate-500">
-              Open instant directions in your favorite navigation app:
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2.5">
-              {DIRECTIONS.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-[#004986] shadow-2xs hover:bg-slate-50"
-                >
-                  <Navigation className="h-3.5 w-3.5 text-[#004986]" />
-                  {item.label} ↗
-                </a>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] text-slate-400">
-              Free on-site parking for all cars, SUVs, buses, RVs, and commercial trucks.
-            </p>
+      <div className="mt-7 grid items-start gap-5 lg:grid-cols-2">
+        <div className="gh-card px-7 py-[26px]">
+          <p className="text-[1.05rem] font-bold text-[var(--gh-blue)]">
+            Days Inn® by Wyndham Wildwood I-75
+          </p>
+          <address className="mt-1.5 text-[0.98rem] not-italic text-[var(--gh-body)]">
+            {ADDRESS}
+          </address>
+          <p className="mt-4 text-[0.94rem] leading-relaxed text-[var(--gh-body)] text-pretty">
+            Conveniently located directly off{" "}
+            <strong className="text-[var(--gh-blue)]">I-75 Exit 329</strong> and Florida&apos;s
+            Turnpike. Easy access to The Villages, local dining, fuel stations, and central Florida
+            attractions.
+          </p>
+
+          <p className="signage mt-[26px] font-bold tracking-[0.16em] text-[var(--gh-muted)]">
+            Turn-by-Turn GPS Navigation
+          </p>
+          <p className="mt-2 text-[0.9rem] text-[var(--gh-body)]">
+            Open instant directions in your favorite navigation app:
+          </p>
+          <div className="mt-3.5 flex flex-wrap gap-2.5">
+            {DIRECTIONS.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                className="spring-hover rounded-[10px] border border-[var(--gh-field-border)] bg-white px-4 py-[11px] text-[0.85rem] font-semibold text-[var(--gh-blue)] shadow-sm"
+              >
+                {item.label} ↗
+              </a>
+            ))}
           </div>
+          <p className="mt-5 text-[0.88rem] text-[#64748b]">
+            Free on-site parking for all cars, SUVs, buses, RVs, and commercial trucks.
+          </p>
         </div>
 
-        {/* Property Highlights */}
-        <div className="border-t border-[#D2DBE6] p-6 lg:border-t-0 lg:border-l md:p-8">
-          <span className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">
-            On-Site Highlights
-          </span>
-          <h3 className="mt-1 font-serif text-xl font-bold text-[#004986]">Property Amenities</h3>
+        <div>
+          <p className="signage font-bold tracking-[0.16em] text-[var(--gh-muted)]">
+            On-Site Highlights · Property Amenities
+          </p>
 
-          <div className="mt-5 space-y-3.5">
-            {AMENITIES.map((item) => (
+          <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
+            {ONSITE.map((item) => (
               <div
                 key={item.title}
-                className="flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs"
+                className="rounded-[14px] border border-[var(--gh-border)] bg-[var(--gh-surface)] px-5 py-[18px]"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#E7EDF5] text-[#004986]">
-                  <item.icon className="h-4 w-4" />
-                </span>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-serif text-xs font-bold text-[#004986]">{item.title}</h4>
-                    <span className="rounded-full bg-[#D4AF37]/20 px-2 py-0.5 text-[9px] font-bold text-[#004986]">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-                    {item.desc}
-                  </p>
-                </div>
+                <p className={MICRO_LABEL}>{item.badge}</p>
+                <h3 className="mt-2 text-[0.98rem] font-bold text-[var(--gh-blue)] text-pretty">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-[0.86rem] leading-[1.5] text-[var(--gh-body)] text-pretty">
+                  {item.desc}
+                </p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <a
+              href={MAP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="spring-hover block rounded-[14px] border border-[var(--gh-border)] bg-[var(--gh-blue)] px-5 py-[18px] text-white"
+            >
+              <span className={`block ${MICRO_LABEL}`}>Property Location</span>
+              <span className="mt-2 block text-[0.94rem] font-semibold">{ADDRESS}</span>
+              <span className="mt-1.5 block text-[0.82rem] text-white/70">
+                (Right off I-75 Exit 329)
+              </span>
+            </a>
+
+            <div className="rounded-[14px] border border-[var(--gh-border)] bg-[var(--gh-surface)] px-5 py-[18px]">
+              <p className={MICRO_LABEL}>Complimentary Wi-Fi</p>
+              <p className="mt-2 text-[0.94rem] font-bold text-[var(--gh-blue)]">
+                High-Speed Guest Network
+              </p>
+              <p className="mt-2 text-[0.86rem] leading-[1.5] text-[var(--gh-body)]">
+                Connect to <strong className="text-[var(--gh-blue)]">DaysInn_Guest</strong> (No
+                password needed).
+              </p>
+              <a
+                href="tel:+13527487766"
+                className="mt-3 inline-block text-[0.85rem] font-bold text-[var(--gh-link)] underline-offset-4 hover:underline"
+              >
+                Front Desk · (352) 748-7766
+              </a>
+            </div>
           </div>
         </div>
       </div>

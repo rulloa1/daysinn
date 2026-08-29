@@ -56,28 +56,12 @@
   --color-navy: var(--navy);
   --color-sage: var(--sage);
 
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-blue-link: var(--brand-blue-link);
-  --color-brand-gold: var(--brand-gold);
-  --color-brand-gold-ink: var(--brand-gold-ink);
-  --color-brand-deep: var(--brand-deep);
-  --color-canvas-ops: var(--canvas-ops);
-  --color-canvas-guest: var(--canvas-guest);
-  --color-surface-guest: var(--surface-guest);
-  --color-border-guest: var(--border-guest);
-
   --color-status-clean: var(--status-clean);
-  --color-status-clean-tint: var(--status-clean-tint);
   --color-status-dirty: var(--status-dirty);
-  --color-status-dirty-tint: var(--status-dirty-tint);
   --color-status-occupied: var(--status-occupied);
-  --color-status-occupied-tint: var(--status-occupied-tint);
   --color-status-dnd: var(--status-dnd);
-  --color-status-dnd-tint: var(--status-dnd-tint);
   --color-status-reserved: var(--status-reserved);
-  --color-status-reserved-tint: var(--status-reserved-tint);
   --color-status-ooo: var(--status-ooo);
-  --color-status-ooo-tint: var(--status-ooo-tint);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -97,18 +81,6 @@
 
 :root {
   --radius: 0.875rem;
-
-  /* Days Inn by Wyndham Brand Colors */
-  --brand-blue: #004986;
-  --brand-blue-link: #0065AB;
-  --brand-gold: #D4AF37;
-  --brand-gold-ink: #8A6D1F;
-  --brand-deep: #00243F;
-
-  --canvas-ops: #EEF2F7;
-  --canvas-guest: #DCE4ED;
-  --surface-guest: #F5F8FB;
-  --border-guest: #D2DBE6;
 
   /* Days Inn by Wyndham Brand Colors */
   --foreground: oklch(0.22 0.12 250);
@@ -155,18 +127,12 @@
   --sage: oklch(0.7 0.06 145);
 
   /* Hospitality Room Statuses */
-  --status-clean: #0F7B4F;
-  --status-clean-tint: #E7F4EE;
-  --status-dirty: #B45309;
-  --status-dirty-tint: #FBF0E2;
-  --status-occupied: #0065AB;
-  --status-occupied-tint: #E5F0F9;
-  --status-dnd: #7C3AED;
-  --status-dnd-tint: #F1EAFC;
-  --status-reserved: #0E7490;
-  --status-reserved-tint: #E4F2F5;
-  --status-ooo: #B91C1C;
-  --status-ooo-tint: #FBEAE9;
+  --status-clean: oklch(0.7 0.17 150);
+  --status-dirty: oklch(0.72 0.18 65);
+  --status-occupied: oklch(0.58 0.16 250);
+  --status-dnd: oklch(0.62 0.19 310);
+  --status-reserved: oklch(0.72 0.13 195);
+  --status-ooo: oklch(0.6 0.22 25);
 
   --chart-1: oklch(0.72 0.16 75);
   --chart-2: oklch(0.58 0.16 250);
@@ -343,6 +309,68 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.18em;
+}
+
+/*
+ * Guest homepage (/) — Guest Hub brand surface.
+ *
+ * Congress Blue and gold on a cool neutral canvas. Scoped to `.guest-home`
+ * on purpose: the staff routes keep the app theme, so nothing here touches
+ * the global tokens above.
+ */
+.guest-home {
+  --gh-blue: #004986;
+  --gh-blue-deep: #00243f;
+  --gh-link: #0065ab;
+  --gh-gold: #d4af37;
+
+  --gh-canvas: #dce4ed;
+  --gh-surface: #f5f8fb;
+  --gh-chip: #e7edf5;
+  --gh-border: #d2dbe6;
+  --gh-rule: #c6d1de;
+  --gh-field-border: #bcc9d8;
+
+  --gh-ink: #1e293b;
+  --gh-body: #475569;
+  --gh-body-strong: #334155;
+  --gh-muted: #94a3b8;
+
+  background-color: var(--gh-canvas);
+  color: var(--gh-ink);
+}
+
+/* Centred 1180px measure shared by every homepage section. */
+@utility gh-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1180px;
+  padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+}
+
+/* Gold kicker above every section title. */
+@utility gh-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gh-gold);
+}
+
+/* Section title. Colour is set per section — blue on the canvas, white on bands. */
+@utility gh-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 1.15rem + 1.7vw, 2.1rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@utility gh-card {
+  border: 1px solid var(--gh-border);
+  border-radius: 16px;
+  background-color: var(--gh-surface);
 }
 
 /* Micro-interaction Spring Transitions */

@@ -6,15 +6,15 @@ import { FranchiseLegal } from "@/components/franchise-footer";
 import { AMENITIES, FAQS, type ServiceRequest } from "@/components/home/content";
 import { BookingHero } from "@/components/home/booking-hero";
 import { RequestDialog } from "@/components/home/request-dialog";
-import { ContactSection, RewardsSection } from "@/components/home/rewards-section";
+import { RewardsSection } from "@/components/home/rewards-section";
 import { SiteHeader } from "@/components/home/site-header";
 import {
-  AmenitiesAndPolicies,
+  AmenitiesSection,
   FaqSection,
   GallerySection,
   GuestToolsSection,
-  LateCheckoutSection,
   NearbyStopsSection,
+  PoliciesSection,
   RoomTypesSection,
 } from "@/components/home/stay-sections";
 import { useAvailability } from "@/components/home/use-availability";
@@ -96,40 +96,37 @@ function GuestView() {
   const availability = useAvailability();
 
   return (
-    <div className="min-h-screen bg-[#DCE4ED] text-slate-800 selection:bg-[#D4AF37]/30 selection:text-[#004986]">
+    <div className="guest-home min-h-screen selection:bg-[var(--gh-gold)]/30 selection:text-[var(--gh-ink)]">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-6 md:px-8">
+      <main>
         <BookingHero availability={availability} />
         <RoomTypesSection bookingLink={availability.bookingLink} />
-        <AmenitiesAndPolicies />
+        <AmenitiesSection />
+        <PoliciesSection />
         <GuestToolsSection onRequest={setOpenRequest} />
-        <LateCheckoutSection onRequest={setOpenRequest} />
         <NearbyStopsSection />
         <GallerySection />
         <FaqSection />
         <RewardsSection />
         <PropertyMap />
-        <ContactSection />
       </main>
 
-      <footer className="border-t border-[#D2DBE6] bg-[#004986] px-5 py-12 text-white md:px-10">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <BrandLockup tone="cream" />
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
-                Warm hospitality · Effortless service
-              </p>
+      <footer className="mt-[clamp(2.5rem,6vw,4.5rem)] bg-[var(--gh-blue)] py-11">
+        <div className="gh-shell">
+          <div className="flex flex-wrap items-start justify-between gap-7">
+            <BrandLockup tone="cream" plate />
+            <div className="flex flex-wrap items-center gap-5">
               <Link
                 to="/staff"
-                className="text-xs font-semibold text-white/55 underline underline-offset-4 transition hover:text-white"
+                className="signage font-bold text-white/70 transition-colors hover:text-white"
               >
                 Staff portal
               </Link>
+              <p className="gh-eyebrow">Warm hospitality · Effortless service</p>
             </div>
           </div>
-          <FranchiseLegal className="text-xs text-white/50" />
+          <FranchiseLegal className="mt-7 text-[0.76rem] leading-[1.65] text-white/45" />
         </div>
       </footer>
 

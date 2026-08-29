@@ -1,14 +1,4 @@
 import { BedDouble, MessageSquare, Sparkles, Wrench, type LucideIcon } from "lucide-react";
-import exteriorAsset from "@/assets/unnamed-2.webp.asset.json";
-import roomAsset from "@/assets/room.webp.asset.json";
-import pool1Asset from "@/assets/unnamed_1.webp.asset.json";
-import bathAsset from "@/assets/unnamed_2.webp.asset.json";
-import pool2Asset from "@/assets/unnamed_3.webp.asset.json";
-import lobbyAsset from "@/assets/unnamed_4.webp.asset.json";
-import doubleAsset from "@/assets/unnamed_5.webp.asset.json";
-import breakfastAsset from "@/assets/unnamed_6.webp.asset.json";
-import suiteAsset from "@/assets/unnamed_8.webp.asset.json";
-import deskAsset from "@/assets/unnamed_9.webp.asset.json";
 import {
   WYNDHAM_REWARDS_EARN_URL,
   WYNDHAM_REWARDS_JOIN_URL,
@@ -20,6 +10,13 @@ import {
  * so the page's sections stay readable and this stays easy to hand to whoever
  * owns the property's wording.
  */
+
+/** Property photography, served straight from `public/property/`. */
+const photo = (name: string) => `/property/${name}.avif`;
+
+export const HERO_PHOTO = photo("p-exterior-dusk");
+export const POOL_PHOTO = photo("p-pool");
+export const POOL_PHOTO_ALT = "Outdoor heated pool with lounge chairs and palm trees";
 
 export type ServiceRequest = {
   id: string;
@@ -52,47 +49,51 @@ export const REWARDS = [
 
 export const GALLERY = [
   {
-    src: exteriorAsset.url,
-    alt: "Days Inn Wildwood exterior at dusk",
-    caption: "Front Entrance & Walkway",
+    src: photo("p-exterior-day"),
+    alt: "Days Inn Wildwood exterior and porte-cochère by day",
+    caption: "Front Entrance & Canopy",
   },
   {
-    src: roomAsset.url,
-    alt: "Two queen beds with coastal artwork",
+    src: photo("p-two-queen"),
+    alt: "Two queen beds with pier artwork",
     caption: "Two Queen Guest Room",
   },
   {
-    src: doubleAsset.url,
-    alt: "Guest room with two beds, desk and window",
-    caption: "Executive Room View",
+    src: photo("p-king-wide"),
+    alt: "King room with lounge chair and desk",
+    caption: "One King Guest Room",
   },
   {
-    src: pool1Asset.url,
-    alt: "Outdoor pool with lounge chairs and palm trees",
+    src: photo("p-pool"),
+    alt: "Outdoor pool with lounge chairs and pool lift",
     caption: "Outdoor Heated Pool",
   },
   {
-    src: pool2Asset.url,
-    alt: "Pool deck beside the guest room building",
-    caption: "Sunny Pool Deck",
-  },
-  { src: lobbyAsset.url, alt: "Front desk in the lobby", caption: "Guest Welcome Lobby" },
-  {
-    src: breakfastAsset.url,
-    alt: "Breakfast counter with coffee and waffle makers",
-    caption: "Daybreak® Breakfast",
+    src: photo("p-pool-lawn"),
+    alt: "Shaded picnic tables on the lawn beside the pool",
+    caption: "Picnic Lawn & Grills",
   },
   {
-    src: suiteAsset.url,
-    alt: "Suite sitting area with sofa, desk and TV",
+    src: photo("p-breakfast"),
+    alt: "Breakfast dining room with tables and chairs",
+    caption: "Daybreak® Breakfast Room",
+  },
+  {
+    src: photo("p-business"),
+    alt: "Business centre desk with computer and printer",
+    caption: "Business Center",
+  },
+  {
+    src: photo("p-suite-alt"),
+    alt: "Suite bedroom with pier artwork",
     caption: "Hospitality Suite",
   },
   {
-    src: deskAsset.url,
-    alt: "In-room work desk with fridge, microwave and TV",
-    caption: "Workstation & Kitchenette",
+    src: photo("p-amenity"),
+    alt: "In-room fridge, microwave and work desk",
+    caption: "Fridge & Microwave",
   },
-  { src: bathAsset.url, alt: "Bathroom with tub and shower", caption: "Spacious En-Suite Bath" },
+  { src: photo("p-bath"), alt: "Bathroom with tub and shower", caption: "Guest Bath" },
 ];
 
 export const MAP_URL = "https://www.google.com/maps/search/?api=1&query=28.872883,-82.093933";
@@ -153,8 +154,8 @@ export const ROOM_TYPES = [
     sleeps: "Sleeps 2",
     beds: "1 king bed · 300 sq ft",
     body: "Work desk, mini fridge, microwave, flat-screen TV and free Wi-Fi.",
-    image: deskAsset.url,
-    alt: "King room with work desk, fridge and microwave",
+    image: photo("p-king"),
+    alt: "King room with lounge chair, artwork and vanity beyond",
   },
   {
     key: "double_queen",
@@ -162,8 +163,8 @@ export const ROOM_TYPES = [
     sleeps: "Sleeps 4",
     beds: "2 queen beds · 330 sq ft",
     body: "Our most popular room for families and road-trip crews heading down I-75.",
-    image: roomAsset.url,
-    alt: "Guest room with two queen beds",
+    image: photo("p-two-queen"),
+    alt: "Guest room with two queen beds and balcony doors",
   },
   {
     key: "double_queen",
@@ -171,8 +172,8 @@ export const ROOM_TYPES = [
     sleeps: "Sleeps 4",
     beds: "1 king bed + sofa · sitting area",
     body: "Extra living space with sofa, desk and second TV for longer stays.",
-    image: suiteAsset.url,
-    alt: "Suite sitting area with sofa, desk and TV",
+    image: photo("p-suite"),
+    alt: "Suite with two beds, sofa and a separate work area",
   },
 ];
 

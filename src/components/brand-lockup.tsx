@@ -4,13 +4,28 @@ import { cn } from "@/lib/utils";
 export function BrandLockup({
   className,
   tone = "ink",
+  plate = false,
 }: {
   className?: string;
   tone?: "ink" | "cream";
+  /** Sits the mark on a white plate, for use on the Congress Blue bars. */
+  plate?: boolean;
 }) {
   return (
     <span className={cn("flex items-center gap-3", className)}>
-      <img src={logoAsset.url} alt="Days Inn" width={112} height={56} className="h-8 w-auto" />
+      {plate ? (
+        <span className="flex items-center justify-center rounded-lg bg-white px-2.5 py-[7px]">
+          <img
+            src={logoAsset.url}
+            alt="Days Inn"
+            width={112}
+            height={56}
+            className="block h-[26px] w-auto"
+          />
+        </span>
+      ) : (
+        <img src={logoAsset.url} alt="Days Inn" width={112} height={56} className="h-8 w-auto" />
+      )}
       <span
         className={cn(
           "hidden border-l pl-3 leading-tight sm:block",
