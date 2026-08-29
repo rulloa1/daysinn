@@ -7,20 +7,27 @@ import type { StaffIdentity } from "@/lib/ops";
 import type { MapRoom } from "@/components/floor-plan";
 import type { RequestRow } from "./types";
 
+/** A map room plus the housekeeping fields the live pins fold in. */
+export type QueueRoom = MapRoom & {
+  dnd?: boolean | null;
+  hk_stage?: string | null;
+  updated_at?: string | null;
+};
+
 const REQUEST_COLUMNS =
   "id, room, guest_name, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name";
 
 /** The live request queue plus the room list the property map renders. */
 export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
   const [rows, setRows] = useState<RequestRow[]>([]);
-  const [rooms, setRooms] = useState<MapRoom[]>([]);
+  const [rooms, setRooms] = useState<QueueRoom[]>([]);
   const [filter, setFilter] = useState<string>("all");
 
   useRealtimeRefresh({
     channel: "requests-feed",
     // Rooms ride the same feed so the stat strip and watch chips stay in step
     // with the queue instead of showing counts from page load.
-    tables: ["requests", "rooms"],
+    tables: ["requests", "rooms", "room_status_events"],
     onRefresh: async (signal) => {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
@@ -29,7 +36,7 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
       ) => any;
       const [requestRes, roomRes] = await Promise.all([
         rpc("requests_board").select(REQUEST_COLUMNS).order("created_at", { ascending: false }),
-        supabase.from("rooms").select("id, number, floor, status, guest_name").order("number"),
+        supabase.from("rooms").select("id, number, floor, status, guest_name, dnd, hk_stage, updated_at").order("number"),
       ]);
       if (signal.cancelled) return;
       if (requestRes.error) {
@@ -44,6 +51,9 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
             number: r.number,
             status: (r.status ?? "vacant_clean") as MapRoom["status"],
             guest_name: r.guest_name,
+            dnd: r.dnd,
+            hk_stage: r.hk_stage,
+            updated_at: r.updated_at,
           })),
         );
       }
