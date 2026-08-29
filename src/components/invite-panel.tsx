@@ -104,19 +104,19 @@ export function InvitePanel() {
   }
 
   return (
-    <section className="mt-8 border border-cream/15 bg-cream/[0.04] p-6">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+    <section className="op-card mt-8 border border-[#C7D5E4] bg-white p-6 text-[#004986]">
+      <p className="signage flex items-center gap-2 text-[#4C5C74]">
+        <span aria-hidden className="h-3 w-[3px] bg-[#D4AF37]" />
         Invitations
       </p>
-      <h2 className="mt-3 font-display text-2xl">Invite staff to log in</h2>
-      <p className="mt-2 max-w-2xl text-sm text-cream/60">
+      <h2 className="mt-3 font-display text-2xl text-[#004986]">Invite staff to log in</h2>
+      <p className="mt-2 max-w-2xl text-sm text-[#4C5C74]">
         Send a login invitation by email, or copy the secure link and hand it to the person
         directly. Links expire after 7 days; resending issues a fresh one and cancels the old.
       </p>
 
       {notice ? (
-        <p className="mt-4 border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-cream/80">
+        <p className="mt-4 rounded-lg border border-[#D4AF37]/50 bg-[#FDF6E3] px-4 py-3 text-sm text-[#004986]">
           {notice}
         </p>
       ) : null}
@@ -136,7 +136,7 @@ export function InvitePanel() {
         }}
       >
         <div className="min-w-[9rem] flex-1">
-          <label className="signage text-cream/50" htmlFor="invite-name">
+          <label className="signage text-[#4C5C74]" htmlFor="invite-name">
             Name
           </label>
           <Input
@@ -144,11 +144,11 @@ export function InvitePanel() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Michael"
-            className="mt-1 border-cream/20 bg-ink/40 text-cream"
+            className="mt-1 border-[#C7D5E4] bg-white text-[#004986]"
           />
         </div>
         <div className="min-w-[12rem] flex-[2]">
-          <label className="signage text-cream/50" htmlFor="invite-email">
+          <label className="signage text-[#4C5C74]" htmlFor="invite-email">
             Email
           </label>
           <Input
@@ -157,18 +157,18 @@ export function InvitePanel() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="michael@daysinnwildwood.com"
-            className="mt-1 border-cream/20 bg-ink/40 text-cream"
+            className="mt-1 border-[#C7D5E4] bg-white text-[#004986]"
           />
         </div>
         <div>
-          <label className="signage text-cream/50" htmlFor="invite-role">
+          <label className="signage text-[#4C5C74]" htmlFor="invite-role">
             Access
           </label>
           <select
             id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value as AppRole)}
-            className="mt-1 block h-9 border border-cream/20 bg-ink/40 px-2 text-sm text-cream"
+            className="mt-1 block h-9 rounded-md border border-[#C7D5E4] bg-white px-2 text-sm text-[#004986]"
           >
             <option value="staff">Staff</option>
             <option value="housekeeper">Housekeeper</option>
@@ -179,19 +179,19 @@ export function InvitePanel() {
         <Button
           type="submit"
           disabled={busy === "new"}
-          className="bg-amber text-ink hover:bg-amber/90"
+          className="bg-[#D4AF37] text-[#004986] hover:bg-[#c5a231]"
         >
           {busy === "new" ? "Sending…" : "Send invitation"}
         </Button>
       </form>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-cream/50">
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#4C5C74]">
         <span>Quick fill:</span>
         {SUGGESTED.map((person) => (
           <button
             key={person}
             type="button"
-            className="border border-cream/20 px-2 py-1 text-cream/70 hover:bg-cream/10"
+            className="rounded-md border border-[#C7D5E4] px-2 py-1 text-[#004986] hover:bg-[#EEF3F9]"
             onClick={() => setName(person)}
           >
             {person}
@@ -199,31 +199,31 @@ export function InvitePanel() {
         ))}
       </div>
 
-      <ul className="mt-6 divide-y divide-cream/10">
+      <ul className="mt-6 divide-y divide-[#C7D5E4]">
         {invites.length === 0 && (
-          <li className="py-4 text-sm text-cream/50">No invitations yet.</li>
+          <li className="py-4 text-sm text-[#4C5C74]">No invitations yet.</li>
         )}
         {invites.map((invite) => (
           <li key={invite.id} className="py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm">
-                  {invite.name} <span className="text-cream/50">· {invite.email}</span>
+                  {invite.name} <span className="text-[#4C5C74]">· {invite.email}</span>
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <Badge className="bg-cream/15 text-cream">{ROLE_LABEL[invite.role]}</Badge>
+                  <Badge className="bg-[#E4ECF5] text-[#004986]">{ROLE_LABEL[invite.role]}</Badge>
                   <Badge
                     className={
                       invite.status === "revoked"
-                        ? "bg-clay/40 text-cream"
+                        ? "bg-[#B91C1C] text-white"
                         : invite.status === "accepted"
-                          ? "bg-amber text-ink"
-                          : "bg-cream/10 text-cream/70"
+                          ? "bg-[#D4AF37] text-[#004986]"
+                          : "bg-[#E4ECF5] text-[#4C5C74]"
                     }
                   >
                     {invite.status}
                   </Badge>
-                  <span className="text-xs text-cream/45">
+                  <span className="text-xs text-[#4C5C74]">
                     Sent {invite.sentCount}× · last {when(invite.lastSentAt)} via{" "}
                     {invite.lastSendChannel ?? "—"}
                   </span>
@@ -234,7 +234,7 @@ export function InvitePanel() {
                   size="sm"
                   variant="outline"
                   disabled={busy === invite.id}
-                  className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+                  className="border-[#C7D5E4] bg-white text-[#004986] hover:bg-[#EEF3F9]"
                   onClick={() =>
                     dispatch(
                       {
@@ -253,7 +253,7 @@ export function InvitePanel() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-amber/60 bg-transparent text-amber hover:bg-amber/10"
+                    className="border-[#D4AF37] bg-white text-[#8a6d10] hover:bg-[#FDF6E3]"
                     onClick={() => copy(links[invite.id]!)}
                   >
                     Copy link
@@ -263,7 +263,7 @@ export function InvitePanel() {
                   size="sm"
                   variant="outline"
                   disabled={busy === invite.id || invite.status === "revoked"}
-                  className="border-clay/50 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                  className="border-[#E3B7B7] bg-white text-[#B91C1C] hover:bg-[#FDECEC]"
                   onClick={async () => {
                     setBusy(invite.id);
                     try {
