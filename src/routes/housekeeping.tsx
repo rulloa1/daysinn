@@ -169,27 +169,31 @@ function HousekeepingWorkspace({
           {/* ============================================================ */}
           <div className="block lg:hidden">
             {/* Top Mobile Bar */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white p-3.5 rounded-2xl shadow-xs mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-[#004986] font-mono text-xs font-bold text-white">
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
                   {initials}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">{staff.name}</p>
-                  <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Online & Synced
+                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#D4AF37] uppercase">
+                    Guest Hub · Housekeeping
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-white">{staff.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Online &amp; synced
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onSignOut}
-                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-white/25 px-2.5 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/10"
               >
                 Sign out
               </button>
             </div>
+
 
             {/* Mobile Tab Views */}
             {mobileTab === "route" ? (
