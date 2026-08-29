@@ -125,7 +125,7 @@ const GUEST_CASES: [string, string][] = [
 
 const QUICK_REF = [
   { label: "Front desk", value: "(352) 748-7766" },
-  { label: "Guest Wi-Fi network", value: "DaysInn_Guest · no password" },
+  { label: "Guest Wi-Fi", value: "Days Inn · password Sunshine" },
   { label: "Check-in / check-out", value: "3:00 PM / 11:00 AM" },
   { label: "Late checkout", value: "Until 1:00 PM, front desk approves" },
   { label: "Minimum check-in age", value: "21 with photo ID and credit card" },

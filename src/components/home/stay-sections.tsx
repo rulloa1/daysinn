@@ -24,9 +24,7 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">
-        {eyebrow}
-      </p>
+      <p className="text-[11px] font-bold tracking-widest text-[#D4AF37] uppercase">{eyebrow}</p>
       <h2
         className={`font-serif text-2xl font-bold tracking-tight md:text-3xl ${
           tone === "dark" ? "text-white" : "text-[#004986]"
@@ -211,14 +209,21 @@ export function GuestToolsSection({ onRequest }: { onRequest: (request: ServiceR
 
         <div className="flex items-center gap-2 text-xs text-white/70">
           <Wifi className="h-4 w-4 text-[#D4AF37]" />
-          <span>Wi-Fi: <strong className="text-white">DaysInn_Guest</strong> (Free)</span>
+          <span>
+            Wi-Fi: <strong className="text-white">Days Inn</strong> · password{" "}
+            <strong className="text-white">Sunshine</strong>
+          </span>
         </div>
       </div>
     </section>
   );
 }
 
-export function LateCheckoutSection({ onRequest }: { onRequest: (request: ServiceRequest) => void }) {
+export function LateCheckoutSection({
+  onRequest,
+}: {
+  onRequest: (request: ServiceRequest) => void;
+}) {
   return (
     <section className="mt-8 rounded-2xl border border-[#D2DBE6] bg-[#F5F8FB] p-6 shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -230,7 +235,8 @@ export function LateCheckoutSection({ onRequest }: { onRequest: (request: Servic
             Need a slower morning?
           </h3>
           <p className="mt-1 text-xs text-slate-600">
-            Subject to availability, complimentary late check-out up to 12:00 PM for Wyndham Rewards members.
+            Subject to availability, complimentary late check-out up to 12:00 PM for Wyndham Rewards
+            members.
           </p>
         </div>
         <button

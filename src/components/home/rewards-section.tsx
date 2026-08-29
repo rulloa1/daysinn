@@ -82,7 +82,9 @@ export function ContactSection() {
             551 East SR 44, Wildwood, FL 34785
           </h3>
           <p className="mt-2 text-xs leading-relaxed text-slate-600">
-            Conveniently situated right at I-75 Exit 329, providing seamless highway access, ample parking for cars, SUVs, buses, RVs, and commercial trucks — just 10 minutes from The Villages.
+            Conveniently situated right at I-75 Exit 329, providing seamless highway access, ample
+            parking for cars, SUVs, buses, RVs, and commercial trucks — just 10 minutes from The
+            Villages.
           </p>
 
           <p className="mt-5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
@@ -119,15 +121,22 @@ export function ContactSection() {
         {/* Right Contact & Highlights */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-[#D2DBE6] bg-[#F5F8FB] p-5 shadow-2xs">
-            <p className="text-[10px] font-bold tracking-wider text-[#D4AF37] uppercase">Complimentary</p>
-            <h4 className="mt-1 font-serif text-base font-bold text-[#004986]">Free High-Speed Wi-Fi</h4>
+            <p className="text-[10px] font-bold tracking-wider text-[#D4AF37] uppercase">
+              Complimentary
+            </p>
+            <h4 className="mt-1 font-serif text-base font-bold text-[#004986]">
+              Free High-Speed Wi-Fi
+            </h4>
             <p className="mt-1.5 text-xs text-slate-600">
-              Connect directly to <strong className="text-slate-900">DaysInn_Guest</strong> (No password needed).
+              Connect to <strong className="text-slate-900">Days Inn</strong> — password{" "}
+              <strong className="text-slate-900">Sunshine</strong>.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[#D2DBE6] bg-[#F5F8FB] p-5 shadow-2xs">
-            <p className="text-[10px] font-bold tracking-wider text-[#D4AF37] uppercase">Front Team</p>
+            <p className="text-[10px] font-bold tracking-wider text-[#D4AF37] uppercase">
+              Front Team
+            </p>
             <h4 className="mt-1 font-serif text-base font-bold text-[#004986]">24/7 Front Desk</h4>
             <a
               href="tel:+13527487766"
@@ -142,7 +151,8 @@ export function ContactSection() {
               Direct Booking Assurance
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/80">
-              Best Rate Guarantee when you book directly on Wyndham.com or by calling our on-site team directly.
+              Best Rate Guarantee when you book directly on Wyndham.com or by calling our on-site
+              team directly.
             </p>
           </div>
         </div>

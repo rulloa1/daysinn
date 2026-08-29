@@ -269,7 +269,7 @@ function CollateralPageContent() {
 
                     <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-600">
                       <span>
-                        Wi-Fi: <strong>DaysInn_Guest</strong>
+                        Wi-Fi: <strong>Days Inn</strong> · <strong>Sunshine</strong>
                       </span>
                       <span>
                         Front Desk: <strong>(352) 748-7766</strong>
@@ -336,7 +336,8 @@ function CollateralPageContent() {
                       <div className="flex items-center gap-2 text-slate-700">
                         <Wifi className="h-4 w-4 text-[#004986]" />
                         <span>
-                          Wi-Fi: <strong className="text-slate-900">DaysInn_Guest</strong> (Free)
+                          Wi-Fi: <strong className="text-slate-900">Days Inn</strong> · password{" "}
+                          <strong className="text-slate-900">Sunshine</strong>
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-700 justify-end">
@@ -402,7 +403,8 @@ function CollateralPageContent() {
                         <p className="text-[10px] font-bold text-slate-400 uppercase">
                           Complimentary Wi-Fi
                         </p>
-                        <p className="font-bold text-slate-900 mt-0.5">DaysInn_Guest</p>
+                        <p className="font-bold text-slate-900 mt-0.5">Days Inn</p>
+                        <p className="text-[10px] text-slate-500">Password: Sunshine</p>
                       </div>
                       <div className="rounded-xl bg-slate-50 p-2.5 text-center">
                         <p className="text-[10px] font-bold text-slate-400 uppercase">Front Desk</p>

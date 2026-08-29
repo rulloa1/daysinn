@@ -157,7 +157,7 @@ const GUEST_CASES: [string, string][] = [
 
 const QUICK_REF = [
   { label: "Front desk", value: "(352) 748-7766" },
-  { label: "Guest Wi-Fi network", value: "DaysInn_Guest · no password" },
+  { label: "Guest Wi-Fi", value: "Days Inn · password Sunshine" },
   { label: "Check-in / check-out", value: "3:00 PM / 11:00 AM" },
   { label: "Late checkout", value: "Until 1:00 PM, front desk approves" },
   { label: "Target turn time", value: "40 minutes per departure room" },
@@ -426,8 +426,9 @@ function HousekeepingManualContent() {
         />
         <p>
           Three facts you will be asked constantly: breakfast is complimentary in the lobby every
-          morning, the Wi-Fi is <strong>DaysInn_Guest</strong> with no password, and check-out is
-          11:00 AM with late checkout to 1:00 PM subject to availability from the front desk.
+          morning, the Wi-Fi network is <strong>Days Inn</strong> with the password{" "}
+          <strong>Sunshine</strong>, and check-out is 11:00 AM with late checkout to 1:00 PM subject
+          to availability from the front desk.
         </p>
         <p>
           You never have to negotiate a rate, a refund, a room change or a complaint. Say{" "}
