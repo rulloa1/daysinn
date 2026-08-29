@@ -27,6 +27,7 @@ import { SignIn } from "@/components/staff/sign-in";
 import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import type { DashboardTab } from "@/components/staff/types";
 
 export const Route = createFileRoute("/staff")({
