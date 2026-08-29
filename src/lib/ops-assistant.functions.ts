@@ -71,15 +71,13 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       return UNAVAILABLE_RESPONSE;
     }
 
-    const messages: AssistantMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...data.messages.filter((message) => message.role !== "system"),
-    ];
+const messages = data.messages.filter((message) => message.role !== "system");
 
-try {
+    try {
       const gateway = createLovableAiGatewayProvider(key);
       const result = await generateText({
         model: gateway("google/gemini-3.7-flash"),
+        system: SYSTEM_PROMPT,
         messages,
         temperature: 0.3,
         abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
