@@ -24,6 +24,7 @@ import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { SignIn } from "@/components/staff/sign-in";
+import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import type { DashboardTab } from "@/components/staff/types";
