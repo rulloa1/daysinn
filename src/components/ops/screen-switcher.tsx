@@ -29,6 +29,19 @@ export function OpsScreenSwitcher({ current }: { current: OpsScreen }) {
   const { roles, loading } = useStaffRole();
   const targets = loading ? [] : TARGETS.filter((t) => canViewScreen(roles, t.id));
 
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function logOff() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOutStaff();
+    } finally {
+      void navigate({ to: "/staff-login", replace: true });
+    }
+  }
+
   return (
     <div className="sticky top-0 z-40 flex flex-wrap items-center gap-2.5 border-b border-[#D8E0EA] bg-white/92 px-4 py-2.5 backdrop-blur-md md:px-6">
       <span className="mr-1.5 text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase">
@@ -54,6 +67,16 @@ export function OpsScreenSwitcher({ current }: { current: OpsScreen }) {
       <span className="ml-auto hidden text-[0.72rem] text-slate-400 lg:block">
         One next action, always visible
       </span>
+      <button
+        type="button"
+        onClick={logOff}
+        disabled={signingOut}
+        title="Log off"
+        className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[#C4D0DE] bg-[#EDF2F8] px-3.5 py-2 text-xs font-bold text-[#004986] transition hover:border-[#B91C1C] hover:bg-[#FEE2E2] hover:text-[#B91C1C] lg:ml-0"
+      >
+        <LogOut className="h-3.5 w-3.5" strokeWidth={2.5} />
+        {signingOut ? "Logging off…" : "Log off"}
+      </button>
     </div>
   );
 }
