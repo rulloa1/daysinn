@@ -5,9 +5,7 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://jazrkvkzfpfuwzatsefb.supabase.co/auth/v1",
-    "accepted_audiences": [
-      "authenticated"
-    ]
+    "accepted_audiences": ["authenticated"]
   },
   "mcp": {
     "server": {
@@ -49,12 +47,7 @@
               "default": "all",
               "description": "Filter by workflow status.",
               "type": "string",
-              "enum": [
-                "new",
-                "in_progress",
-                "resolved",
-                "all"
-              ]
+              "enum": ["new", "in_progress", "resolved", "all"]
             },
             "room": {
               "description": "Only requests for this room number.",
@@ -125,11 +118,7 @@
             },
             "status": {
               "type": "string",
-              "enum": [
-                "new",
-                "in_progress",
-                "resolved"
-              ]
+              "enum": ["new", "in_progress", "resolved"]
             },
             "note": {
               "description": "Optional note recorded with the change.",
@@ -137,10 +126,7 @@
               "maxLength": 500
             }
           },
-          "required": [
-            "request_id",
-            "status"
-          ]
+          "required": ["request_id", "status"]
         },
         "outputSchema": null
       },
@@ -182,10 +168,7 @@
               "type": "boolean"
             }
           },
-          "required": [
-            "room_number",
-            "status"
-          ]
+          "required": ["room_number", "status"]
         },
         "outputSchema": null
       }

@@ -37,9 +37,8 @@ const UNDEFINED_COLUMN = "42703";
 let checked: Promise<void> | null = null;
 
 async function runCheck(): Promise<void> {
-  const { supabaseAdmin, isSupabaseAdminConfigured } = await import(
-    "@/integrations/supabase/client.server"
-  );
+  const { supabaseAdmin, isSupabaseAdminConfigured } =
+    await import("@/integrations/supabase/client.server");
 
   if (!isSupabaseAdminConfigured) {
     console.warn("Schema guard: admin credentials unavailable, skipping schema verification.");
