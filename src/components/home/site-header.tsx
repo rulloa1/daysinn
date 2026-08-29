@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { BrandLockup } from "@/components/brand-lockup";
+import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import { BOOKING_URL } from "@/components/franchise-footer";
 
 /** In-page anchors, matching the section ids on the homepage. */
@@ -49,6 +49,7 @@ export function SiteHeader() {
             Book direct ↗
           </a>
 
+          {/* Mobile Navigation Drawer */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <button
@@ -61,11 +62,11 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[82vw] max-w-xs border-l border-border/80 bg-background/95 backdrop-blur-2xl"
+              className="w-[82vw] max-w-xs border-l border-slate-200 bg-[#00243F] text-white p-6"
             >
               <SheetHeader>
-                <SheetTitle className="text-left font-serif text-lg text-foreground">
-                  Guest Navigation
+                <SheetTitle className="text-left font-serif text-lg text-white">
+                  Days Inn Navigation
                 </SheetTitle>
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-3">
@@ -78,29 +79,15 @@ export function SiteHeader() {
                   to="/checkin"
                   search={{}}
                   onClick={close}
-                  className="rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-primary-foreground shadow-sm"
+                  className="rounded-xl bg-[#D4AF37] px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#004986]"
                 >
-                  Sign in to your room
+                  Sign in to room
                 </Link>
-                <a
-                  href={BOOKING_URL}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  to="/staff"
                   onClick={close}
-                  className="rounded-xl bg-accent px-4 py-3 text-center text-sm font-bold text-accent-foreground shadow-sm"
+                  className="rounded-xl border border-white/15 bg-transparent px-4 py-3 text-center text-xs font-semibold text-white/60"
                 >
-                  Book direct rates
-                </a>
-                <Link to="/room" onClick={close} className={SHEET_LINK}>
-                  In-room guest hub
-                </Link>
-                <Link to="/guide" onClick={close} className={SHEET_LINK}>
-                  Local area guide
-                </Link>
-                <Link to="/track" onClick={close} className={SHEET_LINK}>
-                  Track a request
-                </Link>
-                <Link to="/staff" onClick={close} className={SHEET_LINK}>
                   Staff portal
                 </Link>
               </nav>

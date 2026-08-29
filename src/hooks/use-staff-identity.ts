@@ -29,6 +29,8 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
   const STORAGE_KEY = options.storageKey ?? "daysinn.staff.identity";
   const [members, setMembers] = useState<StaffMember[]>([]);
   const [staff, setStaff] = useState<StaffIdentity>(null);
+  /** Non-null when the roster could not be read (e.g. the account lacks a role). */
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setStaff(isSupabaseConfigured ? read(STORAGE_KEY) : null);
@@ -44,7 +46,7 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
       if (department === "housekeeping") {
         // Housekeeping roster: always show housekeeping staff, and also include
         // front-desk staff who are currently assigned to rooms.
-        const [{ data: hk }, { data: assignedRooms }] = await Promise.all([
+        const [{ data: hk, error: hkError }, { data: assignedRooms }] = await Promise.all([
           supabase
             .from("staff_members")
             .select("id, name, active, department")
@@ -53,6 +55,8 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
             .order("name"),
           supabase.from("rooms").select("assigned_staff_id").not("assigned_staff_id", "is", null),
         ]);
+
+        if (hkError) throw hkError;
 
         const assignedIds = [
           ...new Set(
@@ -78,6 +82,7 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
         for (const m of (hk ?? []) as StaffMember[]) byId.set(m.id, m);
         for (const m of frontDesk) byId.set(m.id, m);
         setMembers([...byId.values()]);
+        setError(null);
         return;
       }
 
@@ -86,12 +91,18 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
         .select("id, name, active, department")
         .eq("active", true);
       if (department) query = query.eq("department", department);
-      const { data } = await query.order("name");
+      const { data, error } = await query.order("name");
+      if (error) throw error;
       setMembers((data ?? []) as StaffMember[]);
     } catch (err) {
       console.error("[useStaffIdentity] Failed to refresh staff roster:", err);
       setMembers([]);
+      setError(
+        err instanceof Error ? err.message : "Could not load the roster. Check your connection.",
+      );
+      return;
     }
+    setError(null);
   }, [department]);
 
   useEffect(() => {
@@ -121,17 +132,20 @@ export function useStaffIdentity(options: IdentityOptions = {}) {
           .insert({ name: trimmed, department: department ?? "front_desk" })
           .select("id, name, active, department")
           .single();
-        if (error || !data) return null;
+        if (error || !data) {
+          console.error("[useStaffIdentity] Failed to add staff member:", error);
+          throw new Error(error?.message ?? "Could not add that name to the roster.");
+        }
         await refresh();
         select({ id: data.id, name: data.name });
         return data as StaffMember;
       } catch (err) {
         console.error("[useStaffIdentity] Failed to add staff member:", err);
-        return null;
+        throw err;
       }
     },
     [refresh, select, department],
   );
 
-  return { members, staff, select, addMember, refresh };
+  return { members, staff, error, select, addMember, refresh };
 }

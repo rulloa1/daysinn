@@ -39,7 +39,11 @@ export function KeyAndAmenities({ room, pin }: { room: string; pin: string | nul
         <div className="mt-3 space-y-2 text-xs">
           <p className="flex justify-between border-b border-border/60 pb-1.5">
             <span className="text-muted-foreground">Network</span>
-            <strong className="text-foreground">DaysInn_Guest</strong>
+            <strong className="text-foreground">Days Inn</strong>
+          </p>
+          <p className="flex justify-between border-b border-border/60 pb-1.5">
+            <span className="text-muted-foreground">Wi-Fi password</span>
+            <strong className="text-foreground">Sunshine</strong>
           </p>
           <p className="flex justify-between border-b border-border/60 pb-1.5">
             <span className="text-muted-foreground">Breakfast Hours</span>

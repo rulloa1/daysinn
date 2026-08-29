@@ -1,0 +1,76 @@
+# Firebase App Hosting — Cloud Run sizing + environment.
+# Firebase is the runtime host only; all data lives in Supabase.
+# Secrets are read from Cloud Secret Manager and must exist BEFORE the first
+# rollout (`firebase apphosting:secrets set <NAME> --project daysinnhub`).
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 2
+
+env:
+  # --- Browser-safe Supabase values. VITE_* is inlined at build time, so these
+  # must be available to BUILD as well as RUNTIME.
+  - variable: VITE_SUPABASE_URL
+    value: https://jazrkvkzfpfuwzatsefb.supabase.co
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_SUPABASE_PROJECT_ID
+    value: jazrkvkzfpfuwzatsefb
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_SUPABASE_PUBLISHABLE_KEY
+    secret: VITE_SUPABASE_PUBLISHABLE_KEY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # --- Server-side Supabase (SSR + server functions).
+  - variable: SUPABASE_URL
+    value: https://jazrkvkzfpfuwzatsefb.supabase.co
+    availability:
+      - RUNTIME
+  - variable: SUPABASE_PROJECT_ID
+    value: jazrkvkzfpfuwzatsefb
+    availability:
+      - RUNTIME
+  - variable: SUPABASE_PUBLISHABLE_KEY
+    secret: VITE_SUPABASE_PUBLISHABLE_KEY
+    availability:
+      - RUNTIME
+  # Bypasses row-level security. Server only — never expose to the browser.
+  - variable: SUPABASE_SERVICE_ROLE_KEY
+    secret: SUPABASE_SERVICE_ROLE_KEY
+    availability:
+      - RUNTIME
+
+  # --- Web push (housekeeping background alerts).
+  - variable: VAPID_PUBLIC_KEY
+    secret: VAPID_PUBLIC_KEY
+    availability:
+      - RUNTIME
+  - variable: VAPID_PRIVATE_KEY
+    secret: VAPID_PRIVATE_KEY
+    availability:
+      - RUNTIME
+  - variable: VAPID_SUBJECT
+    value: mailto:roryrchandler@gmail.com
+    availability:
+      - RUNTIME
+
+  # --- Shared secret for POST /api/public/push-dispatch.
+  - variable: PUSH_DISPATCH_SECRET
+    secret: PUSH_DISPATCH_SECRET
+    availability:
+      - RUNTIME
+
+  # --- Origin used to build staff invite links. Update once the real App
+  # Hosting URL (or custom domain) is known, or invited staff land on Lovable.
+  - variable: PUBLIC_SITE_URL
+    value: https://daysinnhub.web.app
+    availability:
+      - RUNTIME

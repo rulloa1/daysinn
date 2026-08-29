@@ -40,3 +40,6 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase App Hosting build manifest
+.apphosting/

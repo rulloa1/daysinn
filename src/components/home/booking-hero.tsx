@@ -58,7 +58,7 @@ function AvailabilityCard({
           href="tel:+13527487766"
           className="shrink-0 rounded-[10px] border border-[var(--gh-field-border)] bg-white px-4 py-2.5 text-xs font-bold text-[var(--gh-blue)]"
         >
-          Call us
+          Call desk
         </a>
       )}
     </div>
@@ -100,6 +100,7 @@ export function BookingHero({ availability }: { availability: Availability }) {
           parking — 10 minutes from The Villages.
         </p>
 
+        {/* Availability Search Bar */}
         <form
           onSubmit={availability.search}
           className="mt-9 grid max-w-[56rem] grid-cols-1 gap-4 rounded-2xl bg-[var(--gh-surface)] p-5 shadow-[0_20px_25px_rgba(0,26,46,0.25)] sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end lg:gap-0"

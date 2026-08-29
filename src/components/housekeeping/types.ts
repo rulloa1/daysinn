@@ -6,6 +6,7 @@ export type RoomRow = {
   id: string;
   number: string;
   floor: number;
+  bed_type?: string | null;
   status: DbRoomStatus;
   guest_name: string | null;
   check_out: string | null;

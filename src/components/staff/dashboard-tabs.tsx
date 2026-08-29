@@ -56,26 +56,26 @@ export function DashboardTabs({
 
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
-      <div className="flex min-w-max items-center gap-2 border-b border-cream/15 pb-4">
+      <div className="flex min-w-max items-center gap-2 border-b border-slate-200 pb-3">
         {visible.map((tab) => {
           const Icon = tab.icon;
           const on = active === tab.id;
           return (
             <div key={tab.id} className="flex items-center gap-2">
               {tab.dividerBefore ? (
-                <div className="mx-1 hidden h-6 w-px bg-cream/15 sm:block" />
+                <div className="mx-1 hidden h-5 w-px bg-slate-300 sm:block" />
               ) : null}
               <Button
                 type="button"
                 variant={on ? "default" : "outline"}
                 onClick={() => onSelect(tab.id)}
-                className={`min-h-11 sm:min-h-9 ${
+                className={`min-h-10 rounded-xl px-3.5 text-xs font-bold transition sm:min-h-9 ${
                   on
-                    ? "bg-amber font-bold text-ink hover:bg-amber/90"
-                    : "border-cream/25 bg-transparent text-cream/70 hover:bg-cream/10 hover:text-cream"
+                    ? "bg-[#004986] text-white shadow-sm hover:bg-[#004986]/90"
+                    : "border-slate-300 bg-white text-slate-600 shadow-xs hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
-                <Icon className="mr-1.5 h-4 w-4" />
+                <Icon className="mr-1.5 h-3.5 w-3.5" />
                 {tab.label}
               </Button>
             </div>
