@@ -37,7 +37,14 @@ const UNDEFINED_COLUMN = "42703";
 let checked: Promise<void> | null = null;
 
 async function runCheck(): Promise<void> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { supabaseAdmin, isSupabaseAdminConfigured } = await import(
+    "@/integrations/supabase/client.server"
+  );
+
+  if (!isSupabaseAdminConfigured) {
+    console.warn("Schema guard: admin credentials unavailable, skipping schema verification.");
+    return;
+  }
 
   for (const { table, column } of FORBIDDEN_COLUMNS) {
     const { error } = await supabaseAdmin.from(table).select(column).limit(1);
