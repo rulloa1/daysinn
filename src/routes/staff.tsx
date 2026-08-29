@@ -85,7 +85,8 @@ function Dashboard({ session }: { session: Session }) {
   const role = useStaffRole();
   const { isManager, canTriage, loading: roleLoading, refresh } = role;
   const canEditCrm = isManager || role.roles.includes("staff");
-  const { staff } = useStaffIdentity();
+  const { staff, members, select, error: rosterError } = useStaffIdentity();
+  const [pickerSkipped, setPickerSkipped] = useState(false);
 
   const [activeTab, setActiveTab] = useState<DashboardTab>("queue");
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
