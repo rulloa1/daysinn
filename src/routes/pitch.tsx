@@ -122,7 +122,7 @@ const ROLLOUT: [string, string, string][] = [
   [
     "Week 1",
     "Load the property",
-    "All 58 rooms, buildings, floors and wings entered. Staff accounts created.",
+    "All 119 rooms, buildings, floors and wings entered. Staff accounts created.",
   ],
   [
     "Week 2",
@@ -318,7 +318,7 @@ const SLIDES: Slide[] = [
           </p>
           <ul className="flex flex-col gap-[1.4cqw]">
             <Bullet>Arrivals at risk are named, not buried in a list.</Bullet>
-            <Bullet>All 58 rooms sorted by urgency, not room number.</Bullet>
+            <Bullet>All 119 rooms sorted by urgency, not room number.</Bullet>
             <Bullet>Occupancy, rooms ready to sell and turnover time, live.</Bullet>
           </ul>
         </div>

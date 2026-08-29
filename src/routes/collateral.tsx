@@ -2,10 +2,13 @@ import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
+import { toast } from "sonner";
 import { Printer, Wifi, Sparkles, Phone, ChevronLeft, Check, Layers, Grid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
+import { supabase } from "@/integrations/supabase/client";
+import { OMITTED_ROOM_NUMBERS } from "@/lib/property-layout";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 
 export const Route = createFileRoute("/collateral")({
@@ -25,36 +28,49 @@ export const Route = createFileRoute("/collateral")({
   component: CollateralPage,
 });
 
-// Standard 50-room layout for Wildwood I-75 property
-// prettier-ignore
-const ALL_ROOMS = [
-  // Floor 1 (Building 1 & 2)
-  "101", "102", "103", "104", "105", "106", "107", "108", "109", "110",
-  "111", "112", "113", "114", "115", "116", "117", "118", "119", "120",
-  "121", "122", "123", "124", "125",
-  // Floor 2 (Building 1 & 2)
-  "201", "202", "203", "204", "205", "206", "207", "208", "209", "210",
-  "211", "212", "213", "214", "215", "216", "217", "218", "219", "220",
-  "221", "222", "223", "224", "225",
-];
-
 function CollateralPageContent() {
   const { staff } = useStaffIdentity();
   const [selectedFloor, setSelectedFloor] = useState<"all" | "1" | "2" | "single">("all");
   const [singleRoom, setSingleRoom] = useState("214");
   const [format, setFormat] = useState<"tent" | "keycard" | "placard">("tent");
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  const [allRooms, setAllRooms] = useState<string[]>([]);
+  const [roomsLoaded, setRoomsLoaded] = useState(false);
+
+  // The room list is the property's own inventory, not a hardcoded range — a
+  // printed card for a room that does not exist is wasted, and a room with no
+  // card is a guest who cannot reach the request flow.
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const { data, error } = await supabase.from("rooms").select("number").order("number");
+      if (!active) return;
+      if (error) toast.error("Couldn't load the room list.");
+      setAllRooms(
+        (data ?? [])
+          .map((r) => String(r.number))
+          .filter((number) => !OMITTED_ROOM_NUMBERS.has(number)),
+      );
+      setRoomsLoaded(true);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const floorOne = useMemo(() => allRooms.filter((r) => Number(r) < 200), [allRooms]);
+  const floorTwo = useMemo(() => allRooms.filter((r) => Number(r) >= 200), [allRooms]);
 
   const displayedRooms = useMemo(
     () =>
       selectedFloor === "single"
         ? [singleRoom]
         : selectedFloor === "1"
-          ? ALL_ROOMS.filter((r) => r.startsWith("1"))
+          ? floorOne
           : selectedFloor === "2"
-            ? ALL_ROOMS.filter((r) => r.startsWith("2"))
-            : ALL_ROOMS,
-    [selectedFloor, singleRoom],
+            ? floorTwo
+            : allRooms,
+    [selectedFloor, singleRoom, allRooms, floorOne, floorTwo],
   );
 
   // Generate QR codes for displayed rooms
@@ -172,9 +188,9 @@ function CollateralPageContent() {
               <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {(
                   [
-                    { id: "all", label: `All Rooms (50)` },
-                    { id: "1", label: "Floor 1 (25)" },
-                    { id: "2", label: "Floor 2 (25)" },
+                    { id: "all", label: `All rooms (${allRooms.length})` },
+                    { id: "1", label: `Ground floor (${floorOne.length})` },
+                    { id: "2", label: `Upper floor (${floorTwo.length})` },
                     { id: "single", label: "Single Room" },
                   ] as const
                 ).map((item) => (
@@ -225,6 +241,9 @@ function CollateralPageContent() {
                   : "grid-cols-1 md:grid-cols-2 print:grid-cols-1 print:gap-12"
             }`}
           >
+            {!roomsLoaded ? (
+              <p className="text-sm text-slate-500 print:hidden">Loading the room list…</p>
+            ) : null}
             {displayedRooms.map((roomNum) => {
               const qrDataUrl = qrMap[roomNum];
 
