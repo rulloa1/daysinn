@@ -1,6 +1,6 @@
 import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Presentation, Printer } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Presentation, Printer } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { BrandLockup } from "@/components/brand-lockup";
