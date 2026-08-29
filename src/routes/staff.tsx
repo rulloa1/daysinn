@@ -421,6 +421,8 @@ function Dashboard({ session }: { session: Session }) {
           ) : null}
         </div>
       </main>
+
+      <DemoTour onGoTo={setActiveTab} canViewTab={canViewTab} />
     </div>
   );
 }
