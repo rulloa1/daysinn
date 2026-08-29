@@ -83,7 +83,7 @@ function RolesPage() {
                 to manage team roles.
               </p>
             </div>
-          ) : !role.isManager ? (
+          ) : !canViewScreen(role.roles, "roles") ? (
             <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-xs">
               <p className="text-xs font-bold text-amber-800 uppercase">Manager Access Required</p>
               <p className="mt-1 text-xs text-amber-900">
