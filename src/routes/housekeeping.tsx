@@ -28,6 +28,7 @@ import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel"
 import { IssueDialog } from "@/components/housekeeping/issue-dialog";
 import { RoomDetailDialog } from "@/components/housekeeping/room-detail-dialog";
 import { RoomSyncBanner } from "@/components/room-sync-banner";
+import { ShiftStart } from "@/components/housekeeping/shift-start";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { toast } from "sonner";
@@ -142,6 +143,23 @@ function HousekeepingWorkspace({
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
 
+  // The phone flow opens on the shift hand-off screen once per person per day,
+  // so a housekeeper confirms their sheet before the route view takes over.
+  const shiftKey = `daysinn.hk.shiftStarted.${staff.id}.${new Date().toDateString()}`;
+  const [shiftStarted, setShiftStarted] = useState(true);
+  useEffect(() => {
+    setShiftStarted(window.localStorage.getItem(shiftKey) === "1");
+  }, [shiftKey]);
+
+  const assignedRooms = useMemo(
+    () => board.rooms.filter((r) => r.assigned_staff_id === staff.id),
+    [board.rooms, staff.id],
+  );
+  const claimableRooms = useMemo(
+    () => board.rooms.filter((r) => !r.assigned_staff_id && r.status === "vacant_dirty"),
+    [board.rooms],
+  );
+
   // Compute priority room (the "Do this next" room on mobile)
   const nextRoom = useMemo(() => {
     const dirtyRooms = board.rooms.filter((r) => r.status === "vacant_dirty");
@@ -181,6 +199,19 @@ function HousekeepingWorkspace({
           {/* MOBILE PHONE ROUTE VIEW (< 1024px) */}
           {/* ============================================================ */}
           <div className="block lg:hidden">
+            {!shiftStarted ? (
+              <ShiftStart
+                staffName={staff.name}
+                assigned={assignedRooms}
+                claimable={claimableRooms}
+                onToggleClaim={(room, toMe) => void board.setAssignment(room, toMe)}
+                onStart={() => {
+                  window.localStorage.setItem(shiftKey, "1");
+                  setShiftStarted(true);
+                }}
+              />
+            ) : (
+            <>
             {/* Top Mobile Bar */}
             <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
               <div className="flex items-center gap-3">
