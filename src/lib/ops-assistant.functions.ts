@@ -74,12 +74,12 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
 const messages = data.messages.filter((message) => message.role !== "system");
 
     try {
-      const gateway = createLovableAiGatewayProvider(key);
+const gateway = createLovableAiGatewayProvider(key);
       const result = await generateText({
         model: gateway("google/gemini-3.7-flash"),
+        system: SYSTEM_PROMPT,
         messages,
         temperature: 0.3,
-        providerOptions: { lovable: { instructions: SYSTEM_PROMPT } },
         abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
 
