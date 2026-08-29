@@ -458,3 +458,53 @@
 #lovable-badge-close {
   display: none !important;
 }
+
+/*
+ * Live property map (/live-room-status) — daylight ops surface.
+ *
+ * A cool slate canvas with Congress Blue type and solid status pills, scoped
+ * to `.live-map` so the rest of the staff routes keep the app theme.
+ */
+.live-map {
+  --lm-canvas: #a8b7ca;
+  --lm-panel: #d8e1ec;
+  --lm-panel-strong: #c9d4e1;
+  --lm-plate: #e8eef5;
+  --lm-border: #9faec2;
+  --lm-border-strong: #8b9cb3;
+  --lm-rule: #bfcad8;
+
+  --lm-blue: #004986;
+  --lm-blue-deep: #00243f;
+  --lm-gold: #d4af37;
+  --lm-gold-ink: #8a6d1f;
+  --lm-ink: #22303f;
+  --lm-body: #4c5c74;
+  --lm-body-strong: #33445c;
+  --lm-muted: #7c8ca3;
+
+  background-color: var(--lm-canvas);
+  color: var(--lm-ink);
+}
+
+@keyframes lm-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+@keyframes lm-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+  40% {
+    box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.7);
+  }
+}
