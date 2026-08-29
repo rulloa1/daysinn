@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-lockup";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy.functions";
 
 /** Email/password gate for the whole operations portal. */
 export function SignIn() {
@@ -35,6 +36,29 @@ export function SignIn() {
       return;
     }
     if (mode === "signup") toast.success("Check your email to confirm the account.");
+  }
+
+  async function sendReset() {
+    const target = email.trim();
+    if (!isSupabaseConfigured) {
+      toast.error("The live data service is not configured. Please contact an administrator.");
+      return;
+    }
+    if (!target) {
+      toast.error("Enter your email address first, then choose Forgot password.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(target, {
+      redirectTo: `${window.location.origin}/staff`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    // Deliberately not confirming whether the address exists.
+    toast.success("If that address has an account, a reset link is on its way.");
   }
 
   return (
@@ -72,9 +96,15 @@ export function SignIn() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               disabled={!isSupabaseConfigured}
-              minLength={6}
+              minLength={mode === "signup" ? MIN_PASSWORD_LENGTH : 6}
               required
             />
+            {mode === "signup" ? (
+              <p className="text-xs text-cream/50">
+                At least {MIN_PASSWORD_LENGTH} characters. Passwords found in known breaches are
+                rejected.
+              </p>
+            ) : null}
           </div>
           <Button
             type="submit"
@@ -84,6 +114,16 @@ export function SignIn() {
             {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
+        {isSupabaseConfigured && mode === "signin" ? (
+          <button
+            type="button"
+            onClick={sendReset}
+            disabled={busy}
+            className="mt-4 w-full text-center text-sm text-cream/60 underline-offset-4 hover:text-amber hover:underline"
+          >
+            Forgot password?
+          </button>
+        ) : null}
         {isSupabaseConfigured ? (
           <button
             type="button"
