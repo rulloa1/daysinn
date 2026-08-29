@@ -90,34 +90,16 @@ function FrontDeskPage() {
     );
   }
 
-  // Housekeeping-only role is restricted from front-desk guest bookings & phone numbers
-  if (isHousekeeper && !isFrontDesk) {
+  // Guest bookings and phone numbers are front-desk and management only, so
+  // housekeepers and role-less viewers stop here.
+  if (!canViewScreen(roles, "front-desk")) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#00243F] px-6 text-white">
-        <div className="w-full max-w-md rounded-2xl border border-amber-500/30 bg-white/5 p-8 text-center backdrop-blur-md">
-          <BrandLockup tone="cream" />
-          <p className="mt-6 text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
-            Restricted Access
-          </p>
-          <h1 className="mt-2 font-serif text-2xl font-bold">Housekeeping Portal</h1>
-          <p className="mt-3 text-sm text-white/70">
-            The front-desk board and bookings log are reserved for front desk and management. You
-            have access to the mobile housekeeping app.
-          </p>
-          <Button
-            asChild
-            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
-          >
-            <Link to="/housekeeping">Open Housekeeping Dashboard</Link>
-          </Button>
-          <Link
-            to="/"
-            className="mt-6 inline-block text-xs font-semibold tracking-wider text-white/60 uppercase transition hover:text-[#D4AF37]"
-          >
-            ← Guest view
-          </Link>
-        </div>
-      </div>
+      <ScreenDenied
+        screen="front-desk"
+        suggestion={
+          isHousekeeper ? { to: "/housekeeping", label: "Open Housekeeping Dashboard" } : null
+        }
+      />
     );
   }
 
