@@ -13,7 +13,14 @@ export type AssistantMessage = {
 export type ToolParamValue = string | number | boolean | null;
 
 export type ToolCall = {
-  tool: "list_rooms" | "list_requests" | "update_room_status" | "update_request_status";
+  tool:
+    | "list_rooms"
+    | "list_requests"
+    | "list_assignments"
+    | "list_schedules"
+    | "property_summary"
+    | "update_room_status"
+    | "update_request_status";
   parameters: Record<string, ToolParamValue>;
 };
 
