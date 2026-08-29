@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,11 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/front-desk")({
   ssr: false,
+  // The Ops Portal at /staff is the single staff portal; the front-desk board
+  // lives there as the Property map screen.
+  beforeLoad: () => {
+    throw redirect({ to: "/staff", search: { tab: "map" } });
+  },
   head: () => ({
     meta: [
       { title: "Today at Wildwood I-75 — Front Desk Board" },
