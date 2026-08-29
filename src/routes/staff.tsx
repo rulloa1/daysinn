@@ -19,7 +19,11 @@ import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloorPlan, type FloorView } from "@/components/floor-plan";
-import { DashboardHeader } from "@/components/staff/dashboard-header";
+import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
+import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
+import { NextActionCard, NextActionButton } from "@/components/ops/next-action";
+import { OpsStatStrip } from "@/components/ops/stat-strip";
+
 import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
