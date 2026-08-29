@@ -39,7 +39,11 @@ export function HousekeeperLogin({
         setTimeout(() => setShake(false), 500);
         setPin("");
         toast.error(
-          res.reason === "bad_pin" ? "Incorrect PIN. Try again." : "Staff member not found.",
+          res.reason === "bad_pin"
+            ? "Incorrect PIN. Try again."
+            : res.reason === "no_access"
+              ? "This device isn't signed in to a staff account with housekeeping access. Ask a manager."
+              : "Staff member not found.",
         );
         return;
       }
