@@ -54,9 +54,8 @@ function RolesPage() {
 
       <main className="flex-1 overflow-y-auto">
         <OpsScreenSwitcher current="roles" />
-        <div className="px-4 py-6 md:px-8 lg:px-10">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 lg:px-10">
 
-        <div className="mx-auto max-w-5xl">
           <div>
             <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
               Management &amp; Access Control
