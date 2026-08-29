@@ -7,7 +7,7 @@ export type OpsScreen = "front-desk" | "housekeeping" | "queue" | "team" | "role
 type Target = { id: OpsScreen; label: string; to: string; search?: Record<string, string> };
 
 const TARGETS: Target[] = [
-  { id: "front-desk", label: "Front desk", to: "/front-desk" },
+  { id: "front-desk", label: "Front desk", to: "/staff", search: { tab: "map" } },
   { id: "housekeeping", label: "Housekeeping", to: "/housekeeping" },
   { id: "queue", label: "Request queue", to: "/staff" },
   { id: "team", label: "Team & invites", to: "/staff", search: { tab: "team" } },
