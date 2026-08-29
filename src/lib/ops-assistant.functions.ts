@@ -76,30 +76,16 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       ...data.messages.filter((message) => message.role !== "system"),
     ];
 
-    try {
-      const res = await fetch(LOVABLE_AI_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${key}`,
-          "X-User-Id": context.userId ?? "anonymous",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        }),
-        signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
+try {
+      const gateway = createLovableAiGatewayProvider(key);
+      const result = await generateText({
+        model: gateway("google/gemini-3.7-flash"),
+        messages,
+        temperature: 0.3,
+        abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
 
-      if (!res.ok) {
-        logAssistantFailure(`AI gateway responded with HTTP ${res.status}`);
-        return UNAVAILABLE_RESPONSE;
-      }
-
-      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = json.choices?.[0]?.message?.content?.trim();
+      const content = result.text.trim();
       if (!content) {
         logAssistantFailure("AI gateway response did not include message content");
         return UNAVAILABLE_RESPONSE;
