@@ -52,4 +52,7 @@ export type BookingRow = {
   check_in: string;
   check_out: string;
   notes: string | null;
+  guest_email: string | null;
+  guests: number | null;
+  room_type: string | null;
 };

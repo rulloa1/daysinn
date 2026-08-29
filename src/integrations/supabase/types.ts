@@ -55,36 +55,45 @@ export type Database = {
           check_in: string
           check_out: string
           created_at: string
+          guest_email: string | null
           guest_name: string
+          guests: number
           id: string
           notes: string | null
           original_check_out: string | null
           phone: string | null
           room: string
+          room_type: string | null
           updated_at: string
         }
         Insert: {
           check_in: string
           check_out: string
           created_at?: string
+          guest_email?: string | null
           guest_name: string
+          guests?: number
           id?: string
           notes?: string | null
           original_check_out?: string | null
           phone?: string | null
           room: string
+          room_type?: string | null
           updated_at?: string
         }
         Update: {
           check_in?: string
           check_out?: string
           created_at?: string
+          guest_email?: string | null
           guest_name?: string
+          guests?: number
           id?: string
           notes?: string | null
           original_check_out?: string | null
           phone?: string | null
           room?: string
+          room_type?: string | null
           updated_at?: string
         }
         Relationships: []
