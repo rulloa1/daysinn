@@ -18,7 +18,8 @@ import { claimFirstManager } from "@/lib/roles.functions";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
-import { FloorPlan, type FloorView } from "@/components/floor-plan";
+import { type FloorView } from "@/components/floor-plan";
+import { LivePropertyMap, type LivePin } from "@/components/live-property-map";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
 import { NextActionCard, NextActionButton } from "@/components/ops/next-action";
@@ -34,6 +35,8 @@ import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error
 import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
 import { canActOnScreen, canViewScreen, type OpsScreenId } from "@/lib/screen-access";
 import type { DashboardTab } from "@/components/staff/types";
+
+const EMPTY_DIMMED = new Set<string>();
 
 const TABS = [
   "queue",
@@ -153,6 +156,18 @@ function Dashboard({ session }: { session: Session }) {
 
   const queue = useRequestQueue(canTriage, staff ?? null);
   const claimManager = useServerFn(claimFirstManager);
+
+  const mapPins = useMemo<LivePin[]>(
+    () =>
+      queue.rooms
+        .filter((r) => {
+          if (mapFloor === "both") return true;
+          const n = Number(r.number);
+          return mapFloor === 1 ? n < 200 : n >= 200;
+        })
+        .map((r) => ({ id: r.id, number: r.number, status: r.status as LivePin["status"] })),
+    [queue.rooms, mapFloor],
+  );
 
   const selectedRoom = useMemo(
     () => (selectedRoomId ? (queue.rooms.find((r) => r.id === selectedRoomId) ?? null) : null),
@@ -356,7 +371,7 @@ function Dashboard({ session }: { session: Session }) {
                 shownLabel={`${mapPins.length} rooms · ${
                   mapFloor === 1 ? "ground floor" : mapFloor === 2 ? "upper floor" : "all floors"
                 }`}
-                onSelect={(number) =>
+                onSelect={(number: string) =>
                   setSelectedRoomId(queue.rooms.find((r) => r.number === number)?.id ?? null)
                 }
               />
