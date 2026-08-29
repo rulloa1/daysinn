@@ -508,3 +508,62 @@
     box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.7);
   }
 }
+
+/*
+ * Ops Portal v3 (/staff, /front-desk, /housekeeping, /roles).
+ *
+ * Steel canvas with Congress Blue type, cream panels and gold kickers —
+ * scoped to `.ops-portal` so guest routes keep their own surface.
+ */
+.ops-portal {
+  --op-canvas: #a8b7ca;
+  --op-surface: #f5f8fb;
+  --op-panel: #d8e1ec;
+  --op-plate: #e8eef5;
+  --op-border: #d2dbe6;
+  --op-border-strong: #8b9cb3;
+
+  --op-blue: #004986;
+  --op-blue-deep: #00243f;
+  --op-gold: #d4af37;
+  --op-ink: #1e293b;
+  --op-body: #475569;
+  --op-muted: #94a3b8;
+
+  background-color: var(--op-canvas);
+  color: var(--op-ink);
+}
+
+@utility op-card {
+  border: 1px solid var(--op-border);
+  border-radius: 16px;
+  background-color: var(--op-surface);
+  box-shadow: 0 10px 24px rgba(0, 36, 63, 0.08);
+}
+
+@utility op-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--op-muted);
+}
+
+@utility op-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--op-blue);
+}
+
+@utility op-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  border-bottom: 1px solid var(--op-border);
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
