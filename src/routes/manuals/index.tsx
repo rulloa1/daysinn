@@ -71,6 +71,15 @@ const MANUALS: Doc[] = [
 
 const RELATED: Doc[] = [
   {
+    to: "/owner-packet",
+    icon: FileText,
+    kicker: "Ownership",
+    title: "Guest Hub owner packet",
+    blurb:
+      "The decision packet: the case, the four-week implementation, price, handover, and the questions the owner will ask.",
+    meta: "Three parts · print-ready with signature block",
+  },
+  {
     to: "/pitch",
     icon: Presentation,
     kicker: "Ownership",
