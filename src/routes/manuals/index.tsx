@@ -1,6 +1,6 @@
 import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Presentation, Printer } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Presentation, Printer } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { BrandLockup } from "@/components/brand-lockup";
@@ -23,7 +23,12 @@ export const Route = createFileRoute("/manuals/")({
 });
 
 type DocPath =
-  "/manuals/front-desk" | "/manuals/housekeeping" | "/manuals/manager" | "/pitch" | "/collateral";
+  | "/manuals/front-desk"
+  | "/manuals/housekeeping"
+  | "/manuals/manager"
+  | "/pitch"
+  | "/collateral"
+  | "/owner-packet";
 
 type Doc = {
   to: DocPath;
@@ -65,6 +70,15 @@ const MANUALS: Doc[] = [
 ];
 
 const RELATED: Doc[] = [
+  {
+    to: "/owner-packet",
+    icon: FileText,
+    kicker: "Ownership",
+    title: "Guest Hub owner packet",
+    blurb:
+      "The decision packet: the case, the four-week implementation, price, handover, and the questions the owner will ask.",
+    meta: "Three parts · print-ready with signature block",
+  },
   {
     to: "/pitch",
     icon: Presentation,

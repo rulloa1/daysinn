@@ -17,6 +17,7 @@ import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HousekeepingRouteImport } from './routes/housekeeping'
 import { Route as LiveRoomStatusRouteImport } from './routes/live-room-status'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OwnerPacketRouteImport } from './routes/owner-packet'
 import { Route as PitchRouteImport } from './routes/pitch'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as RoomRouteImport } from './routes/room'
@@ -72,6 +73,11 @@ const LiveRoomStatusRoute = LiveRoomStatusRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerPacketRoute = OwnerPacketRouteImport.update({
+  id: '/owner-packet',
+  path: '/owner-packet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PitchRoute = PitchRouteImport.update({
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/owner-packet': typeof OwnerPacketRoute
   '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/owner-packet': typeof OwnerPacketRoute
   '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/housekeeping': typeof HousekeepingRoute
   '/live-room-status': typeof LiveRoomStatusRoute
   '/mcp': typeof McpRoute
+  '/owner-packet': typeof OwnerPacketRoute
   '/pitch': typeof PitchRoute
   '/roles': typeof RolesRoute
   '/room': typeof RoomRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/owner-packet'
     | '/pitch'
     | '/roles'
     | '/room'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/owner-packet'
     | '/pitch'
     | '/roles'
     | '/room'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/housekeeping'
     | '/live-room-status'
     | '/mcp'
+    | '/owner-packet'
     | '/pitch'
     | '/roles'
     | '/room'
@@ -327,6 +339,7 @@ export interface RootRouteChildren {
   HousekeepingRoute: typeof HousekeepingRoute
   LiveRoomStatusRoute: typeof LiveRoomStatusRoute
   McpRoute: typeof McpRoute
+  OwnerPacketRoute: typeof OwnerPacketRoute
   PitchRoute: typeof PitchRoute
   RolesRoute: typeof RolesRoute
   RoomRoute: typeof RoomRoute
@@ -401,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/owner-packet': {
+      id: '/owner-packet'
+      path: '/owner-packet'
+      fullPath: '/owner-packet'
+      preLoaderRoute: typeof OwnerPacketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pitch': {
@@ -527,6 +547,7 @@ const rootRouteChildren: RootRouteChildren = {
   HousekeepingRoute: HousekeepingRoute,
   LiveRoomStatusRoute: LiveRoomStatusRoute,
   McpRoute: McpRoute,
+  OwnerPacketRoute: OwnerPacketRoute,
   PitchRoute: PitchRoute,
   RolesRoute: RolesRoute,
   RoomRoute: RoomRoute,
