@@ -23,8 +23,8 @@ const STATUS_CONFIG: Record<
   DbRoomStatus,
   { label: string; solid: string; tint: string; key: string }
 > = {
-  clean: { label: "Ready", solid: "#0F7B4F", tint: "#E7F4EE", key: "clean" },
-  dirty: { label: "To turn", solid: "#B45309", tint: "#FBF0E2", key: "dirty" },
+  vacant_clean: { label: "Ready", solid: "#0F7B4F", tint: "#E7F4EE", key: "clean" },
+  vacant_dirty: { label: "To turn", solid: "#B45309", tint: "#FBF0E2", key: "dirty" },
   occupied: { label: "In house", solid: "#0065AB", tint: "#E5F0F9", key: "occupied" },
   occupied_dnd: { label: "Do not disturb", solid: "#7C3AED", tint: "#F1EAFC", key: "dnd" },
   reserved: { label: "Arriving", solid: "#0E7490", tint: "#E4F2F5", key: "reserved" },
@@ -66,13 +66,13 @@ export function RoomBoardTable({
 
       // Urgency priority weight
       const getWeight = (r: RoomRow, hasArr: boolean, reqCount: number) => {
-        if (hasArr && r.status !== "clean") return 1; // High urgency: arrival unready
+        if (hasArr && r.status !== "vacant_clean") return 1; // High urgency: arrival unready
         if (reqCount > 0) return 2; // Open guest requests
-        if (r.status === "dirty") return 3; // Needs turn
+        if (r.status === "vacant_dirty") return 3; // Needs turn
         if (r.status === "reserved") return 4;
         if (r.status === "occupied") return 5;
         if (r.status === "occupied_dnd") return 6;
-        if (r.status === "clean") return 7;
+        if (r.status === "vacant_clean") return 7;
         return 8; // out_of_order
       };
 
@@ -86,9 +86,11 @@ export function RoomBoardTable({
 
   // Status counts for legend
   const legendCounts = useMemo(() => {
-    const ready = rooms.filter((r) => r.status === "clean").length;
-    const toTurn = rooms.filter((r) => r.status === "dirty").length;
-    const inHouse = rooms.filter((r) => r.status === "occupied" || r.status === "occupied_dnd").length;
+    const ready = rooms.filter((r) => r.status === "vacant_clean").length;
+    const toTurn = rooms.filter((r) => r.status === "vacant_dirty").length;
+    const inHouse = rooms.filter(
+      (r) => r.status === "occupied" || r.status === "occupied_dnd",
+    ).length;
     const arriving = arrivals.length;
     const blocked = rooms.filter((r) => r.status === "out_of_order").length;
 
@@ -162,8 +164,7 @@ export function RoomBoardTable({
                 style={{ backgroundColor: item.color }}
                 aria-hidden="true"
               />
-              {item.label}{" "}
-              <span className="font-mono text-slate-800">{item.count}</span>
+              {item.label} <span className="font-mono text-slate-800">{item.count}</span>
             </span>
           ))}
         </div>
@@ -186,10 +187,9 @@ export function RoomBoardTable({
             <tbody className="divide-y divide-slate-100 text-sm">
               {sortedRooms.map((room) => {
                 const arrival = arrivalsByRoom.get(room.number);
-                const hasArrivalRisk = arrival && room.status !== "clean";
-                const isUrgent =
-                  hasArrivalRisk || (openCountByRoom.get(room.number) ?? 0) > 0;
-                const statusInfo = STATUS_CONFIG[room.status] ?? STATUS_CONFIG.clean;
+                const hasArrivalRisk = arrival && room.status !== "vacant_clean";
+                const isUrgent = hasArrivalRisk || (openCountByRoom.get(room.number) ?? 0) > 0;
+                const statusInfo = STATUS_CONFIG[room.status] ?? STATUS_CONFIG.vacant_clean;
 
                 const displayStatus = arrival
                   ? `Arriving ${arrival.check_in === "today" ? "" : "4 PM"}`
@@ -223,8 +223,7 @@ export function RoomBoardTable({
                       </span>
                     </td>
                     <td className="px-3 py-3.5 font-medium text-slate-700">
-                      {room.guest_name ||
-                        (arrival ? arrival.guest_name : "Available")}
+                      {room.guest_name || (arrival ? arrival.guest_name : "Available")}
                     </td>
                     <td className="px-3 py-3.5 text-xs text-slate-500">
                       {room.hk_stage ? (
@@ -255,7 +254,7 @@ export function RoomBoardTable({
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {sortedRooms.map((room) => {
-              const statusInfo = STATUS_CONFIG[room.status] ?? STATUS_CONFIG.clean;
+              const statusInfo = STATUS_CONFIG[room.status] ?? STATUS_CONFIG.vacant_clean;
               const reqs = openCountByRoom.get(room.number) ?? 0;
 
               return (

@@ -24,14 +24,14 @@ export function DoThisNext({
     // 1. Check unready rooms for arrivals today
     const unreadyArrivals = arrivals.filter((arrival) => {
       const room = rooms.find((r) => r.number === arrival.room);
-      return room && room.status !== "clean" && room.status !== "occupied";
+      return room && room.status !== "vacant_clean" && room.status !== "occupied";
     });
 
     if (unreadyArrivals.length > 0) {
       const roomNumbers = unreadyArrivals.map((a) => a.room);
       const unassigned = unreadyArrivals.filter((a) => {
         const room = rooms.find((r) => r.number === a.room);
-        return !room?.guest_name && (!room?.wing || room?.status === "dirty");
+        return !room?.guest_name && (!room?.wing || room?.status === "vacant_dirty");
       });
 
       return {
@@ -51,7 +51,7 @@ export function DoThisNext({
         watchChips: [
           {
             color: "#D4AF37",
-            text: `Turns in progress · ${rooms.filter((r) => r.status === "dirty").length} rooms`,
+            text: `Turns in progress · ${rooms.filter((r) => r.status === "vacant_dirty").length} rooms`,
           },
           {
             color: unassigned.length > 0 ? "#F0705F" : "#34D399",
@@ -62,7 +62,7 @@ export function DoThisNext({
           },
           {
             color: "#34D399",
-            text: `${rooms.filter((r) => r.status === "clean").length} rooms ready to sell`,
+            text: `${rooms.filter((r) => r.status === "vacant_clean").length} rooms ready to sell`,
           },
         ],
       };
@@ -103,7 +103,7 @@ export function DoThisNext({
     }
 
     // 3. Calm state
-    const readyCount = rooms.filter((r) => r.status === "clean").length;
+    const readyCount = rooms.filter((r) => r.status === "vacant_clean").length;
     return {
       type: "calm",
       eyebrow: "Shift status",

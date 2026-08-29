@@ -16,10 +16,23 @@ interface RequestQueueProps {
   onSetStatus: (id: string, status: string) => void;
 }
 
-const STATUS_THEMES: Record<
-  string,
-  { solid: string; tint: string; label: string; border: string }
-> = {
+type StatusTheme = { solid: string; tint: string; label: string; border: string };
+
+const NEW_THEME: StatusTheme = {
+  solid: "#B45309",
+  tint: "#FBF0E2",
+  label: "New",
+  border: "border-l-[#B45309]",
+};
+
+const BREACHED_THEME: StatusTheme = {
+  solid: "#B91C1C",
+  tint: "#FBEAE9",
+  label: "Breached",
+  border: "border-l-[#B91C1C]",
+};
+
+const STATUS_THEMES: Record<string, StatusTheme> = {
   new: {
     solid: "#B45309",
     tint: "#FBF0E2",
@@ -79,7 +92,8 @@ export function RequestQueue({
     return visible.filter((r) => {
       if (r.status === "done") return false;
       const ageMinutes = (now - new Date(r.created_at).getTime()) / (60 * 1000);
-      const isMaint = r.type.toLowerCase().includes("repair") || r.type.toLowerCase().includes("maint");
+      const isMaint =
+        r.type.toLowerCase().includes("repair") || r.type.toLowerCase().includes("maint");
       return isMaint ? ageMinutes > 10 : ageMinutes > 20;
     });
   }, [visible]);
@@ -169,7 +183,8 @@ export function RequestQueue({
               Room {urgentBreach.room} has waited {timeAgo(urgentBreach.created_at)}
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/80">
-              Maintenance requests over 10 minutes breach the property service standard. Fast response preserves guest satisfaction.
+              Maintenance requests over 10 minutes breach the property service standard. Fast
+              response preserves guest satisfaction.
             </p>
             <div className="mt-4 flex flex-wrap gap-2.5">
               <button
@@ -202,9 +217,9 @@ export function RequestQueue({
           ) : (
             visible.map((req) => {
               const isBreached = breachedRequests.some((b) => b.id === req.id);
-              const theme = isBreached
-                ? STATUS_THEMES.breached
-                : STATUS_THEMES[req.status] ?? STATUS_THEMES.new;
+              const theme: StatusTheme = isBreached
+                ? BREACHED_THEME
+                : (STATUS_THEMES[req.status] ?? NEW_THEME);
 
               return (
                 <li
@@ -217,9 +232,7 @@ export function RequestQueue({
                         <span className="font-mono text-xl font-bold text-[#004986]">
                           {req.room}
                         </span>
-                        <span className="text-sm font-semibold text-slate-800">
-                          {req.type}
-                        </span>
+                        <span className="text-sm font-semibold text-slate-800">{req.type}</span>
                         <span
                           className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
                           style={{
@@ -236,9 +249,7 @@ export function RequestQueue({
                       </div>
 
                       {req.details ? (
-                        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                          {req.details}
-                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-600">{req.details}</p>
                       ) : null}
 
                       <p className="mt-2 text-xs text-slate-400">
@@ -314,25 +325,35 @@ export function RequestQueue({
       <aside className="flex flex-col gap-4">
         {/* 1. Today Stats */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-[11px] font-bold tracking-widest text-[#004986] uppercase">
-            Today
-          </p>
+          <p className="text-[11px] font-bold tracking-widest text-[#004986] uppercase">Today</p>
           <div className="mt-3.5 grid grid-cols-2 gap-4">
             <div>
-              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Opened</p>
-              <p className="mt-1 font-mono text-2xl font-bold text-[#004986]">{totalOpen + doneCount}</p>
+              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                Opened
+              </p>
+              <p className="mt-1 font-mono text-2xl font-bold text-[#004986]">
+                {totalOpen + doneCount}
+              </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Resolved</p>
+              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                Resolved
+              </p>
               <p className="mt-1 font-mono text-2xl font-bold text-[#0F7B4F]">{doneCount}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Avg response</p>
+              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                Avg response
+              </p>
               <p className="mt-1 font-mono text-2xl font-bold text-[#004986]">9m</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Breached</p>
-              <p className="mt-1 font-mono text-2xl font-bold text-rose-600">{breachedRequests.length}</p>
+              <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                Breached
+              </p>
+              <p className="mt-1 font-mono text-2xl font-bold text-rose-600">
+                {breachedRequests.length}
+              </p>
             </div>
           </div>
         </div>
@@ -346,10 +367,7 @@ export function RequestQueue({
 
           <div className="mt-3 max-h-48 space-y-2.5 overflow-y-auto rounded-xl bg-slate-50 p-3.5 text-xs text-slate-700">
             {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`flex gap-2 ${m.role === "user" ? "justify-end" : ""}`}
-              >
+              <div key={m.id} className={`flex gap-2 ${m.role === "user" ? "justify-end" : ""}`}>
                 {m.role === "assistant" ? (
                   <Bot className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#004986]" />
                 ) : null}
@@ -411,9 +429,7 @@ export function RequestQueue({
 
         {/* 3. System Status */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-[11px] font-bold tracking-widest text-[#004986] uppercase">
-            System
-          </p>
+          <p className="text-[11px] font-bold tracking-widest text-[#004986] uppercase">System</p>
           <ul className="mt-3 divide-y divide-slate-100 text-xs">
             <li className="flex items-center justify-between py-2">
               <span className="text-slate-500">Database</span>

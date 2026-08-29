@@ -1,3 +1,4 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Printer, StickyNote } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
@@ -6,6 +7,7 @@ import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pitch")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Guest Hub — Operations Proposal — Days Inn Wildwood I-75" },
@@ -640,7 +642,7 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function PitchDeck() {
+function PitchDeckContent() {
   const [index, setIndex] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
 
@@ -747,5 +749,13 @@ function PitchDeck() {
         ) : null}
       </main>
     </div>
+  );
+}
+
+function PitchDeck() {
+  return (
+    <StaffOnly title="Guest Hub proposal">
+      <PitchDeckContent />
+    </StaffOnly>
   );
 }

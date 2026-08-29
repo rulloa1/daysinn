@@ -1,3 +1,4 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/manuals/manual-kit";
 
 export const Route = createFileRoute("/manuals/manager")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Manager Operations Manual — Days Inn Guest Hub" },
@@ -162,7 +164,7 @@ const STANDARDS = [
   { label: "Access removed when someone leaves", value: "Same day" },
 ];
 
-function ManagerManual() {
+function ManagerManualContent() {
   return (
     <ManualShell
       runningHead="Manager Operations Manual"
@@ -518,5 +520,13 @@ function ManagerManual() {
 
       <QuickRef title="Standards at a glance" rows={STANDARDS} />
     </ManualShell>
+  );
+}
+
+function ManagerManual() {
+  return (
+    <StaffOnly title="Manager manual">
+      <ManagerManualContent />
+    </StaffOnly>
   );
 }

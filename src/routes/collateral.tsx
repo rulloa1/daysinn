@@ -1,5 +1,6 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { Printer, Wifi, Sparkles, Phone, ChevronLeft, Check, Layers, Grid } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/collateral")({
 });
 
 // Standard 50-room layout for Wildwood I-75 property
+// prettier-ignore
 const ALL_ROOMS = [
   // Floor 1 (Building 1 & 2)
   "101", "102", "103", "104", "105", "106", "107", "108", "109", "110",
@@ -36,21 +38,24 @@ const ALL_ROOMS = [
   "221", "222", "223", "224", "225",
 ];
 
-function CollateralPage() {
+function CollateralPageContent() {
   const { staff } = useStaffIdentity();
   const [selectedFloor, setSelectedFloor] = useState<"all" | "1" | "2" | "single">("all");
   const [singleRoom, setSingleRoom] = useState("214");
   const [format, setFormat] = useState<"tent" | "keycard" | "placard">("tent");
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
 
-  const displayedRooms =
-    selectedFloor === "single"
-      ? [singleRoom]
-      : selectedFloor === "1"
-        ? ALL_ROOMS.filter((r) => r.startsWith("1"))
-        : selectedFloor === "2"
-          ? ALL_ROOMS.filter((r) => r.startsWith("2"))
-          : ALL_ROOMS;
+  const displayedRooms = useMemo(
+    () =>
+      selectedFloor === "single"
+        ? [singleRoom]
+        : selectedFloor === "1"
+          ? ALL_ROOMS.filter((r) => r.startsWith("1"))
+          : selectedFloor === "2"
+            ? ALL_ROOMS.filter((r) => r.startsWith("2"))
+            : ALL_ROOMS,
+    [selectedFloor, singleRoom],
+  );
 
   // Generate QR codes for displayed rooms
   useEffect(() => {
@@ -58,6 +63,7 @@ function CollateralPage() {
     async function generateQrs() {
       const entries: Record<string, string> = {};
       for (const roomNum of displayedRooms) {
+        if (!active) return;
         const url = `https://daysinn.lovable.app/checkin?room=${roomNum}`;
         try {
           const dataUrl = await QRCode.toDataURL(url, {
@@ -109,7 +115,8 @@ function CollateralPage() {
                 Guest Hub QR Placards &amp; Cards
               </h1>
               <p className="mt-1 text-xs text-slate-500">
-                High-resolution, 300 DPI print-ready table tents and keycard inserts linking to live room services.
+                High-resolution, 300 DPI print-ready table tents and keycard inserts linking to live
+                room services.
               </p>
             </div>
 
@@ -119,7 +126,8 @@ function CollateralPage() {
                 className="flex items-center gap-2 rounded-xl bg-[#004986] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#004986]/90 active:scale-95"
               >
                 <Printer className="h-4 w-4" />
-                Print {displayedRooms.length} {format === "tent" ? "Tent Cards" : format === "keycard" ? "Inserts" : "Placards"}
+                Print {displayedRooms.length}{" "}
+                {format === "tent" ? "Tent Cards" : format === "keycard" ? "Inserts" : "Placards"}
               </Button>
             </div>
           </div>
@@ -132,15 +140,17 @@ function CollateralPage() {
                 1. Collateral Format
               </label>
               <div className="mt-2.5 grid grid-cols-3 gap-2">
-                {[
-                  { id: "tent", label: "Table Tent", sub: "Nightstand" },
-                  { id: "keycard", label: "Key Sleeve", sub: "Wallet size" },
-                  { id: "placard", label: "Placard", sub: "Wall / Desk" },
-                ].map((item) => (
+                {(
+                  [
+                    { id: "tent", label: "Table Tent", sub: "Nightstand" },
+                    { id: "keycard", label: "Key Sleeve", sub: "Wallet size" },
+                    { id: "placard", label: "Placard", sub: "Wall / Desk" },
+                  ] as const
+                ).map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setFormat(item.id as any)}
+                    onClick={() => setFormat(item.id)}
                     className={`rounded-xl border p-2.5 text-left transition ${
                       format === item.id
                         ? "border-[#004986] bg-[#E7EDF5] text-[#004986]"
@@ -160,16 +170,18 @@ function CollateralPage() {
                 2. Select Rooms
               </label>
               <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {[
-                  { id: "all", label: `All Rooms (50)` },
-                  { id: "1", label: "Floor 1 (25)" },
-                  { id: "2", label: "Floor 2 (25)" },
-                  { id: "single", label: "Single Room" },
-                ].map((item) => (
+                {(
+                  [
+                    { id: "all", label: `All Rooms (50)` },
+                    { id: "1", label: "Floor 1 (25)" },
+                    { id: "2", label: "Floor 2 (25)" },
+                    { id: "single", label: "Single Room" },
+                  ] as const
+                ).map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setSelectedFloor(item.id as any)}
+                    onClick={() => setSelectedFloor(item.id)}
                     className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                       selectedFloor === item.id
                         ? "bg-[#004986] text-white"
@@ -224,7 +236,11 @@ function CollateralPage() {
                     className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-[#004986] bg-white p-4 shadow-md print:shadow-none print:border-slate-800 print:break-inside-avoid"
                   >
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <img src={logoAsset.url} alt="Days Inn" className="h-5 w-auto object-contain" />
+                      <img
+                        src={logoAsset.url}
+                        alt="Days Inn"
+                        className="h-5 w-auto object-contain"
+                      />
                       <div className="text-right">
                         <span className="text-[9px] font-bold text-slate-400 uppercase">Room</span>
                         <span className="ml-1 font-mono text-base font-bold text-[#004986]">
@@ -252,8 +268,12 @@ function CollateralPage() {
                     </div>
 
                     <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-600">
-                      <span>Wi-Fi: <strong>DaysInn_Guest</strong></span>
-                      <span>Front Desk: <strong>(352) 748-7766</strong></span>
+                      <span>
+                        Wi-Fi: <strong>DaysInn_Guest</strong>
+                      </span>
+                      <span>
+                        Front Desk: <strong>(352) 748-7766</strong>
+                      </span>
                     </div>
                   </article>
                 );
@@ -269,7 +289,11 @@ function CollateralPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <span className="flex w-20 items-center justify-center rounded-lg bg-white p-1 shadow-2xs border border-slate-200">
-                          <img src={logoAsset.url} alt="Days Inn" className="h-6 w-auto object-contain" />
+                          <img
+                            src={logoAsset.url}
+                            alt="Days Inn"
+                            className="h-6 w-auto object-contain"
+                          />
                         </span>
                         <p className="mt-3 text-[10px] font-bold tracking-widest text-[#D4AF37] uppercase">
                           Days Inn® Wildwood I-75
@@ -302,7 +326,8 @@ function CollateralPage() {
                           Instant In-Room Requests
                         </h3>
                         <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                          Scan with your phone camera to order fresh towels, schedule housekeeping, or message the front desk.
+                          Scan with your phone camera to order fresh towels, schedule housekeeping,
+                          or message the front desk.
                         </p>
                       </div>
                     </div>
@@ -310,11 +335,15 @@ function CollateralPage() {
                     <div className="grid grid-cols-2 gap-3 border-t border-slate-200 pt-4 text-xs">
                       <div className="flex items-center gap-2 text-slate-700">
                         <Wifi className="h-4 w-4 text-[#004986]" />
-                        <span>Wi-Fi: <strong className="text-slate-900">DaysInn_Guest</strong> (Free)</span>
+                        <span>
+                          Wi-Fi: <strong className="text-slate-900">DaysInn_Guest</strong> (Free)
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-700 justify-end">
                         <Phone className="h-4 w-4 text-[#004986]" />
-                        <span>Dial 0 or <strong>(352) 748-7766</strong></span>
+                        <span>
+                          Dial 0 or <strong>(352) 748-7766</strong>
+                        </span>
                       </div>
                     </div>
                   </article>
@@ -337,7 +366,11 @@ function CollateralPage() {
                   {/* Front Face */}
                   <div className="flex flex-col items-center text-center">
                     <div className="flex w-24 items-center justify-center rounded-xl bg-white p-1.5 shadow-2xs border border-slate-200">
-                      <img src={logoAsset.url} alt="Days Inn" className="h-7 w-auto object-contain" />
+                      <img
+                        src={logoAsset.url}
+                        alt="Days Inn"
+                        className="h-7 w-auto object-contain"
+                      />
                     </div>
 
                     <div className="mt-3">
@@ -366,7 +399,9 @@ function CollateralPage() {
 
                     <div className="mt-5 grid w-full grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-xs text-slate-600">
                       <div className="rounded-xl bg-slate-50 p-2.5 text-center">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Complimentary Wi-Fi</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">
+                          Complimentary Wi-Fi
+                        </p>
                         <p className="font-bold text-slate-900 mt-0.5">DaysInn_Guest</p>
                       </div>
                       <div className="rounded-xl bg-slate-50 p-2.5 text-center">
@@ -382,5 +417,13 @@ function CollateralPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function CollateralPage() {
+  return (
+    <StaffOnly title="Guest room collateral">
+      <CollateralPageContent />
+    </StaffOnly>
   );
 }

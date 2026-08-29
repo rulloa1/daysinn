@@ -1,3 +1,4 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/components/manuals/manual-kit";
 
 export const Route = createFileRoute("/manuals/housekeeping")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Housekeeping Training Manual — Days Inn Guest Hub" },
@@ -163,7 +165,7 @@ const QUICK_REF = [
   { label: "AC left at", value: "72°F, switched off" },
 ];
 
-function HousekeepingManual() {
+function HousekeepingManualContent() {
   return (
     <ManualShell
       runningHead="Housekeeping Training Manual"
@@ -463,5 +465,13 @@ function HousekeepingManual() {
 
       <QuickRef rows={QUICK_REF} />
     </ManualShell>
+  );
+}
+
+function HousekeepingManual() {
+  return (
+    <StaffOnly title="Housekeeping manual">
+      <HousekeepingManualContent />
+    </StaffOnly>
   );
 }

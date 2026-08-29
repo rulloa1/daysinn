@@ -1,3 +1,4 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/manuals/manual-kit";
 
 export const Route = createFileRoute("/manuals/front-desk")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Front Desk Training Manual — Days Inn Guest Hub" },
@@ -132,7 +134,7 @@ const QUICK_REF = [
   { label: "Room turn target", value: "45 minutes" },
 ];
 
-function FrontDeskManual() {
+function FrontDeskManualContent() {
   return (
     <ManualShell
       runningHead="Front Desk Training Manual"
@@ -406,5 +408,13 @@ function FrontDeskManual() {
 
       <QuickRef rows={QUICK_REF} />
     </ManualShell>
+  );
+}
+
+function FrontDeskManual() {
+  return (
+    <StaffOnly title="Front desk manual">
+      <FrontDeskManualContent />
+    </StaffOnly>
   );
 }

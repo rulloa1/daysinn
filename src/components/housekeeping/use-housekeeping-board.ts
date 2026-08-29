@@ -30,7 +30,7 @@ import {
 } from "./types";
 
 const ROOM_COLUMNS =
-  "id, number, floor, status, guest_name, check_out, original_check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change";
+  "id, number, floor, bed_type, status, guest_name, check_out, original_check_out, notes, dnd, extended_stay, updated_at, assigned_staff_id, assigned_name, hk_stage, priority, linen_change";
 const ISSUE_COLUMNS =
   "id, room, type, details, status, created_at, started_at, started_by_name, resolved_at, resolved_by_name";
 

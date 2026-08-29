@@ -18,7 +18,7 @@ export function BoardSidebar({
   onSelectRoom,
 }: BoardSidebarProps) {
   // Derive housekeeping progress
-  const cleanCount = rooms.filter((r) => r.status === "clean").length;
+  const cleanCount = rooms.filter((r) => r.status === "vacant_clean").length;
   const totalTurns = rooms.length;
   const progressPercent = totalTurns ? Math.round((cleanCount / totalTurns) * 100) : 0;
 

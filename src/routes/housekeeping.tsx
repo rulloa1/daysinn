@@ -81,7 +81,10 @@ function HousekeepingPage() {
           <p className="mt-2 text-sm text-white/70">
             Sign in with your property staff account to open your route.
           </p>
-          <Button asChild className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90">
+          <Button
+            asChild
+            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
+          >
             <Link to="/staff">Go to staff sign in</Link>
           </Button>
           <Link
@@ -131,7 +134,7 @@ function HousekeepingWorkspace({
 
   // Compute priority room (the "Do this next" room on mobile)
   const nextRoom = useMemo(() => {
-    const dirtyRooms = board.rooms.filter((r) => r.status === "vacant_dirty" || r.status === "dirty");
+    const dirtyRooms = board.rooms.filter((r) => r.status === "vacant_dirty");
     // Priority to arrival rooms first, then lowest number
     return dirtyRooms[0] ?? board.rooms[0] ?? null;
   }, [board.rooms]);
@@ -145,9 +148,7 @@ function HousekeepingWorkspace({
         .slice(0, 2)
     : "HK";
 
-  const cleanCount = board.rooms.filter(
-    (r) => r.status === "vacant_clean" || r.status === "clean"
-  ).length;
+  const cleanCount = board.rooms.filter((r) => r.status === "vacant_clean").length;
   const totalCount = board.rooms.length;
   const progressPct = totalCount ? Math.round((cleanCount / totalCount) * 100) : 0;
 
@@ -158,7 +159,10 @@ function HousekeepingWorkspace({
 
       <main className="flex-1 overflow-y-auto pb-20 lg:pb-10">
         <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
-          <RoomSyncBanner summary={board.syncSummary} onRetry={board.flushQueuedRoomStatusChanges} />
+          <RoomSyncBanner
+            summary={board.syncSummary}
+            onRetry={board.flushQueuedRoomStatusChanges}
+          />
 
           {/* ============================================================ */}
           {/* MOBILE PHONE ROUTE VIEW (< 1024px) */}
@@ -212,14 +216,14 @@ function HousekeepingWorkspace({
                     </div>
 
                     <p className="mt-2 text-xs leading-relaxed text-white/80">
-                      {nextRoom.bed_type || "1 King bed"} · Linens flagged. Main building, Floor {nextRoom.floor}.
+                      {nextRoom.bed_type || "1 King bed"} · Linens flagged. Main building, Floor{" "}
+                      {nextRoom.floor}.
                     </p>
 
                     <button
                       type="button"
                       onClick={() => {
-                        board.saveRoom(nextRoom, { status: "clean", hk_stage: null });
-                        toast.success(`Room ${nextRoom.number} marked clean!`);
+                        board.setStatus(nextRoom, "vacant_clean");
                       }}
                       className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
                     >
@@ -263,11 +267,15 @@ function HousekeepingWorkspace({
                   <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-2.5 text-center">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">To clean</p>
-                      <p className="font-mono text-lg font-bold text-[#004986]">{totalCount - cleanCount}</p>
+                      <p className="font-mono text-lg font-bold text-[#004986]">
+                        {totalCount - cleanCount}
+                      </p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Yours left</p>
-                      <p className="font-mono text-lg font-bold text-[#004986]">{totalCount - cleanCount}</p>
+                      <p className="font-mono text-lg font-bold text-[#004986]">
+                        {totalCount - cleanCount}
+                      </p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">DND</p>
@@ -285,7 +293,7 @@ function HousekeepingWorkspace({
                   </p>
 
                   {board.rooms.map((room) => {
-                    const isClean = room.status === "clean" || room.status === "vacant_clean";
+                    const isClean = room.status === "vacant_clean";
                     const isDnd = room.status.includes("dnd");
 
                     return (
@@ -470,7 +478,8 @@ function HousekeepingWorkspace({
                 Room 122 has a 4 PM arrival and no housekeeper assigned.
               </h2>
               <p className="mt-1 text-xs text-slate-600">
-                Teresa López finishes Room 209 in about 10 minutes and is located in the same building.
+                Teresa López finishes Room 209 in about 10 minutes and is located in the same
+                building.
               </p>
               <div className="mt-3 flex gap-2">
                 <button
@@ -493,7 +502,9 @@ function HousekeepingWorkspace({
             {/* 4-Column Stat Grid */}
             <div className="grid grid-cols-4 gap-4">
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Rooms to turn</p>
+                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                  Rooms to turn
+                </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">
                   {board.rooms.filter((r) => r.status.includes("dirty")).length}
                 </p>
@@ -501,19 +512,25 @@ function HousekeepingWorkspace({
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Unassigned</p>
+                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                  Unassigned
+                </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#B45309]">2</p>
                 <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Avg turnover</p>
+                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                  Avg turnover
+                </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">38m</p>
                 <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">Done today</p>
+                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                  Done today
+                </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#0F7B4F]">{cleanCount}</p>
                 <p className="mt-1.5 text-xs text-slate-500">of {totalCount} planned</p>
               </div>
@@ -630,10 +647,14 @@ function HousekeepingWorkspace({
       {/* Room Detail Dialog */}
       <RoomDetailDialog
         room={activeRoom}
-        canEdit={board.canTriage}
+        issues={board.openIssues}
         staff={staff}
+        canTriage={board.canTriage}
         onClose={() => setActiveRoom(null)}
-        onSave={board.saveRoom}
+        onSetStatus={board.setStatus}
+        onSetStage={board.setStage}
+        onToggleLinen={board.toggleLinen}
+        onSetAssignment={board.setAssignment}
         onReportIssue={(r) => {
           setActiveRoom(null);
           setIssueRoom(r);
@@ -641,11 +662,7 @@ function HousekeepingWorkspace({
       />
 
       {/* Issue Ticket Dialog */}
-      <IssueDialog
-        room={issueRoom}
-        reporter={staff.name}
-        onClose={() => setIssueRoom(null)}
-      />
+      <IssueDialog room={issueRoom} staff={staff} onClose={() => setIssueRoom(null)} />
     </div>
   );
 }

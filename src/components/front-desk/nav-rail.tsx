@@ -137,7 +137,7 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
       {/* Staff profile badge */}
       <div className="mt-auto pt-4">
         <div
-          title={staff ? `${staff.name} (${staff.role})` : "Front Desk"}
+          title={staff ? staff.name : "Front Desk"}
           className="grid h-9 w-9 place-items-center rounded-full bg-[#D4AF37] text-xs font-bold text-[#004986] shadow-sm ring-2 ring-white/20"
         >
           {initials}

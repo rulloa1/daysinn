@@ -1,3 +1,4 @@
+import { StaffOnly } from "@/components/staff-only";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Presentation, Printer } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -6,6 +7,7 @@ import { BrandLockup } from "@/components/brand-lockup";
 import { FranchiseLegal } from "@/components/franchise-footer";
 
 export const Route = createFileRoute("/manuals/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Staff Manuals — Days Inn Guest Hub" },
@@ -106,7 +108,7 @@ function DocCard({ doc }: { doc: Doc }) {
   );
 }
 
-function ManualsIndex() {
+function ManualsIndexContent() {
   return (
     <div className="min-h-screen bg-canvas-ops text-slate-800">
       <header className="border-b border-border-guest bg-white">
@@ -158,5 +160,13 @@ function ManualsIndex() {
         </div>
       </main>
     </div>
+  );
+}
+
+function ManualsIndex() {
+  return (
+    <StaffOnly title="Staff manuals">
+      <ManualsIndexContent />
+    </StaffOnly>
   );
 }

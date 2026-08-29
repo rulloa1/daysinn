@@ -24,9 +24,9 @@ export function FranchiseDisclaimer({ className }: { className?: string }) {
   );
 }
 
-export function FranchiseLegal() {
+export function FranchiseLegal({ className }: { className?: string }) {
   return (
-    <p className="text-[11px] leading-relaxed text-muted-foreground">
+    <p className={className ?? "text-[11px] leading-relaxed text-muted-foreground"}>
       This Days Inn® by Wyndham location is independently owned and operated under a franchise
       agreement. Days Inn®, Daybreak®, and Wyndham Rewards® are registered trademarks of Wyndham
       Hotel Group, LLC and/or its affiliates.

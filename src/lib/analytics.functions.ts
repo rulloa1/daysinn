@@ -36,7 +36,7 @@ export const getOccupancyTrend = createServerFn({ method: "GET" })
       d.setHours(0, 0, 0, 0);
       d.setDate(d.getDate() - i);
       const key = dateKey(d.toISOString());
-      const occupied = (bookings ?? []).filter((b) => {
+      const occupied = (bookings ?? []).filter((b: { check_in: string; check_out: string }) => {
         const inDate = new Date(b.check_in);
         const outDate = new Date(b.check_out);
         const point = new Date(key);

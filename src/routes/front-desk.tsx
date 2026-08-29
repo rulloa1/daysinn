@@ -72,7 +72,10 @@ function FrontDeskPage() {
           <p className="mt-2 text-sm text-white/70">
             Sign in with your staff account to open the board.
           </p>
-          <Button asChild className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90">
+          <Button
+            asChild
+            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
+          >
             <Link to="/staff">Go to staff sign in</Link>
           </Button>
           <Link
@@ -92,13 +95,18 @@ function FrontDeskPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#00243F] px-6 text-white">
         <div className="w-full max-w-md rounded-2xl border border-amber-500/30 bg-white/5 p-8 text-center backdrop-blur-md">
           <BrandLockup tone="cream" />
-          <p className="mt-6 text-xs font-bold tracking-widest text-[#D4AF37] uppercase">Restricted Access</p>
+          <p className="mt-6 text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+            Restricted Access
+          </p>
           <h1 className="mt-2 font-serif text-2xl font-bold">Housekeeping Portal</h1>
           <p className="mt-3 text-sm text-white/70">
             The front-desk board and bookings log are reserved for front desk and management. You
             have access to the mobile housekeeping app.
           </p>
-          <Button asChild className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90">
+          <Button
+            asChild
+            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
+          >
             <Link to="/housekeeping">Open Housekeeping Dashboard</Link>
           </Button>
           <Link
@@ -124,12 +132,12 @@ function Board() {
 
   const activeRoom = board.rooms.find((r) => r.id === activeRoomId) ?? null;
   const readyToSellCount = useMemo(
-    () => board.rooms.filter((r) => r.status === "clean").length,
-    [board.rooms]
+    () => board.rooms.filter((r) => r.status === "vacant_clean").length,
+    [board.rooms],
   );
   const dirtyCount = useMemo(
-    () => board.rooms.filter((r) => r.status === "dirty").length,
-    [board.rooms]
+    () => board.rooms.filter((r) => r.status === "vacant_dirty").length,
+    [board.rooms],
   );
 
   // Formatted date string
@@ -154,7 +162,8 @@ function Board() {
           <header className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                Front desk · {board.staff?.name ?? "On Duty"} · {dateFormatted} · {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                Front desk · {board.staff?.name ?? "On Duty"} · {dateFormatted} ·{" "}
+                {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
               <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#004986] md:text-4xl">
                 Today at Wildwood I-75
@@ -182,7 +191,10 @@ function Board() {
             </div>
           </header>
 
-          <RoomSyncBanner summary={board.syncSummary} onRetry={board.flushQueuedRoomStatusChanges} />
+          <RoomSyncBanner
+            summary={board.syncSummary}
+            onRetry={board.flushQueuedRoomStatusChanges}
+          />
 
           {/* Do This Next Panel & 2x2 Metric Cards */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
@@ -231,9 +243,7 @@ function Board() {
                 <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">
                   {formatDuration(board.avgTurnover)}
                 </p>
-                <p className="mt-2 text-xs font-semibold text-emerald-600">
-                  7m under target
-                </p>
+                <p className="mt-2 text-xs font-semibold text-emerald-600">7m under target</p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

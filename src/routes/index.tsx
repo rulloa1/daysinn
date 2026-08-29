@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { BrandLockup } from "@/components/brand-lockup";
 import { PropertyMap } from "@/components/property-map";
@@ -117,9 +117,17 @@ function GuestView() {
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <BrandLockup tone="cream" />
-            <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
-              Warm hospitality · Effortless service
-            </p>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+                Warm hospitality · Effortless service
+              </p>
+              <Link
+                to="/staff"
+                className="text-xs font-semibold text-white/55 underline underline-offset-4 transition hover:text-white"
+              >
+                Staff portal
+              </Link>
+            </div>
           </div>
           <FranchiseLegal className="text-xs text-white/50" />
         </div>
