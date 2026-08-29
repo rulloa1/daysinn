@@ -6,6 +6,7 @@ import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 
 export const Route = createFileRoute("/roles")({
   ssr: false,
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/roles")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: RolesPage,
 });
 
@@ -86,7 +88,9 @@ function RolesPage() {
               </p>
             </div>
           ) : (
-            <TeamPanel />
+            <StaffErrorBoundary id="roles-team">
+              <TeamPanel />
+            </StaffErrorBoundary>
           )}
         </div>
       </main>

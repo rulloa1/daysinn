@@ -57,9 +57,21 @@ function normalizeEmail(value: unknown) {
   return value.trim().toLowerCase();
 }
 
+export type ListStaffInvitesResult =
+  | { ok: true; invites: StaffInvite[] }
+  | { ok: false; reason: "authentication_required" | "forbidden" };
+
 export const listStaffInvites = createServerFn({ method: "POST" }).handler(
-  async ({ context }): Promise<StaffInvite[]> => {
-    await assertManager(context.supabase, context.userId);
+  async ({ context }): Promise<ListStaffInvitesResult> => {
+    try {
+      await assertManager(context.supabase, context.userId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      return {
+        ok: false,
+        reason: message === "Forbidden" ? "forbidden" : "authentication_required",
+      };
+    }
     const { data, error } = await context.supabase
       .from("staff_invites")
       .select(
@@ -67,7 +79,7 @@ export const listStaffInvites = createServerFn({ method: "POST" }).handler(
       )
       .order("created_at", { ascending: true });
     if (error) throw error;
-    return ((data ?? []) as InviteRow[]).map(toInvite);
+    return { ok: true, invites: ((data ?? []) as InviteRow[]).map(toInvite) };
   },
 );
 

@@ -1,16 +1,28 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
+import { assertSchemaIntegrity } from "./lib/schema-guard.server";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 import { optionalSupabaseAuth } from "@/integrations/supabase/optional-auth-middleware";
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+// Verifies once per server process that the live database matches the
+// generated types (and that retired PIN columns are really gone).
+const schemaGuardMiddleware = createMiddleware().server(async ({ next }) => {
+  await assertSchemaIntegrity();
+  return next();
+});
+
+const errorMiddleware = createMiddleware().server(async ({ next, handlerType }) => {
   try {
     return await next();
   } catch (error) {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
+    // Server-function callers must receive the original RPC error so local
+    // component error handling can show a toast/state instead of trying to
+    // deserialize an HTML error page and replacing the whole application.
+    if (handlerType === "serverFn") throw error;
     console.error(error);
     return new Response(renderErrorPage(), {
       status: 500,
@@ -28,5 +40,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth, optionalSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, schemaGuardMiddleware, csrfMiddleware],
 }));

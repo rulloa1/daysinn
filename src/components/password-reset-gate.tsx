@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { hasPasswordRecoverySession, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,13 +22,28 @@ export function PasswordResetGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!active) return;
-      const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-      setRequired(meta["password_reset_required"] === true);
+
+    // A recovery link is a login link with a new-password obligation attached.
+    // Gate on it directly rather than trusting the metadata flag, which is only
+    // set by the manager-triggered bulk reset.
+    if (hasPasswordRecoverySession()) {
+      setRequired(true);
+    } else {
+      supabase.auth.getUser().then(({ data }) => {
+        if (!active) return;
+        const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+        setRequired(meta["password_reset_required"] === true);
+      });
+    }
+
+    // Covers a recovery event that arrives while this component is already open.
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRequired(true);
     });
+
     return () => {
       active = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 

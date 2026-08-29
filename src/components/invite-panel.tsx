@@ -43,9 +43,22 @@ export function InvitePanel() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<AppRole>("staff");
 
+  const [notice, setNotice] = useState<string | null>(null);
+
   async function load() {
     try {
-      setInvites(await fetchInvites({ data: undefined }));
+      const result = await fetchInvites({ data: undefined });
+      if (result.ok) {
+        setInvites(result.invites);
+        setNotice(null);
+        return;
+      }
+      setInvites([]);
+      setNotice(
+        result.reason === "forbidden"
+          ? "Manager access is required to view staff invitations."
+          : "Your staff session expired. Sign in again to manage invitations.",
+      );
     } catch {
       toast.error("Couldn't load invitations.");
     }
@@ -101,6 +114,12 @@ export function InvitePanel() {
         Send a login invitation by email, or copy the secure link and hand it to the person
         directly. Links expire after 7 days; resending issues a fresh one and cancels the old.
       </p>
+
+      {notice ? (
+        <p className="mt-4 border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-cream/80">
+          {notice}
+        </p>
+      ) : null}
 
       <form
         className="mt-5 flex flex-wrap items-end gap-3"

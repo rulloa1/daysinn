@@ -9,9 +9,24 @@ export type TeamMember = {
   roles: AppRole[];
 };
 
+export type TeamListResult =
+  | { ok: true; members: TeamMember[] }
+  | { ok: false; reason: "authentication_required" | "forbidden" };
+
 export const listTeam = createServerFn({ method: "POST" }).handler(
-  async ({ context }): Promise<TeamMember[]> => {
-    await assertManager(context.supabase, context.userId);
+  async ({ context }): Promise<TeamListResult> => {
+    if (!context.userId) {
+      return { ok: false, reason: "authentication_required" };
+    }
+
+    try {
+      await assertManager(context.supabase, context.userId);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Forbidden") {
+        return { ok: false, reason: "forbidden" };
+      }
+      throw error;
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: users, error } = await supabaseAdmin.auth.admin.listUsers({
@@ -21,13 +36,16 @@ export const listTeam = createServerFn({ method: "POST" }).handler(
 
     const { data: roleRows } = await supabaseAdmin.from("user_roles").select("user_id, role");
 
-    return users.users.map((user) => ({
-      id: user.id,
-      email: user.email ?? "(no email)",
-      roles: ((roleRows ?? []) as { user_id: string; role: AppRole }[])
-        .filter((r) => r.user_id === user.id)
-        .map((r) => r.role),
-    }));
+    return {
+      ok: true,
+      members: users.users.map((user) => ({
+        id: user.id,
+        email: user.email ?? "(no email)",
+        roles: ((roleRows ?? []) as { user_id: string; role: AppRole }[])
+          .filter((r) => r.user_id === user.id)
+          .map((r) => r.role),
+      })),
+    };
   },
 );
 
