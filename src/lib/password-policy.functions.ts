@@ -26,6 +26,12 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" }).handle
 
     const ids = Array.from(new Set((roleRows ?? []).map((row) => row.user_id as string)));
 
+    // Reset links are built from this, not from Supabase's Site URL. Without it
+    // the mail falls back to Site URL, which is how these links ended up
+    // pointing at localhost. Mirrors the origin used by the invite flow.
+    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.lovable.app";
+    const redirectTo = `${origin}/staff`;
+
     let flagged = 0;
     let emailed = 0;
     const stamp = new Date().toISOString();
@@ -46,7 +52,9 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" }).handle
       flagged += 1;
 
       if (user.email) {
-        const { error: mailError } = await supabaseAdmin.auth.resetPasswordForEmail(user.email);
+        const { error: mailError } = await supabaseAdmin.auth.resetPasswordForEmail(user.email, {
+          redirectTo,
+        });
         if (!mailError) emailed += 1;
       }
     }
