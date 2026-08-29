@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { BOOKING_URL } from "@/components/franchise-footer";
+import { checkAvailability, type AvailabilityRow } from "@/lib/availability.functions";
 
-export type AvailabilityRow = {
-  room_type: string;
-  label: string;
-  beds: string;
-  max_occupancy: number;
-  nightly_rate: number;
-  available_count: number;
-};
+export type { AvailabilityRow };
+
 
 /**
  * Date/guest selection and the indicative availability snapshot behind the
@@ -18,7 +13,9 @@ export type AvailabilityRow = {
  * rate, taxes and terms are settled in the Wyndham booking flow.
  */
 export function useAvailability() {
+  const fetchAvailability = useServerFn(checkAvailability);
   const [checkIn, setCheckIn] = useState("");
+
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
   const [rows, setRows] = useState<AvailabilityRow[] | null>(null);
@@ -59,22 +56,25 @@ export function useAvailability() {
       return;
     }
     setSearching(true);
-    const { data, error } = await supabase.rpc("check_availability", {
-      _check_in: checkIn,
-      _check_out: checkOut,
-      _guests: Number(guests) || 1,
-    });
-    setSearching(false);
-    if (error) {
+    try {
+      const result = await fetchAvailability({
+        data: {
+          check_in: checkIn,
+          check_out: checkOut,
+          guests: Math.min(Math.max(Number(guests) || 1, 1), 8),
+        },
+      });
+      setRows(result);
+      if (!result.some((row) => row.available_count > 0)) {
+        toast.info("No rooms open for those dates — try nearby dates or call us.");
+      }
+    } catch {
       toast.error("We couldn't check availability. Please call the front desk.");
-      return;
-    }
-    const result = (data ?? []) as AvailabilityRow[];
-    setRows(result);
-    if (!result.some((row) => row.available_count > 0)) {
-      toast.info("No rooms open for those dates — try nearby dates or call us.");
+    } finally {
+      setSearching(false);
     }
   }
+
 
   return {
     checkIn,

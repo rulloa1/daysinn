@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -6,6 +6,20 @@ import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import { signInHousekeeper } from "@/lib/housekeeping.functions";
 import type { StaffIdentity } from "@/lib/ops";
 
+const FRONT_DESK_PHONE = "+13527487766";
+
+function greetingFor(date: Date) {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+/**
+ * Phone-first shift sign in: the crew taps their name from today's schedule.
+ * Laid out as the handset screen from the staff phone app design — navy
+ * status bar, greeting, then large tap targets sized for gloved thumbs.
+ */
 export function HousekeeperLogin({
   members,
   onSelect,
@@ -17,6 +31,12 @@ export function HousekeeperLogin({
 }) {
   const signIn = useServerFn(signInHousekeeper);
   const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   async function handleSelect(member: { id: string; name: string }) {
     if (busy) return;
@@ -40,7 +60,6 @@ export function HousekeeperLogin({
     }
   }
 
-  // Fallback demo crew if database roster is empty
   const displayMembers =
     members.length > 0
       ? members
@@ -51,80 +70,84 @@ export function HousekeeperLogin({
           { id: "demo-4", name: "Luis Ortega", zone: "Maintenance · On call" },
         ];
 
-  // Name Picker Screen
+  const clock = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#EEF2F7] px-4 py-8 text-slate-800">
-      <div className="flex w-full max-w-sm flex-col">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center">
-          <div className="flex w-16 items-center justify-center rounded-xl bg-white p-2 shadow-sm">
-            <img src={logoAsset.url} alt="Days Inn" className="h-auto w-full object-contain" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#00243F] px-4 py-8">
+      <div className="w-full max-w-[390px] overflow-hidden rounded-[32px] border border-[#8B9CB3] bg-[#A8B7CA] shadow-[0_25px_50px_rgba(0,0,0,0.35)]">
+        <div className="bg-[#004986] px-6 pt-3.5 pb-6">
+          <div className="flex items-center justify-between text-[0.72rem] font-bold text-white">
+            <span className="tabular-nums">{clock}</span>
+            <span className="text-[0.6rem] tracking-[0.14em] text-white/55 uppercase">
+              Wildwood I-75
+            </span>
           </div>
-          <p className="mt-4 text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-            Housekeeping · Shift sign in
-          </p>
-          <h1 className="mt-1 font-serif text-3xl font-bold text-[#004986]">Good morning</h1>
-          <p className="mt-1 text-xs text-slate-500">Tap your name to start your shift</p>
+          <span className="mt-4 inline-flex rounded-lg bg-white px-2.5 py-1.5">
+            <img src={logoAsset.url} alt="Days Inn" className="block h-[22px] w-auto" />
+          </span>
+          <h1 className="mt-4 font-serif text-[1.45rem] font-bold text-white">
+            {greetingFor(now)}
+          </h1>
+          <p className="mt-1.5 text-[0.88rem] text-white/70">Tap your name to start your shift.</p>
         </div>
 
-        {/* Schedule List */}
-        <div className="mt-6 flex flex-col gap-2.5">
-          <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+        <div className="px-5 py-[18px] pb-6">
+          <p className="text-[0.62rem] font-bold tracking-[0.14em] text-[#4C5C74] uppercase">
             On the schedule today
           </p>
 
-          {displayMembers.map((member) => {
-            const initials = member.name
-              .split(" ")
-              .map((p) => p[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2);
+          <div className="mt-3 flex flex-col gap-2">
+            {displayMembers.map((member) => {
+              const initials = member.name
+                .split(" ")
+                .map((p) => p[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2);
 
-            return (
-              <button
-                key={member.id}
-                type="button"
-                disabled={busy}
-                onClick={() => void handleSelect(member)}
-                className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#004986] hover:shadow-md active:scale-[0.99]"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">
+              return (
+                <button
+                  key={member.id}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void handleSelect(member)}
+                  className="flex min-h-16 w-full items-center gap-3.5 rounded-2xl border border-[#9FAEC2] bg-[#D8E1EC] px-4 py-3 text-left transition active:translate-y-[1px] disabled:opacity-60"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#C9D4E1] text-[0.82rem] font-bold text-[#004986]">
                     {initials}
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-slate-900">{member.name}</p>
-                    <p className="text-xs text-slate-400">{member.zone ?? "Main building"}</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-[#004986]">
-                  Sign in →
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-bold text-[#004986]">{member.name}</span>
+                    <span className="mt-0.5 block text-[0.8rem] text-[#4C5C74]">
+                      {member.zone ?? "Main building"}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-        {rosterError ? (
-          <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
-            {rosterError}
-          </p>
-        ) : null}
+          {rosterError ? (
+            <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+              {rosterError}
+            </p>
+          ) : null}
 
-        <div className="mt-8 flex flex-col items-center gap-3 text-center">
-          <button
-            type="button"
-            onClick={() => toast.info("Please call the front desk for schedule adjustments.")}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+          <a
+            href={`tel:${FRONT_DESK_PHONE}`}
+            className="mt-4 grid min-h-12 w-full place-items-center rounded-xl border border-[#8B9CB3] text-[0.88rem] font-semibold text-[#004986]"
           >
             I'm not on this list
-          </button>
-          <Link to="/staff" className="text-xs font-bold text-[#004986] hover:underline">
-            ← Staff portal
-          </Link>
+          </a>
         </div>
       </div>
+
+      <Link
+        to="/staff"
+        className="mt-6 text-xs font-bold tracking-wider text-white/60 uppercase hover:text-[#D4AF37]"
+      >
+        ← Staff portal
+      </Link>
     </div>
   );
 }

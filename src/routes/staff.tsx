@@ -18,11 +18,14 @@ import { claimFirstManager } from "@/lib/roles.functions";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
-import { FloorPlan, type FloorView } from "@/components/floor-plan";
+import { type FloorView } from "@/components/floor-plan";
+import { LivePropertyMap, type LivePin } from "@/components/live-property-map";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
 import { NextActionCard, NextActionButton } from "@/components/ops/next-action";
 import { OpsStatStrip } from "@/components/ops/stat-strip";
+import { DemoTour } from "@/components/ops/demo-tour";
+import { OpsAssistant } from "@/components/ops-assistant";
 
 import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
@@ -35,6 +38,8 @@ import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
 import { canActOnScreen, canViewScreen, type OpsScreenId } from "@/lib/screen-access";
 import type { DashboardTab } from "@/components/staff/types";
 
+const EMPTY_DIMMED = new Set<string>();
+
 const TABS = [
   "queue",
   "map",
@@ -43,6 +48,7 @@ const TABS = [
   "analytics",
   "schedules",
   "assignments",
+  "assistant",
   "team",
 ] as const;
 
@@ -123,6 +129,7 @@ const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
   analytics: "analytics",
   schedules: "shifts",
   assignments: "assignments",
+  assistant: "assistant",
   team: "team",
 };
 
@@ -153,6 +160,18 @@ function Dashboard({ session }: { session: Session }) {
 
   const queue = useRequestQueue(canTriage, staff ?? null);
   const claimManager = useServerFn(claimFirstManager);
+
+  const mapPins = useMemo<LivePin[]>(
+    () =>
+      queue.rooms
+        .filter((r) => {
+          if (mapFloor === "both") return true;
+          const n = Number(r.number);
+          return mapFloor === 1 ? n < 200 : n >= 200;
+        })
+        .map((r) => ({ id: r.id, number: r.number, status: r.status as LivePin["status"] })),
+    [queue.rooms, mapFloor],
+  );
 
   const selectedRoom = useMemo(
     () => (selectedRoomId ? (queue.rooms.find((r) => r.id === selectedRoomId) ?? null) : null),
@@ -332,12 +351,33 @@ function Dashboard({ session }: { session: Session }) {
             />
           ) : activeTab === "map" ? (
             <div className="space-y-4 op-card p-6">
-              <FloorPlan
-                floor={mapFloor}
-                rooms={queue.rooms}
-                openRequests={queue.openRequestsByRoom}
-                onFloorChange={setMapFloor}
-                onSelect={(roomId) => setSelectedRoomId(roomId)}
+              <div className="flex flex-wrap items-center gap-2">
+                {([1, 2, "both"] as const).map((value) => (
+                  <button
+                    key={String(value)}
+                    type="button"
+                    onClick={() => setMapFloor(value)}
+                    aria-pressed={mapFloor === value}
+                    className={`min-h-10 rounded-lg border px-4 text-xs font-bold ${
+                      mapFloor === value
+                        ? "border-[#004986] bg-[#004986] text-white"
+                        : "border-[#C7D5E4] bg-white text-[#004986]"
+                    }`}
+                  >
+                    {value === 1 ? "Ground floor" : value === 2 ? "Upper floor" : "All rooms"}
+                  </button>
+                ))}
+              </div>
+              <LivePropertyMap
+                pins={mapPins}
+                selected={selectedRoom?.number ?? null}
+                dimmed={EMPTY_DIMMED}
+                shownLabel={`${mapPins.length} rooms · ${
+                  mapFloor === 1 ? "ground floor" : mapFloor === 2 ? "upper floor" : "all floors"
+                }`}
+                onSelect={(number: string) =>
+                  setSelectedRoomId(queue.rooms.find((r) => r.number === number)?.id ?? null)
+                }
               />
               <RoomInspector
                 room={selectedRoom}
@@ -368,6 +408,18 @@ function Dashboard({ session }: { session: Session }) {
             <div className="op-card p-6">
               <AssignmentBoard />
             </div>
+          ) : activeTab === "assistant" ? (
+            <div className="op-card space-y-4 p-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Ops Assistant</h2>
+                <p className="text-sm text-slate-600">
+                  Ask about the request queue, room assignments, and shift schedules.
+                </p>
+              </div>
+              <StaffErrorBoundary id="staff-assistant">
+                <OpsAssistant canAct={canActOnScreen(roles, "assistant")} />
+              </StaffErrorBoundary>
+            </div>
           ) : activeTab === "team" ? (
             <div className="space-y-6">
               <div className="op-card p-6">
@@ -384,6 +436,8 @@ function Dashboard({ session }: { session: Session }) {
           ) : null}
         </div>
       </main>
+
+      <DemoTour onGoTo={setActiveTab} canViewTab={canViewTab} />
     </div>
   );
 }

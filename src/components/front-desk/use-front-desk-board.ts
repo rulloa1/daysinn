@@ -77,7 +77,7 @@ export function useFrontDeskBoard() {
           .order("created_at", { ascending: false }),
         supabase
           .from("bookings")
-          .select("id, guest_name, room, phone, check_in, check_out, notes")
+          .select("id, guest_name, room, phone, check_in, check_out, notes, guest_email, guests, room_type")
           .order("check_in"),
         supabase
           .from("room_status_events")

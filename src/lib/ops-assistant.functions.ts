@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { generateText } from "ai";
 import { z } from "zod";
+import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
-const LOVABLE_AI_URL = "https://api.lovable.ai/v1/chat/completions";
-const AI_REQUEST_TIMEOUT_MS = 12_000;
+const AI_REQUEST_TIMEOUT_MS = 15_000;
 
 export type AssistantMessage = {
   role: "system" | "user" | "assistant";
@@ -12,7 +13,14 @@ export type AssistantMessage = {
 export type ToolParamValue = string | number | boolean | null;
 
 export type ToolCall = {
-  tool: "list_rooms" | "list_requests" | "update_room_status" | "update_request_status";
+  tool:
+    | "list_rooms"
+    | "list_requests"
+    | "list_assignments"
+    | "list_schedules"
+    | "property_summary"
+    | "update_room_status"
+    | "update_request_status";
   parameters: Record<string, ToolParamValue>;
 };
 
@@ -32,12 +40,17 @@ You help front-desk and housekeeping staff with quick property operations.
 
 You have access to these tools:
 - list_rooms({ status?, floor?, limit? }): List rooms on the front-desk board.
-- list_requests({ status?: "new" | "in_progress" | "resolved" | "all", room?, limit? }): List guest service requests.
+- list_requests({ status?: "new" | "in_progress" | "done" | "all", room?, limit? }): List guest service requests (the request queue).
+- list_assignments({ work_date?: "YYYY-MM-DD", staff_name?, limit? }): List which rooms are assigned to which housekeeper for a shift date.
+- list_schedules({ work_date?: "YYYY-MM-DD", staff_name?, department?, limit? }): List employee shift schedules with start and end times.
+- property_summary({}): Occupancy, clean/dirty counts, open requests and average response time.
 - update_room_status({ room_number, status: "clean" | "dirty" | "in_progress" | "inspected" | "out_of_order" | "occupied" | "vacant", dnd? }): Update a room's housekeeping status.
-- update_request_status({ request_id, status: "new" | "in_progress" | "resolved", note? }): Move a guest request through its workflow.
+- update_request_status({ request_id, status: "new" | "in_progress" | "done", note? }): Move a guest request through its workflow.
 
 When a staff member asks something that matches a tool, respond conversationally and include a tool_calls array. Example:
 {"reply": "I'll mark room 214 as clean for you.", "tool_calls": [{"tool": "update_room_status", "parameters": {"room_number": "214", "status": "clean"}}]}
+
+Questions about "who is cleaning what", "today's assignments" or "who is on shift" are answered with list_assignments or list_schedules. When the user says "today", pass today's date as work_date only if they gave it to you; otherwise omit work_date and summarise the most recent dates returned.
 
 If no tool is needed, reply naturally and omit tool_calls. Keep replies short and helpful. Never ask the user to provide a request ID; if they mention a room number, you can list requests for that room first to find the right ID, or ask them to confirm.`;
 
@@ -63,49 +76,34 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<AssistantResponse> => {
+.handler(async ({ data }): Promise<AssistantResponse> => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) {
       logAssistantFailure("LOVABLE_API_KEY is not configured");
       return UNAVAILABLE_RESPONSE;
     }
 
-    const messages: AssistantMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...data.messages.filter((message) => message.role !== "system"),
-    ];
+const messages = data.messages.filter((message) => message.role !== "system");
 
     try {
-      const res = await fetch(LOVABLE_AI_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${key}`,
-          "X-User-Id": context.userId ?? "anonymous",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        }),
-        signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
+const gateway = createLovableAiGatewayProvider(key);
+      const result = await generateText({
+        model: gateway("google/gemini-3.7-flash"),
+        system: SYSTEM_PROMPT,
+        messages,
+        temperature: 0.3,
+        abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
 
-      if (!res.ok) {
-        logAssistantFailure(`AI gateway responded with HTTP ${res.status}`);
-        return UNAVAILABLE_RESPONSE;
-      }
-
-      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = json.choices?.[0]?.message?.content?.trim();
+      const content = result.text.trim();
       if (!content) {
         logAssistantFailure("AI gateway response did not include message content");
         return UNAVAILABLE_RESPONSE;
       }
 
       try {
-        const parsed = JSON.parse(content) as Partial<AssistantResponse>;
+        const jsonText = content.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+        const parsed = JSON.parse(jsonText) as Partial<AssistantResponse>;
         if (typeof parsed.reply !== "string" || !parsed.reply.trim()) {
           logAssistantFailure("AI gateway response did not include a valid reply");
           return UNAVAILABLE_RESPONSE;

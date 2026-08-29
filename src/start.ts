@@ -7,12 +7,20 @@ import { optionalSupabaseAuth } from "@/integrations/supabase/optional-auth-midd
 
 // Verifies once per server process that the live database matches the
 // generated types (and that retired PIN columns are really gone).
-const schemaGuardMiddleware = createMiddleware().server(async ({ next }) => {
+const schemaGuardMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/lovable/")) {
+    return next();
+  }
   await assertSchemaIntegrity();
   return next();
 });
 
-const errorMiddleware = createMiddleware().server(async ({ next, handlerType }) => {
+const errorMiddleware = createMiddleware().server(async ({ next, handlerType, request }) => {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/lovable/")) {
+    return next();
+  }
   try {
     return await next();
   } catch (error) {

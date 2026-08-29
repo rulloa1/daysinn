@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   ListFilter,
@@ -8,9 +9,12 @@ import {
   Calendar,
   BarChart3,
   Printer,
+  LogOut,
 } from "lucide-react";
+import { toast } from "sonner";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import type { StaffIdentity } from "@/lib/ops";
+import { signOutStaff } from "@/lib/staff-signout";
 
 interface NavRailProps {
   current?: "board" | "queue" | "rooms" | "team" | "roles" | "shifts" | "reports" | "print";
@@ -76,7 +80,7 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
     },
   ] as const;
 
-  const initials = staff?.name
+const initials = staff?.name
     ? staff.name
         .split(" ")
         .map((p) => p[0])
@@ -84,6 +88,22 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
         .toUpperCase()
         .slice(0, 2)
     : "FD";
+
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+async function logOff() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOutStaff();
+      toast.success("Logged off successfully. See you next shift!");
+    } catch {
+      toast.error("Couldn't log off — please try again.");
+    } finally {
+      void navigate({ to: "/staff-login", replace: true });
+    }
+  }
 
   return (
     <nav
@@ -134,14 +154,28 @@ export function NavRail({ current = "board", staff }: NavRailProps) {
         })}
       </div>
 
-      {/* Staff profile badge */}
-      <div className="mt-auto pt-4">
+{/* Staff profile badge + log off */}
+      <div className="mt-auto flex flex-col items-center gap-4 pt-4">
         <div
           title={staff ? staff.name : "Front Desk"}
           className="grid h-9 w-9 place-items-center rounded-full bg-[#D4AF37] text-xs font-bold text-[#004986] shadow-sm ring-2 ring-white/20"
         >
           {initials}
         </div>
+        <button
+          type="button"
+          onClick={logOff}
+          disabled={signingOut}
+          title="Log off"
+          className="group flex flex-col items-center gap-1.5 text-center transition"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/12 text-white transition group-hover:bg-[#B91C1C] group-hover:text-white">
+            <LogOut className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <span className="text-[9px] font-bold tracking-wider uppercase transition text-white/60 group-hover:text-white">
+            {signingOut ? "Bye…" : "Log off"}
+          </span>
+        </button>
       </div>
     </nav>
   );

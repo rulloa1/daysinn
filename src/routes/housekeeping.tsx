@@ -28,6 +28,7 @@ import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel"
 import { IssueDialog } from "@/components/housekeeping/issue-dialog";
 import { RoomDetailDialog } from "@/components/housekeeping/room-detail-dialog";
 import { RoomSyncBanner } from "@/components/room-sync-banner";
+import { ShiftStart } from "@/components/housekeeping/shift-start";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { toast } from "sonner";
@@ -142,6 +143,23 @@ function HousekeepingWorkspace({
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
 
+  // The phone flow opens on the shift hand-off screen once per person per day,
+  // so a housekeeper confirms their sheet before the route view takes over.
+  const shiftKey = `daysinn.hk.shiftStarted.${staff.id}.${new Date().toDateString()}`;
+  const [shiftStarted, setShiftStarted] = useState(true);
+  useEffect(() => {
+    setShiftStarted(window.localStorage.getItem(shiftKey) === "1");
+  }, [shiftKey]);
+
+  const assignedRooms = useMemo(
+    () => board.rooms.filter((r) => r.assigned_staff_id === staff.id),
+    [board.rooms, staff.id],
+  );
+  const claimableRooms = useMemo(
+    () => board.rooms.filter((r) => !r.assigned_staff_id && r.status === "vacant_dirty"),
+    [board.rooms],
+  );
+
   // Compute priority room (the "Do this next" room on mobile)
   const nextRoom = useMemo(() => {
     const dirtyRooms = board.rooms.filter((r) => r.status === "vacant_dirty");
@@ -181,272 +199,311 @@ function HousekeepingWorkspace({
           {/* MOBILE PHONE ROUTE VIEW (< 1024px) */}
           {/* ============================================================ */}
           <div className="block lg:hidden">
-            {/* Top Mobile Bar */}
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
-                  {initials}
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#D4AF37] uppercase">
-                    Guest Hub · Housekeeping
-                  </p>
-                  <p className="mt-0.5 text-sm font-bold text-white">{staff.name}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Online &amp; synced
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onSignOut}
-                className="rounded-lg border border-white/25 px-2.5 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/10"
-              >
-                Sign out
-              </button>
-            </div>
-
-            {/* Mobile Tab Views */}
-            {mobileTab === "route" ? (
-              <div className="flex flex-col gap-4">
-                {/* "Do This Next" Hero Card */}
-                {nextRoom ? (
-                  <section className="rounded-2xl bg-[#004986] p-5 text-white shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-bold tracking-widest text-[#D4AF37] uppercase">
-                        Do this next
-                      </p>
-                      <span className="rounded-full bg-[#D4AF37]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#D4AF37]">
-                        Front desk priority
-                      </span>
-                    </div>
-
-                    <div className="mt-3 flex items-baseline gap-3">
-                      <span className="font-mono text-5xl font-bold tracking-tight">
-                        {nextRoom.number}
-                      </span>
-                      <span className="text-xs font-bold tracking-wider text-[#D4AF37] uppercase">
-                        Guest arriving 4 PM
-                      </span>
-                    </div>
-
-                    <p className="mt-2 text-xs leading-relaxed text-white/80">
-                      {nextRoom.bed_type || "1 King bed"} · Linens flagged. Main building, Floor{" "}
-                      {nextRoom.floor}.
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        board.setStatus(nextRoom, "vacant_clean");
-                      }}
-                      className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Mark room {nextRoom.number} clean
-                    </button>
-
-                    <div className="mt-2.5 grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIssueRoom(nextRoom)}
-                        className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
-                      >
-                        Flag issue
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toast.info(`Room ${nextRoom.number} skipped.`)}
-                        className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
-                      >
-                        Skip
-                      </button>
-                    </div>
-                  </section>
-                ) : null}
-
-                {/* Your Shift Progress Card */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-center justify-between text-xs">
-                    <p className="font-bold text-slate-700">
-                      {cleanCount} of {totalCount} done
-                    </p>
-                    <span className="font-mono text-slate-400">Since 8:00 AM</span>
-                  </div>
-                  <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-[#D4AF37] transition-all"
-                      style={{ width: `${progressPct}%` }}
-                    />
-                  </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-2.5 text-center">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">To clean</p>
-                      <p className="font-mono text-lg font-bold text-[#004986]">
-                        {totalCount - cleanCount}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Yours left</p>
-                      <p className="font-mono text-lg font-bold text-[#004986]">
-                        {totalCount - cleanCount}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">DND</p>
-                      <p className="font-mono text-lg font-bold text-[#7C3AED]">
-                        {board.rooms.filter((r) => r.status.includes("dnd")).length}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rest of Your Route */}
-                <div className="flex flex-col gap-2">
-                  <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                    Rest of your route · {board.rooms.length}
-                  </p>
-
-                  {board.rooms.map((room) => {
-                    const isClean = room.status === "vacant_clean";
-                    const isDnd = room.status.includes("dnd");
-
-                    return (
-                      <button
-                        key={room.id}
-                        type="button"
-                        onClick={() => setActiveRoom(room)}
-                        className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-[#004986]"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`h-9 w-1.5 rounded-full ${
-                              isClean ? "bg-[#0F7B4F]" : isDnd ? "bg-[#7C3AED]" : "bg-[#B45309]"
-                            }`}
-                          />
-                          <div>
-                            <span className="font-mono text-lg font-bold text-[#004986]">
-                              {room.number}
-                            </span>
-                            <p className="text-xs text-slate-500">
-                              {room.notes || `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                            isClean
-                              ? "bg-[#E7F4EE] text-[#0F7B4F]"
-                              : isDnd
-                                ? "bg-[#F1EAFC] text-[#7C3AED]"
-                                : "bg-[#FBF0E2] text-[#B45309]"
-                          }`}
-                        >
-                          {isClean ? "Ready" : isDnd ? "DND" : "Turn"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : mobileTab === "map" ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <FloorPlan
-                  floor={mapFloor}
-                  rooms={board.rooms}
-                  onFloorChange={setMapFloor}
-                  onSelect={(id) => {
-                    const r = board.rooms.find((rm) => rm.id === id);
-                    if (r) setActiveRoom(r);
-                  }}
-                />
-              </div>
-            ) : mobileTab === "issues" ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <MaintenanceTicketsPanel reporter={staff.name} reporterStaffId={staff.id ?? null} />
-              </div>
+            {!shiftStarted ? (
+              <ShiftStart
+                staffName={staff.name}
+                assigned={assignedRooms}
+                claimable={claimableRooms}
+                onToggleClaim={(room, toMe) => void board.setAssignment(room, toMe)}
+                onStart={() => {
+                  window.localStorage.setItem(shiftKey, "1");
+                  setShiftStarted(true);
+                }}
+              />
             ) : (
-              /* Shift Tab */
-              <div className="flex flex-col gap-4">
-                <div className="op-card p-5">
-                  <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                    Shift Summary
-                  </p>
-                  <h2 className="mt-1 font-serif text-2xl font-bold text-[#004986]">
-                    Nice work, {staff.name}
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-500">8:00 AM – Today on duty</p>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Rooms turned</p>
-                      <p className="font-mono text-xl font-bold text-[#0F7B4F]">{cleanCount}</p>
+              <>
+                {/* Top Mobile Bar */}
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
+                      {initials}
                     </div>
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Avg per room</p>
-                      <p className="font-mono text-xl font-bold text-[#004986]">34m</p>
+                    <div>
+                      <p className="text-[10px] font-bold tracking-[0.18em] text-[#D4AF37] uppercase">
+                        Guest Hub · Housekeeping
+                      </p>
+                      <p className="mt-0.5 text-sm font-bold text-white">{staff.name}</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        Online &amp; synced
+                      </p>
                     </div>
                   </div>
-
                   <button
                     type="button"
-                    onClick={() => {
-                      onSignOut();
-                      toast.success("Clocked out for the shift.");
-                    }}
-                    className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm"
+                    onClick={onSignOut}
+                    className="rounded-lg border border-white/25 px-2.5 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/10"
                   >
-                    Clock out
+                    Sign out
                   </button>
                 </div>
-              </div>
-            )}
 
-            {/* Mobile Fixed Bottom Navigation Bar */}
-            <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-slate-200 bg-white py-2 shadow-lg">
-              <button
-                type="button"
-                onClick={() => setMobileTab("route")}
-                className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                  mobileTab === "route" ? "text-[#004986]" : "text-slate-400"
-                }`}
-              >
-                <Footprints className="h-5 w-5" />
-                Route
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileTab("map")}
-                className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                  mobileTab === "map" ? "text-[#004986]" : "text-slate-400"
-                }`}
-              >
-                <MapIcon className="h-5 w-5" />
-                Map
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileTab("issues")}
-                className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                  mobileTab === "issues" ? "text-[#004986]" : "text-slate-400"
-                }`}
-              >
-                <Wrench className="h-5 w-5" />
-                Issues
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileTab("shift")}
-                className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                  mobileTab === "shift" ? "text-[#004986]" : "text-slate-400"
-                }`}
-              >
-                <Clock className="h-5 w-5" />
-                Shift
-              </button>
-            </nav>
+                {/* Mobile Tab Views */}
+                {mobileTab === "route" ? (
+                  <div className="flex flex-col gap-4">
+                    {/* "Do This Next" Hero Card */}
+                    {nextRoom ? (
+                      <section className="rounded-2xl bg-[#004986] p-5 text-white shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-bold tracking-widest text-[#D4AF37] uppercase">
+                            Do this next
+                          </p>
+                          <span className="rounded-full bg-[#D4AF37]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#D4AF37]">
+                            Front desk priority
+                          </span>
+                        </div>
+
+                        <div className="mt-3 flex items-baseline gap-3">
+                          <span className="font-mono text-5xl font-bold tracking-tight">
+                            {nextRoom.number}
+                          </span>
+                          <span className="text-xs font-bold tracking-wider text-[#D4AF37] uppercase">
+                            Guest arriving 4 PM
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs leading-relaxed text-white/80">
+                          {nextRoom.bed_type || "1 King bed"} · Linens flagged. Main building, Floor{" "}
+                          {nextRoom.floor}.
+                        </p>
+
+                        {nextRoom.hk_stage === "in_progress" ? (
+                          <p className="mt-2.5 text-[0.82rem] font-bold tabular-nums text-[#D4AF37]">
+                            In progress
+                          </p>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (nextRoom.hk_stage === "in_progress") {
+                              void board.setStatus(nextRoom, "vacant_clean");
+                              void board.setStage(nextRoom, null);
+                            } else {
+                              void board.setStage(nextRoom, "in_progress");
+                            }
+                          }}
+                          className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          {nextRoom.hk_stage === "in_progress"
+                            ? `Finish room ${nextRoom.number}`
+                            : `Start room ${nextRoom.number}`}
+                        </button>
+
+
+                        <div className="mt-2.5 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIssueRoom(nextRoom)}
+                            className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
+                          >
+                            Flag issue
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toast.info(`Room ${nextRoom.number} skipped.`)}
+                            className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
+                          >
+                            Skip
+                          </button>
+                        </div>
+                      </section>
+                    ) : null}
+
+                    {/* Your Shift Progress Card */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="flex items-center justify-between text-xs">
+                        <p className="font-bold text-slate-700">
+                          {cleanCount} of {totalCount} done
+                        </p>
+                        <span className="font-mono text-slate-400">Since 8:00 AM</span>
+                      </div>
+                      <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-[#D4AF37] transition-all"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-2.5 text-center">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">To clean</p>
+                          <p className="font-mono text-lg font-bold text-[#004986]">
+                            {totalCount - cleanCount}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            Yours left
+                          </p>
+                          <p className="font-mono text-lg font-bold text-[#004986]">
+                            {totalCount - cleanCount}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">DND</p>
+                          <p className="font-mono text-lg font-bold text-[#7C3AED]">
+                            {board.rooms.filter((r) => r.status.includes("dnd")).length}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rest of Your Route */}
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                        Rest of your route · {board.rooms.length}
+                      </p>
+
+                      {board.rooms.map((room) => {
+                        const isClean = room.status === "vacant_clean";
+                        const isDnd = room.status.includes("dnd");
+
+                        return (
+                          <button
+                            key={room.id}
+                            type="button"
+                            onClick={() => setActiveRoom(room)}
+                            className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-[#004986]"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`h-9 w-1.5 rounded-full ${
+                                  isClean ? "bg-[#0F7B4F]" : isDnd ? "bg-[#7C3AED]" : "bg-[#B45309]"
+                                }`}
+                              />
+                              <div>
+                                <span className="font-mono text-lg font-bold text-[#004986]">
+                                  {room.number}
+                                </span>
+                                <p className="text-xs text-slate-500">
+                                  {room.notes ||
+                                    `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                                isClean
+                                  ? "bg-[#E7F4EE] text-[#0F7B4F]"
+                                  : isDnd
+                                    ? "bg-[#F1EAFC] text-[#7C3AED]"
+                                    : "bg-[#FBF0E2] text-[#B45309]"
+                              }`}
+                            >
+                              {isClean ? "Ready" : isDnd ? "DND" : "Turn"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : mobileTab === "map" ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <FloorPlan
+                      floor={mapFloor}
+                      rooms={board.rooms}
+                      onFloorChange={setMapFloor}
+                      onSelect={(id) => {
+                        const r = board.rooms.find((rm) => rm.id === id);
+                        if (r) setActiveRoom(r);
+                      }}
+                    />
+                  </div>
+                ) : mobileTab === "issues" ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <MaintenanceTicketsPanel
+                      reporter={staff.name}
+                      reporterStaffId={staff.id ?? null}
+                    />
+                  </div>
+                ) : (
+                  /* Shift Tab */
+                  <div className="flex flex-col gap-4">
+                    <div className="op-card p-5">
+                      <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                        Shift Summary
+                      </p>
+                      <h2 className="mt-1 font-serif text-2xl font-bold text-[#004986]">
+                        Nice work, {staff.name}
+                      </h2>
+                      <p className="mt-1 text-xs text-slate-500">8:00 AM – Today on duty</p>
+
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            Rooms turned
+                          </p>
+                          <p className="font-mono text-xl font-bold text-[#0F7B4F]">{cleanCount}</p>
+                        </div>
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            Avg per room
+                          </p>
+                          <p className="font-mono text-xl font-bold text-[#004986]">34m</p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSignOut();
+                          toast.success("Clocked out for the shift.");
+                        }}
+                        className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm"
+                      >
+                        Clock out
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile Fixed Bottom Navigation Bar */}
+                <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-slate-200 bg-white py-2 shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("route")}
+                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
+                      mobileTab === "route" ? "text-[#004986]" : "text-slate-400"
+                    }`}
+                  >
+                    <Footprints className="h-5 w-5" />
+                    Route
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("map")}
+                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
+                      mobileTab === "map" ? "text-[#004986]" : "text-slate-400"
+                    }`}
+                  >
+                    <MapIcon className="h-5 w-5" />
+                    Map
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("issues")}
+                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
+                      mobileTab === "issues" ? "text-[#004986]" : "text-slate-400"
+                    }`}
+                  >
+                    <Wrench className="h-5 w-5" />
+                    Issues
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("shift")}
+                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
+                      mobileTab === "shift" ? "text-[#004986]" : "text-slate-400"
+                    }`}
+                  >
+                    <Clock className="h-5 w-5" />
+                    Shift
+                  </button>
+                </nav>
+              </>
+            )}
           </div>
 
           {/* ============================================================ */}

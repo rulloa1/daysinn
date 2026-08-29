@@ -108,12 +108,12 @@ for gone in ("237", "239"):
 # walk, portrait pool beside the east wing, porte-cochere and entry canopy.
 # ---------------------------------------------------------------------------
 C = {
-    "page":    "#dfe6ee",
-    "asphalt": "#5b6068",
-    "asphalt2": "#53575f",
+    "page":    "#d6e0ea",
+    "asphalt": "#666b73",
+    "asphalt2": "#5d626a",
     "stall":   "#ffffff",
-    "grass":   "#78ab55",
-    "grass2":  "#6b9d49",
+    "grass":   "#7cae57",
+    "grass2":  "#6ea24b",
     "grass3":  "#8cbb66",
     "tree":    "#4f8f3b",
     "treel":   "#6fb04c",
@@ -142,6 +142,10 @@ a('<linearGradient id="poolg" x1="0" y1="0" x2="1" y2="1">'
   f'<stop offset="0" stop-color="{C["pool"]}"/><stop offset="1" stop-color="{C["pooldk"]}"/></linearGradient>')
 a('<pattern id="hatch" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
   f'<rect width="14" height="14" fill="none"/><line x1="0" y1="0" x2="0" y2="14" stroke="{C["stall"]}" stroke-width="5"/></pattern>')
+a('<filter id="bshadow" x="-12%" y="-12%" width="130%" height="130%">'
+  '<feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#0d1b2a" flood-opacity="0.32"/></filter>')
+a('<filter id="softshadow" x="-30%" y="-30%" width="170%" height="170%">'
+  '<feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#0d1b2a" flood-opacity="0.28"/></filter>')
 a('</defs>')
 
 # ---- lot -------------------------------------------------------------------
@@ -151,7 +155,7 @@ a(f'<rect x="18" y="18" width="{W-36:.0f}" height="{H-36:.0f}" rx="26" fill="{C[
 # ---- planted perimeter -----------------------------------------------------
 def tree(x, y, r=15.0):
     return (f'<circle cx="{x:.0f}" cy="{y+3:.0f}" r="{r:.0f}" fill="{C["treesh"]}" opacity="0.5"/>'
-            f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.0f}" fill="{C["tree"]}"/>'
+            f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.0f}" fill="{C["tree"]}" filter="url(#softshadow)"/>'
             f'<circle cx="{x-r*0.3:.0f}" cy="{y-r*0.3:.0f}" r="{r*0.52:.0f}" fill="{C["treel"]}"/>')
 
 # grass verges hugging the lot edge
@@ -231,7 +235,7 @@ a(f'<rect x="650" y="232" width="26" height="408" fill="{C["walk"]}"/>')
 
 # ---- pool house + pool -----------------------------------------------------
 hx0, hy0, hx1, hy1 = POOL_HOUSE
-a(f'<rect x="{hx0:.0f}" y="{hy0:.0f}" width="{hx1-hx0:.0f}" height="{hy1-hy0:.0f}" rx="6" fill="{C["roof"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
+a(f'<rect x="{hx0:.0f}" y="{hy0:.0f}" width="{hx1-hx0:.0f}" height="{hy1-hy0:.0f}" rx="6" fill="{C["roof"]}" stroke="{C["roofed"]}" stroke-width="3" filter="url(#bshadow)"/>')
 px0, py0, px1, py1 = POOL
 a(f'<rect x="{px0:.0f}" y="{py0:.0f}" width="{px1-px0:.0f}" height="{py1-py0:.0f}" rx="5" fill="url(#poolg)" stroke="{C["pooldk"]}" stroke-width="3"/>')
 # lounge chairs down the deck
@@ -248,7 +252,7 @@ a(f'<rect x="{hx0+6:.0f}" y="{hy0-62:.0f}" width="62" height="52" rx="4" fill="{
 
 # ---- building shell --------------------------------------------------------
 a(f'<path d="M{LOBBY_X0} {WING_TOP} H{VWING_X1} V{VWING_Y0-46} H{VPARK_COL[0]} V{VWING_Y0} H{VWING_X0} V{WING_BOT} H{LOBBY_X0} Z" '
-  f'fill="url(#roofg)" stroke="{C["roofed"]}" stroke-width="3" stroke-linejoin="round"/>')
+  f'fill="url(#roofg)" stroke="{C["roofed"]}" stroke-width="3" stroke-linejoin="round" filter="url(#bshadow)"/>')
 
 for x0, y0, x1, y1, label, kind in cells:
     fill = C["svc"] if kind == "service" else "none"
@@ -261,9 +265,9 @@ a(f'<line x1="{VCOURT_COL[1]}" y1="{VWING_Y0}" x2="{VCOURT_COL[1]}" y2="{VWING_Y
 a(f'<line x1="{LOBBY_X1}" y1="{WING_TOP}" x2="{LOBBY_X1}" y2="{WING_BOT}" stroke="{C["line2"]}" stroke-width="2.5"/>')
 
 # porte-cochere off the lobby, entry canopy at the east elbow
-a(f'<rect x="180" y="{WING_BOT:.0f}" width="300" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
+a(f'<rect x="180" y="{WING_BOT:.0f}" width="300" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3" filter="url(#softshadow)"/>')
 a(f'<text x="330" y="{WING_BOT+53:.0f}" text-anchor="middle" font-size="13" font-weight="800" fill="{C["ink"]}" letter-spacing="1">PORTE-COCHÈRE</text>')
-a(f'<rect x="{VWING_X0:.0f}" y="{WING_BOT:.0f}" width="{VWING_X1-VWING_X0:.0f}" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3"/>')
+a(f'<rect x="{VWING_X0:.0f}" y="{WING_BOT:.0f}" width="{VWING_X1-VWING_X0:.0f}" height="88" rx="5" fill="{C["roofl"]}" stroke="{C["roofed"]}" stroke-width="3" filter="url(#softshadow)"/>')
 a(f'<text x="{(VWING_X0+VWING_X1)/2:.0f}" y="{WING_BOT+53:.0f}" text-anchor="middle" font-size="13" font-weight="800" fill="{C["ink"]}" letter-spacing="1">CANOPY</text>')
 
 # ---- labels ----------------------------------------------------------------
