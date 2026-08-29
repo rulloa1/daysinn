@@ -118,7 +118,7 @@ function GuestView() {
             <BrandLockup tone="cream" plate />
             <div className="flex flex-wrap items-center gap-5">
               <Link
-                to="/staff"
+                to="/staff-login"
                 className="signage font-bold text-white/70 transition-colors hover:text-white"
               >
                 Staff portal
