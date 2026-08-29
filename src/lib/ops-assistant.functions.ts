@@ -64,7 +64,7 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<AssistantResponse> => {
+  .handler(async ({ data }): Promise<AssistantResponse> => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) {
       logAssistantFailure("LOVABLE_API_KEY is not configured");
