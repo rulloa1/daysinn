@@ -48,34 +48,41 @@ export const Route = createFileRoute("/staff")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  beforeLoad: async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw redirect({ to: "/staff-login" });
+  },
   errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: StaffPage,
 });
 
 function StaffPage() {
+  const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      if (!next) void navigate({ to: "/staff-login", replace: true });
     });
     supabase.auth.getSession().then(({ data: { session: current } }) => {
       setSession(current);
       setReady(true);
+      if (!current) void navigate({ to: "/staff-login", replace: true });
     });
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
-  if (!ready) {
+  if (!ready || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
         Loading Staff Portal…
       </div>
     );
   }
-
-  if (!session) return <SignIn />;
 
   return (
     <PasswordResetGate>
