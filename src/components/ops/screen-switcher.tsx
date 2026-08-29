@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { canViewScreen } from "@/lib/screen-access";
 import { signOutStaff } from "@/lib/staff-signout";
@@ -32,11 +33,14 @@ export function OpsScreenSwitcher({ current }: { current: OpsScreen }) {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
-  async function logOff() {
+async function logOff() {
     if (signingOut) return;
     setSigningOut(true);
     try {
       await signOutStaff();
+      toast.success("Logged off successfully. See you next shift!");
+    } catch {
+      toast.error("Couldn't log off — please try again.");
     } finally {
       void navigate({ to: "/staff-login", replace: true });
     }
