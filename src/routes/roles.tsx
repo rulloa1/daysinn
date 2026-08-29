@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
+import { canViewScreen } from "@/lib/screen-access";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
