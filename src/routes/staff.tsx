@@ -153,17 +153,8 @@ function Dashboard({ session }: { session: Session }) {
     setClaiming(false);
   }
 
-  if (!staff && !pickerSkipped) {
-    return (
-      <StaffNamePicker
-        members={members}
-        onSelect={select}
-        rosterError={rosterError}
-        onSkip={() => setPickerSkipped(true)}
-      />
-    );
-  }
-
+  // Hooks must run before any early return, or selecting a staff name changes
+  // the hook order and tears down the live subscriptions mid-session.
   const roomStats = useMemo(() => {
     const total = queue.rooms.length;
     const dirty = queue.rooms.filter((r) => r.status === "vacant_dirty").length;
@@ -183,6 +174,18 @@ function Dashboard({ session }: { session: Session }) {
       }),
     [],
   );
+
+  if (!staff && !pickerSkipped) {
+    return (
+      <StaffNamePicker
+        members={members}
+        onSelect={select}
+        rosterError={rosterError}
+        onSkip={() => setPickerSkipped(true)}
+      />
+    );
+  }
+
 
   return (
     <div className="ops-portal flex min-h-screen">
