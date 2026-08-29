@@ -32,8 +32,33 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Run quality gate
-        run: npm run verify
+      # Run the gate stage by stage rather than through `npm run verify`, so a
+      # failure names the stage that broke instead of one opaque exit code.
+      # `npm run verify` still chains the same stages in the same order locally.
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # `npm run verify` builds, which regenerates src/routeTree.gen.ts. If that
+      # leaves the tree dirty, the committed copy was stale — the state that kept
+      # this gate red on every branch until it was noticed.
+      - name: Check generated files are current
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Generated files are out of date. Run 'npm run build' and commit the result."
+            exit 1
+          fi
 
       - name: Check production dependency severity
         run: npm audit --omit=dev --audit-level=high
