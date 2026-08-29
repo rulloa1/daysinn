@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { generateText } from "ai";
 import { z } from "zod";
+import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
-const LOVABLE_AI_URL = "https://api.lovable.ai/v1/chat/completions";
-const AI_REQUEST_TIMEOUT_MS = 12_000;
+const AI_REQUEST_TIMEOUT_MS = 15_000;
 
 export type AssistantMessage = {
   role: "system" | "user" | "assistant";
