@@ -24,8 +24,10 @@ import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { SignIn } from "@/components/staff/sign-in";
+import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import type { DashboardTab } from "@/components/staff/types";
 
 export const Route = createFileRoute("/staff")({
@@ -46,6 +48,7 @@ export const Route = createFileRoute("/staff")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: StaffPage,
 });
 
@@ -85,7 +88,8 @@ function Dashboard({ session }: { session: Session }) {
   const role = useStaffRole();
   const { isManager, canTriage, loading: roleLoading, refresh } = role;
   const canEditCrm = isManager || role.roles.includes("staff");
-  const { staff } = useStaffIdentity();
+  const { staff, members, select, error: rosterError } = useStaffIdentity();
+  const [pickerSkipped, setPickerSkipped] = useState(false);
 
   const [activeTab, setActiveTab] = useState<DashboardTab>("queue");
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
@@ -114,6 +118,17 @@ function Dashboard({ session }: { session: Session }) {
       toast.error("Couldn't complete setup.");
     }
     setClaiming(false);
+  }
+
+  if (!staff && !pickerSkipped) {
+    return (
+      <StaffNamePicker
+        members={members}
+        onSelect={select}
+        rosterError={rosterError}
+        onSkip={() => setPickerSkipped(true)}
+      />
+    );
   }
 
   return (
@@ -211,7 +226,9 @@ function Dashboard({ session }: { session: Session }) {
           ) : activeTab === "team" ? (
             <div className="space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <TeamPanel />
+                <StaffErrorBoundary id="staff-team">
+                  <TeamPanel />
+                </StaffErrorBoundary>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <InvitePanel />
