@@ -13,7 +13,9 @@ export type { AvailabilityRow };
  * rate, taxes and terms are settled in the Wyndham booking flow.
  */
 export function useAvailability() {
+  const fetchAvailability = useServerFn(checkAvailability);
   const [checkIn, setCheckIn] = useState("");
+
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
   const [rows, setRows] = useState<AvailabilityRow[] | null>(null);
