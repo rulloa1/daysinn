@@ -23,7 +23,12 @@ export const Route = createFileRoute("/manuals/")({
 });
 
 type DocPath =
-  "/manuals/front-desk" | "/manuals/housekeeping" | "/manuals/manager" | "/pitch" | "/collateral";
+  | "/manuals/front-desk"
+  | "/manuals/housekeeping"
+  | "/manuals/manager"
+  | "/pitch"
+  | "/collateral"
+  | "/owner-packet";
 
 type Doc = {
   to: DocPath;
