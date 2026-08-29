@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { average } from "@/lib/ops";
 import { ASSISTANT_ROOM_STATUSES, fromAssistantRoomStatus } from "@/lib/room-model";
 import type { Database } from "@/integrations/supabase/types";
@@ -25,7 +26,8 @@ function toSerializable(records: unknown[]): SerializableRecord[] {
 }
 
 export const listRooms = createServerFn({ method: "GET" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         status: z.string().trim().optional(),
@@ -45,7 +47,8 @@ export const listRooms = createServerFn({ method: "GET" })
   });
 
 export const listRequests = createServerFn({ method: "GET" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         status: z.enum(["new", "in_progress", "done", "all"]).default("all"),
@@ -65,7 +68,8 @@ export const listRequests = createServerFn({ method: "GET" })
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         room_number: z.string().trim().min(1).max(10),
@@ -99,7 +103,8 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         request_id: z.string().uuid(),
@@ -145,7 +150,8 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
-  .validator((input) => z.object({}).parse(input ?? {}))
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data: rooms, error: roomsError } = await context.supabase.rpc("rooms_board");
     if (roomsError) throw new Error(roomsError.message);
