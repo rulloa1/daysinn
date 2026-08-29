@@ -117,6 +117,17 @@ function Dashboard({ session }: { session: Session }) {
     setClaiming(false);
   }
 
+  if (!staff && !pickerSkipped) {
+    return (
+      <StaffNamePicker
+        members={members}
+        onSelect={select}
+        rosterError={rosterError}
+        onSkip={() => setPickerSkipped(true)}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
       {/* Navigation Rail */}
