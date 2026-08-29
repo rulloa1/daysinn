@@ -25,11 +25,11 @@ type Props = {
 export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onSelect }: Props) {
   return (
     <section
-      className="min-w-0 flex-[1_1_620px] rounded-2xl border border-[var(--lm-border-strong)] bg-[var(--lm-panel-strong)] p-[clamp(10px,2vw,14px)] shadow-[0_10px_15px_rgba(0,36,63,0.12)]"
+      className="min-w-0 flex-[1_1_620px] rounded-[22px] border border-[#C7D5E4] bg-[#E7EEF6] p-[clamp(8px,1.4vw,12px)] shadow-[0_18px_40px_rgba(0,36,63,0.18)]"
       aria-label="Live property map"
     >
-      <div className="overflow-x-auto rounded-xl bg-[var(--lm-plate)]">
-        <div className="relative w-full min-w-[660px] bg-[var(--lm-plate)] [container-type:inline-size]">
+      <div className="overflow-x-auto rounded-[16px] bg-[#DDE6F0] p-[clamp(4px,0.8vw,8px)]">
+        <div className="relative w-full min-w-[660px] overflow-hidden rounded-[12px] [container-type:inline-size]">
           <img
             src={propertyMapImage}
             alt="Days Inn Wildwood site plan"
@@ -47,14 +47,17 @@ export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onS
                 type="button"
                 title={`Room ${pin.number} · ${meta.label}`}
                 onClick={() => onSelect(pin.number)}
-                className="absolute flex min-h-[clamp(13px,1.5cqi,18px)] min-w-[clamp(19px,2.1cqi,26px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[3px] border px-[0.3cqi] font-mono text-[clamp(7.5px,1.02cqi,11px)] leading-[1.15] font-bold shadow-[0_1px_2px_rgba(0,36,63,0.3)] transition-opacity"
+                className="absolute flex min-h-[clamp(14px,1.65cqi,20px)] min-w-[clamp(21px,2.35cqi,29px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[5px] border px-[0.35cqi] text-[clamp(8px,1.08cqi,12px)] leading-[1.15] font-extrabold tracking-[0.01em] shadow-[0_2px_4px_rgba(0,36,63,0.35)] transition-transform hover:scale-[1.08]"
                 style={{
                   left: `${coords[0]}%`,
                   top: `${coords[1]}%`,
                   zIndex: isSelected ? 15 : 10,
-                  background: isSelected ? "var(--lm-blue-deep)" : meta.pill,
-                  color: isSelected ? "#ffffff" : meta.pillFg,
-                  borderColor: isSelected ? "var(--lm-gold)" : meta.color,
+                  background: meta.pill,
+                  color: meta.pillFg,
+                  borderColor: isSelected ? "#0B2545" : "rgba(255,255,255,0.55)",
+                  boxShadow: isSelected
+                    ? "0 0 0 2px #0B2545, 0 3px 6px rgba(0,36,63,0.4)"
+                    : undefined,
                   opacity: dimmed.has(pin.number) ? 0.25 : 1,
                   animation: flash === pin.number ? "lm-flash 2.6s ease-out 1" : "none",
                 }}
@@ -66,25 +69,26 @@ export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onS
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="mt-[clamp(6px,1vw,10px)] rounded-[14px] bg-white px-[clamp(12px,2vw,20px)] py-[clamp(10px,1.6vw,14px)] shadow-[0_2px_6px_rgba(0,36,63,0.08)]">
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
           {LIVE_STATUS_ORDER.map((status) => (
             <span
               key={status}
-              className="flex items-center gap-[7px] text-[0.72rem] font-semibold text-[var(--lm-body-strong)]"
+              className="flex items-center gap-2 text-[0.82rem] font-semibold text-slate-700"
             >
               <span
-                className="h-[9px] w-[9px] rounded-full"
-                style={{ background: LIVE_STATUS_META[status].color }}
+                className="h-[11px] w-[11px] rounded-full"
+                style={{ background: LIVE_STATUS_META[status].pill }}
               />
-              {LIVE_STATUS_META[status].label}
+              {LIVE_STATUS_META[status].mapLabel}
             </span>
           ))}
         </div>
-        <span className="text-[0.72rem] font-bold text-[var(--lm-body)]">
+        <p className="mt-2 text-[0.78rem] font-semibold text-slate-500">
           {shownLabel} · tap a room for details
-        </span>
+        </p>
       </div>
     </section>
   );
 }
+
