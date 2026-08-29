@@ -189,3 +189,69 @@ export const getPropertySummary = createServerFn({ method: "GET" })
       averageResponseSeconds: avgResponse,
     };
   });
+
+export const listAssignments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        work_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        staff_name: z.string().trim().max(80).optional(),
+        limit: z.coerce.number().int().min(1).max(200).default(100),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
+      .from("shift_room_assignments")
+      .select("id, work_date, staff_name, room_number, schedule_id")
+      .order("work_date", { ascending: false })
+      .order("room_number")
+      .limit(data.limit);
+
+    if (data.work_date) query = query.eq("work_date", data.work_date);
+    if (data.staff_name) query = query.ilike("staff_name", `%${data.staff_name}%`);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const assignments = toSerializable(rows ?? []);
+    return { count: assignments.length, assignments };
+  });
+
+export const listSchedules = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        work_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        staff_name: z.string().trim().max(80).optional(),
+        department: z.string().trim().max(40).optional(),
+        limit: z.coerce.number().int().min(1).max(200).default(100),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
+      .from("staff_schedules")
+      .select("id, work_date, staff_name, department, start_time, end_time, published, notes")
+      .order("work_date", { ascending: false })
+      .order("start_time")
+      .limit(data.limit);
+
+    if (data.work_date) query = query.eq("work_date", data.work_date);
+    if (data.staff_name) query = query.ilike("staff_name", `%${data.staff_name}%`);
+    if (data.department) query = query.eq("department", data.department);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const schedules = toSerializable(rows ?? []);
+    return { count: schedules.length, schedules };
+  });
