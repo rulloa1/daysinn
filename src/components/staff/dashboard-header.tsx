@@ -4,13 +4,17 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { BrandLockup } from "@/components/brand-lockup";
 
-const DESKTOP_LINK = "text-xs font-bold uppercase tracking-wider text-slate-500 transition hover:text-[#004986]";
+const DESKTOP_LINK =
+  "text-xs font-bold uppercase tracking-wider text-slate-500 transition hover:text-[#004986]";
 const SHEET_LINK =
   "rounded-xl border border-slate-200 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-100";
 
 /** Destinations shared by the desktop nav and the mobile sheet. */
 function navTargets(isManager: boolean) {
-  const targets: { to: "/front-desk" | "/housekeeping" | "/collateral" | "/roles" | "/"; label: string }[] = [
+  const targets: {
+    to: "/front-desk" | "/housekeeping" | "/collateral" | "/roles" | "/";
+    label: string;
+  }[] = [
     { to: "/front-desk", label: "Front desk" },
     { to: "/housekeeping", label: "Housekeeping" },
     { to: "/collateral", label: "Print Cards" },

@@ -21,6 +21,7 @@ import {
   getRoomStatusBreakdown,
   getTurnaroundByHousekeeper,
 } from "@/lib/analytics.functions";
+import type { NameType, Payload, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { formatDuration } from "@/lib/ops";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +37,15 @@ const STATUS_COLORS: Record<string, string> = {
   out_of_order: "#64748B",
 };
 
+type TurnaroundRow = { name: string; avgSeconds: number; count: number };
+
+type RequestRow = {
+  type: string;
+  count: number;
+  resolved: number;
+  avgResponseSeconds: number | null;
+};
+
 const REQUEST_COLORS = ["#004986", "#D4AF37", "#0F7B4F", "#B45309", "#7C3AED", "#0E7490"];
 
 export function AnalyticsDashboard() {
@@ -47,12 +57,8 @@ export function AnalyticsDashboard() {
   const [days, setDays] = useState(14);
   const [occupancy, setOccupancy] = useState<{ date: string; occupancy: number }[]>([]);
   const [status, setStatus] = useState<{ status: string; count: number }[]>([]);
-  const [turnaround, setTurnaround] = useState<
-    { name: string; avgSeconds: number; count: number }[]
-  >([]);
-  const [requests, setRequests] = useState<
-    { type: string; count: number; resolved: number; avgResponseSeconds: number | null }[]
-  >([]);
+  const [turnaround, setTurnaround] = useState<TurnaroundRow[]>([]);
+  const [requests, setRequests] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -183,7 +189,7 @@ export function AnalyticsDashboard() {
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
-                      formatter={(v: any) => [`${v}%`, "Occupancy"]}
+                      formatter={(v: ValueType) => [`${v}%`, "Occupancy"]}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -280,10 +286,14 @@ export function AnalyticsDashboard() {
                       }}
                     />
                     <Tooltip
-                      formatter={(v: any, _name: any, item: any) => [
-                        `${v} min (${item.payload.count} turns)`,
-                        "Avg Turnover",
-                      ]}
+                      formatter={(
+                        v: ValueType,
+                        _name: NameType,
+                        item: Payload<ValueType, NameType>,
+                      ) => {
+                        const row = item.payload as TurnaroundRow;
+                        return [`${v} min (${row.count} turns)`, "Avg Turnover"];
+                      }}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -321,12 +331,18 @@ export function AnalyticsDashboard() {
                     <XAxis dataKey="type" tick={{ fill: "#64748B", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#64748B", fontSize: 11 }} />
                     <Tooltip
-                      formatter={(v: any, name: any, item: any) => [
-                        name === "resolved"
-                          ? `${v} resolved (${item.payload.avgResponseSeconds ? formatDuration(item.payload.avgResponseSeconds) : "n/a"} avg)`
-                          : `${v} requests`,
-                        name === "resolved" ? "Resolved" : "Total",
-                      ]}
+                      formatter={(
+                        v: ValueType,
+                        name: NameType,
+                        item: Payload<ValueType, NameType>,
+                      ) => {
+                        const row = item.payload as RequestRow;
+                        if (name !== "resolved") return [`${v} requests`, "Total"];
+                        const avg = row.avgResponseSeconds
+                          ? formatDuration(row.avgResponseSeconds)
+                          : "n/a";
+                        return [`${v} resolved (${avg} avg)`, "Resolved"];
+                      }}
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
                         borderColor: "#CBD5E1",
@@ -337,7 +353,12 @@ export function AnalyticsDashboard() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="count" fill="#004986" name="Total Requests" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="count"
+                      fill="#004986"
+                      name="Total Requests"
+                      radius={[4, 4, 0, 0]}
+                    />
                     <Bar dataKey="resolved" fill="#0F7B4F" name="Resolved" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>

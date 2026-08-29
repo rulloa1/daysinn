@@ -59,7 +59,8 @@ function RolesPage() {
               Team &amp; Role Management
             </h1>
             <p className="mt-1.5 text-xs text-slate-500">
-              Manage team members, assign department roles, configure staff PINs, and enforce security policies.
+              Manage team members, assign department roles, configure staff PINs, and enforce
+              security policies.
             </p>
           </div>
 
