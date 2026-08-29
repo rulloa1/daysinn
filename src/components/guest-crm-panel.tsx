@@ -129,25 +129,30 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <section className="mt-10 border border-cream/15 bg-cream/[0.04] p-5">
+    <section>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl">Guest CRM</h2>
-          <p className="mt-1 text-sm text-cream/60">
+          <h2 className="font-serif text-2xl font-bold text-brand-blue">Guest CRM</h2>
+          <p className="mt-1 text-sm text-slate-500">
             Stay history, preferences, and contact notes.
           </p>
         </div>
         {canEdit ? (
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-amber text-ink hover:bg-amber/90">
+              <Button
+                size="sm"
+                className="bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add guest
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-cream/15 bg-ink text-cream">
+            <DialogContent className="border-slate-200 bg-white text-slate-800">
               <DialogHeader>
-                <DialogTitle className="text-cream">Add guest profile</DialogTitle>
+                <DialogTitle className="font-serif font-bold text-brand-blue">
+                  Add guest profile
+                </DialogTitle>
               </DialogHeader>
               <ProfileForm onSubmit={(form) => saveProfile(form)} />
             </DialogContent>
@@ -156,44 +161,49 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
       </div>
 
       <div className="relative mt-5">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/40" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, email, or phone"
-          className="border-cream/15 bg-cream/[0.04] pl-10 text-cream placeholder:text-cream/40"
+          className="border-slate-200 bg-white pl-10 text-slate-800 placeholder:text-slate-400"
         />
       </div>
 
       {loading ? (
-        <p className="mt-6 text-sm text-cream/50">Loading…</p>
+        <p className="mt-6 text-sm text-slate-500">Loading…</p>
       ) : profiles.length === 0 ? (
-        <div className="mt-6 border border-dashed border-cream/20 p-8 text-center">
-          <p className="font-display text-xl">No guests found</p>
-          <p className="mt-1 text-sm text-cream/50">
+        <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-8 text-center">
+          <p className="font-serif text-xl font-bold text-brand-blue">No guests found</p>
+          <p className="mt-1 text-sm text-slate-500">
             {query ? "Try a different search." : "Add a guest profile to start tracking stays."}
           </p>
         </div>
       ) : (
         <ul className="mt-6 space-y-3">
           {profiles.map(({ profile, stays }) => (
-            <li key={profile.id} className="border border-cream/15 bg-ink p-4">
+            <li
+              key={profile.id}
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
-                    <User className="h-4 w-4 text-amber" />
-                    <span className="font-display text-xl">{profile.name}</span>
+                    <User className="h-4 w-4 text-brand-gold" />
+                    <span className="font-serif text-xl font-bold text-brand-blue">
+                      {profile.name}
+                    </span>
                     {stays.length > 0 ? (
-                      <Badge className="bg-cream/15 text-cream">
+                      <Badge className="bg-slate-100 text-slate-800">
                         {stays.length} stay{stays.length === 1 ? "" : "s"}
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-cream/25 text-cream/60">
+                      <Badge variant="outline" className="border-slate-300 text-slate-500">
                         No stays
                       </Badge>
                     )}
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-cream/60">
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
                     {profile.email ? <span>{profile.email}</span> : null}
                     {profile.phone ? <span>{profile.phone}</span> : null}
                     {profile.notes ? (
@@ -208,14 +218,16 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                          className="border-slate-300 bg-transparent text-slate-800 hover:bg-slate-50 hover:text-slate-900"
                         >
                           Edit
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="border-cream/15 bg-ink text-cream">
+                      <DialogContent className="border-slate-200 bg-white text-slate-800">
                         <DialogHeader>
-                          <DialogTitle className="text-cream">Edit guest profile</DialogTitle>
+                          <DialogTitle className="font-serif font-bold text-brand-blue">
+                            Edit guest profile
+                          </DialogTitle>
                         </DialogHeader>
                         <ProfileForm
                           profile={profile}
@@ -227,7 +239,7 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-cream/60 hover:text-cream"
+                    className="text-slate-500 hover:text-slate-900"
                     onClick={() => toggle(profile.id)}
                   >
                     {expanded[profile.id] ? (
@@ -241,23 +253,23 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
               </div>
 
               {expanded[profile.id] ? (
-                <div className="mt-4 border-t border-cream/10 pt-4">
+                <div className="mt-4 border-t border-slate-200 pt-4">
                   {Object.keys(profile.preferences).length > 0 ? (
                     <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {Object.entries(profile.preferences).map(([k, v]) => (
                         <div
                           key={k}
-                          className="rounded border border-cream/10 bg-cream/[0.03] px-3 py-2"
+                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                         >
-                          <p className="text-xs uppercase tracking-wide text-cream/40">{k}</p>
-                          <p className="text-sm text-cream">{String(v)}</p>
+                          <p className="text-xs uppercase tracking-wide text-slate-400">{k}</p>
+                          <p className="text-sm text-slate-800">{String(v)}</p>
                         </div>
                       ))}
                     </div>
                   ) : null}
 
                   <div className="flex items-center justify-between">
-                    <h3 className="signage flex items-center gap-2 text-cream/70">
+                    <h3 className="signage flex items-center gap-2 text-brand-gold">
                       <Calendar className="h-4 w-4" />
                       Stay history
                     </h3>
@@ -267,15 +279,17 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-cream/25 bg-transparent text-cream hover:bg-cream/10 hover:text-cream"
+                            className="border-slate-300 bg-transparent text-slate-800 hover:bg-slate-50 hover:text-slate-900"
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             Add stay
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="border-cream/15 bg-ink text-cream">
+                        <DialogContent className="border-slate-200 bg-white text-slate-800">
                           <DialogHeader>
-                            <DialogTitle className="text-cream">Add stay</DialogTitle>
+                            <DialogTitle className="font-serif font-bold text-brand-blue">
+                              Add stay
+                            </DialogTitle>
                           </DialogHeader>
                           <StayForm onSubmit={(form) => saveStay(form, profile.id)} />
                         </DialogContent>
@@ -284,7 +298,7 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                   </div>
 
                   {stays.length === 0 ? (
-                    <p className="mt-3 text-sm text-cream/50">No stays recorded yet.</p>
+                    <p className="mt-3 text-sm text-slate-500">No stays recorded yet.</p>
                   ) : (
                     <ul className="mt-3 space-y-2">
                       {stays
@@ -295,21 +309,21 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                         .map((stay) => (
                           <li
                             key={stay.id}
-                            className="flex flex-wrap items-center justify-between gap-3 rounded border border-cream/10 bg-cream/[0.03] px-3 py-2"
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                           >
                             <div className="flex items-center gap-3 text-sm">
-                              <BedDouble className="h-4 w-4 text-cream/40" />
-                              <span className="font-display text-lg tabular-nums">
+                              <BedDouble className="h-4 w-4 text-slate-400" />
+                              <span className="font-mono text-lg font-bold text-brand-blue tabular-nums">
                                 {stay.room_number}
                               </span>
-                              <span className="text-cream/60">{stay.check_in}</span>
+                              <span className="text-slate-500">{stay.check_in}</span>
                               {stay.check_out ? (
-                                <span className="text-cream/40">→ {stay.check_out}</span>
+                                <span className="text-slate-400">→ {stay.check_out}</span>
                               ) : (
-                                <span className="text-cream/40">→ present</span>
+                                <span className="text-slate-400">→ present</span>
                               )}
                               {stay.notes ? (
-                                <span className="text-cream/70">· {stay.notes}</span>
+                                <span className="text-slate-600">· {stay.notes}</span>
                               ) : null}
                             </div>
                             {canEdit ? (
@@ -318,14 +332,16 @@ export function GuestCrmPanel({ canEdit }: { canEdit: boolean }) {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="text-cream/60 hover:text-cream"
+                                    className="text-slate-500 hover:text-slate-900"
                                   >
                                     Edit
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="border-cream/15 bg-ink text-cream">
+                                <DialogContent className="border-slate-200 bg-white text-slate-800">
                                   <DialogHeader>
-                                    <DialogTitle className="text-cream">Edit stay</DialogTitle>
+                                    <DialogTitle className="font-serif font-bold text-brand-blue">
+                                      Edit stay
+                                    </DialogTitle>
                                   </DialogHeader>
                                   <StayForm
                                     stay={stay}
@@ -373,7 +389,7 @@ function ProfileForm({
           name="name"
           defaultValue={profile?.name}
           required
-          className="border-cream/15 bg-cream/[0.04] text-cream"
+          className="border-slate-200 bg-white text-slate-800"
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -384,7 +400,7 @@ function ProfileForm({
             name="email"
             type="email"
             defaultValue={profile?.email ?? ""}
-            className="border-cream/15 bg-cream/[0.04] text-cream"
+            className="border-slate-200 bg-white text-slate-800"
           />
         </div>
         <div className="space-y-2">
@@ -393,7 +409,7 @@ function ProfileForm({
             id="phone"
             name="phone"
             defaultValue={profile?.phone ?? ""}
-            className="border-cream/15 bg-cream/[0.04] text-cream"
+            className="border-slate-200 bg-white text-slate-800"
           />
         </div>
       </div>
@@ -410,7 +426,7 @@ function ProfileForm({
               : ""
           }
           rows={3}
-          className="w-full rounded-md border border-cream/15 bg-cream/[0.04] p-3 text-sm text-cream placeholder:text-cream/40"
+          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-800 placeholder:text-slate-400"
         />
       </div>
       <div className="space-y-2">
@@ -420,10 +436,13 @@ function ProfileForm({
           name="notes"
           defaultValue={profile?.notes ?? ""}
           rows={2}
-          className="w-full rounded-md border border-cream/15 bg-cream/[0.04] p-3 text-sm text-cream placeholder:text-cream/40"
+          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-800 placeholder:text-slate-400"
         />
       </div>
-      <Button type="submit" className="w-full bg-amber text-ink hover:bg-amber/90">
+      <Button
+        type="submit"
+        className="w-full bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
+      >
         {profile ? "Save changes" : "Create profile"}
       </Button>
     </form>
@@ -446,7 +465,7 @@ function StayForm({ stay, onSubmit }: { stay?: GuestStay; onSubmit: (form: FormD
           name="room_number"
           defaultValue={stay?.room_number}
           required
-          className="border-cream/15 bg-cream/[0.04] text-cream"
+          className="border-slate-200 bg-white text-slate-800"
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -458,7 +477,7 @@ function StayForm({ stay, onSubmit }: { stay?: GuestStay; onSubmit: (form: FormD
             type="date"
             defaultValue={stay?.check_in}
             required
-            className="border-cream/15 bg-cream/[0.04] text-cream"
+            className="border-slate-200 bg-white text-slate-800"
           />
         </div>
         <div className="space-y-2">
@@ -468,7 +487,7 @@ function StayForm({ stay, onSubmit }: { stay?: GuestStay; onSubmit: (form: FormD
             name="check_out"
             type="date"
             defaultValue={stay?.check_out ?? ""}
-            className="border-cream/15 bg-cream/[0.04] text-cream"
+            className="border-slate-200 bg-white text-slate-800"
           />
         </div>
       </div>
@@ -479,10 +498,13 @@ function StayForm({ stay, onSubmit }: { stay?: GuestStay; onSubmit: (form: FormD
           name="notes"
           defaultValue={stay?.notes ?? ""}
           rows={2}
-          className="w-full rounded-md border border-cream/15 bg-cream/[0.04] p-3 text-sm text-cream placeholder:text-cream/40"
+          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-800 placeholder:text-slate-400"
         />
       </div>
-      <Button type="submit" className="w-full bg-amber text-ink hover:bg-amber/90">
+      <Button
+        type="submit"
+        className="w-full bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
+      >
         {stay ? "Save changes" : "Add stay"}
       </Button>
     </form>

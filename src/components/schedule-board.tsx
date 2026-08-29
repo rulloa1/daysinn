@@ -244,22 +244,22 @@ export function ScheduleBoard() {
   }
 
   return (
-    <section className="mt-12 border border-cream/15 bg-cream/[0.04] p-6">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+    <section>
+      <p className="signage flex items-center gap-2 text-brand-gold">
+        <span aria-hidden className="h-3 w-[3px] bg-brand-gold" />
         Workforce
       </p>
-      <h2 className="mt-3 font-display text-2xl">Employee schedule</h2>
-      <p className="mt-2 max-w-2xl text-sm text-cream/60">
+      <h2 className="mt-3 font-serif text-2xl font-bold text-brand-blue">Employee schedule</h2>
+      <p className="mt-2 max-w-2xl text-sm text-slate-600">
         Build the week for each employee. Housekeepers see only their own shifts and their own
         assigned rooms; supervisors see the full board and who is cleaning what.
       </p>
 
-      <div className="mt-5 grid gap-3 border border-cream/15 bg-ink/40 p-4 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <select
           value={memberId}
           onChange={(event) => setMemberId(event.target.value)}
-          className="h-10 border border-cream/20 bg-ink px-3 text-sm text-cream lg:col-span-2"
+          className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 lg:col-span-2"
         >
           {members.length === 0 ? <option value="">No employees yet</option> : null}
           {members.map((m) => (
@@ -272,24 +272,24 @@ export function ScheduleBoard() {
           type="date"
           value={date}
           onChange={(event) => setDate(event.target.value)}
-          className="h-10 border-cream/20 bg-ink text-cream"
+          className="h-10 border-slate-300 bg-white text-slate-800"
         />
         <Input
           type="time"
           value={start}
           onChange={(event) => setStart(event.target.value)}
-          className="h-10 border-cream/20 bg-ink text-cream"
+          className="h-10 border-slate-300 bg-white text-slate-800"
         />
         <Input
           type="time"
           value={end}
           onChange={(event) => setEnd(event.target.value)}
-          className="h-10 border-cream/20 bg-ink text-cream"
+          className="h-10 border-slate-300 bg-white text-slate-800"
         />
         <Button
           disabled={busy}
           onClick={() => void addShift()}
-          className="h-10 bg-amber text-ink hover:bg-amber/90"
+          className="h-10 bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
         >
           Add shift
         </Button>
@@ -297,7 +297,7 @@ export function ScheduleBoard() {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Note (optional) — e.g. rear block"
-          className="h-10 border-cream/20 bg-ink text-cream lg:col-span-6"
+          className="h-10 border-slate-300 bg-white text-slate-800 lg:col-span-6"
         />
       </div>
 
@@ -309,11 +309,11 @@ export function ScheduleBoard() {
             d.setDate(d.getDate() - 7);
             setWeekStart(d.toISOString().slice(0, 10));
           }}
-          className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+          className="border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50"
         >
           ← Previous week
         </Button>
-        <span className="text-sm text-cream/70">
+        <span className="text-sm font-semibold text-slate-700">
           {dayLabel(days[0]!)} – {dayLabel(days[6]!)}
         </span>
         <Button
@@ -323,7 +323,7 @@ export function ScheduleBoard() {
             d.setDate(d.getDate() + 7);
             setWeekStart(d.toISOString().slice(0, 10));
           }}
-          className="border-cream/25 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+          className="border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50"
         >
           Next week →
         </Button>
@@ -333,10 +333,12 @@ export function ScheduleBoard() {
         {days.map((day) => {
           const list = shifts.filter((s) => s.work_date === day);
           return (
-            <div key={day} className="border border-cream/15 bg-ink/40 p-3">
-              <p className="text-xs uppercase tracking-wide text-cream/55">{dayLabel(day)}</p>
+            <div key={day} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-bold tracking-wide text-slate-500 uppercase">
+                {dayLabel(day)}
+              </p>
               {list.length === 0 ? (
-                <p className="mt-2 text-xs text-cream/40">No shifts</p>
+                <p className="mt-2 text-xs text-slate-400">No shifts</p>
               ) : (
                 <ul className="mt-2 space-y-2">
                   {list.map((shift) => {
@@ -345,8 +347,10 @@ export function ScheduleBoard() {
                     return (
                       <li
                         key={shift.id}
-                        className={`border p-2 transition ${
-                          active ? "border-amber bg-amber/15" : "border-cream/15 bg-cream/[0.04]"
+                        className={`rounded-lg border p-2 transition ${
+                          active
+                            ? "border-brand-blue bg-[#E7EDF5]"
+                            : "border-slate-200 bg-white hover:border-slate-300"
                         }`}
                       >
                         <button
@@ -354,21 +358,21 @@ export function ScheduleBoard() {
                           onClick={() => setActiveShiftId(active ? null : shift.id)}
                           className="w-full text-left"
                         >
-                          <p className="text-sm">{shift.staff_name}</p>
-                          <p className="text-xs text-cream/60">
+                          <p className="text-sm font-semibold text-slate-800">{shift.staff_name}</p>
+                          <p className="text-xs text-slate-500">
                             {timeLabel(shift.start_time)} – {timeLabel(shift.end_time)}
                           </p>
-                          <p className="mt-1 text-[11px] uppercase tracking-wide text-amber">
+                          <p className="mt-1 text-[11px] font-bold tracking-wide text-[#B45309] uppercase">
                             {count} room{count === 1 ? "" : "s"} · {active ? "editing" : "assign"}
                           </p>
                         </button>
                         {shift.notes ? (
-                          <p className="mt-1 text-[11px] text-cream/50">{shift.notes}</p>
+                          <p className="mt-1 text-[11px] text-slate-500">{shift.notes}</p>
                         ) : null}
                         <button
                           type="button"
                           onClick={() => void removeShift(shift.id)}
-                          className="mt-1 text-[11px] uppercase tracking-wide text-clay hover:text-cream"
+                          className="mt-1 text-[11px] font-semibold tracking-wide text-rose-600 uppercase hover:text-rose-700"
                         >
                           Remove
                         </button>
@@ -382,39 +386,40 @@ export function ScheduleBoard() {
         })}
       </div>
 
-      <div className="mt-6 border border-cream/15 bg-ink/40 p-4">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="font-display text-lg">Rooms for this shift</h3>
+          <h3 className="font-serif text-lg font-bold text-brand-blue">Rooms for this shift</h3>
           {activeShift ? (
-            <Badge className="bg-amber/20 text-[11px] text-cream">
+            <Badge className="bg-[#E7EDF5] text-[11px] text-[#004986]">
               {activeShift.staff_name} · {dayLabel(activeShift.work_date)} ·{" "}
               {timeLabel(activeShift.start_time)}–{timeLabel(activeShift.end_time)}
             </Badge>
           ) : null}
-          <label className="ml-auto flex items-center gap-2 text-xs text-cream/60">
+          <label className="ml-auto flex items-center gap-2 text-xs font-semibold text-slate-600">
             <input
               type="checkbox"
               checked={onlyDirty}
               onChange={(event) => setOnlyDirty(event.target.checked)}
+              className="h-4 w-4 accent-[#004986]"
             />
             Dirty rooms only
           </label>
           <Button
             disabled={busy || !activeShift || activeRooms.length === 0}
             onClick={() => void pushToBoard()}
-            className="h-9 bg-amber text-ink hover:bg-amber/90"
+            className="h-9 bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
           >
             Send to housekeeping board
           </Button>
         </div>
 
         {!activeShift ? (
-          <p className="mt-3 text-sm text-cream/55">
+          <p className="mt-3 text-sm text-slate-500">
             Pick a shift above to give that housekeeper specific rooms for that date and time.
           </p>
         ) : (
           <>
-            <p className="mt-2 text-sm text-cream/60">
+            <p className="mt-2 text-sm text-slate-600">
               {activeRooms.length === 0
                 ? "No rooms on this shift yet."
                 : `Assigned: ${activeRooms.map((r) => r.room_number).join(", ")}`}
@@ -429,10 +434,10 @@ export function ScheduleBoard() {
                       key={room.id}
                       type="button"
                       onClick={() => void toggleRoom(room)}
-                      className={`border px-3 py-1.5 text-sm transition ${
+                      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
                         picked
-                          ? "border-amber bg-amber/25 text-cream"
-                          : "border-cream/20 bg-ink/60 text-cream/70 hover:border-cream/40"
+                          ? "border-brand-blue bg-brand-blue text-white"
+                          : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
                       }`}
                     >
                       {room.number}
@@ -445,8 +450,8 @@ export function ScheduleBoard() {
       </div>
 
       <div className="mt-8">
-        <h3 className="font-display text-lg">Supervisor access</h3>
-        <p className="mt-1 text-sm text-cream/60">
+        <h3 className="font-serif text-lg font-bold text-brand-blue">Supervisor access</h3>
+        <p className="mt-1 text-sm text-slate-600">
           Supervisors see every room and every housekeeper's assignments.
         </p>
         <ul className="mt-3 flex flex-wrap gap-2">
@@ -457,14 +462,14 @@ export function ScheduleBoard() {
                 <button
                   type="button"
                   onClick={() => void toggleSupervisor(member)}
-                  className={`border px-3 py-2 text-sm transition ${
+                  className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                     member.is_supervisor
-                      ? "border-amber bg-amber/20 text-cream"
-                      : "border-cream/20 bg-ink/40 text-cream/70 hover:border-cream/40"
+                      ? "border-brand-blue bg-[#E7EDF5] text-[#004986]"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {member.name}
-                  <Badge className="ml-2 bg-cream/15 text-[10px] text-cream">
+                  <Badge className="ml-2 bg-slate-100 text-[10px] text-slate-600">
                     {member.is_supervisor ? "Supervisor" : "Housekeeper"}
                   </Badge>
                 </button>

@@ -159,22 +159,22 @@ export function AssignmentBoard() {
   const targetStaff = housekeepers.find((h) => h.id === target) ?? null;
 
   return (
-    <section className="mt-12 border border-cream/15 bg-cream/[0.04] p-6">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+    <section>
+      <p className="signage flex items-center gap-2 text-brand-gold">
+        <span aria-hidden className="h-3 w-[3px] bg-brand-gold" />
         Housekeeping
       </p>
-      <h2 className="mt-3 font-display text-2xl">Room assignments</h2>
-      <p className="mt-2 max-w-2xl text-sm text-cream/60">
+      <h2 className="mt-3 font-serif text-2xl font-bold text-brand-blue">Room assignments</h2>
+      <p className="mt-2 max-w-2xl text-sm text-slate-600">
         Assign specific rooms to a housekeeper for their shift. Assigned rooms show up under “My
         rooms” on the housekeeping board.
       </p>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3 border border-cream/15 bg-ink/40 p-4">
+      <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <select
           value={target}
           onChange={(event) => setTarget(event.target.value)}
-          className="h-10 min-w-[12rem] border border-cream/20 bg-ink px-3 text-sm text-cream"
+          className="h-10 min-w-[12rem] rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800"
         >
           {housekeepers.length === 0 ? <option value="">No housekeepers yet</option> : null}
           {housekeepers.map((person) => (
@@ -186,7 +186,7 @@ export function AssignmentBoard() {
         <Button
           disabled={busy || !targetStaff}
           onClick={() => void apply([...selected], targetStaff)}
-          className="bg-amber text-ink hover:bg-amber/90"
+          className="bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
         >
           Assign {selected.size > 0 ? `${selected.size} ` : ""}selected
         </Button>
@@ -194,7 +194,7 @@ export function AssignmentBoard() {
           variant="outline"
           disabled={busy || selected.size === 0}
           onClick={() => void apply([...selected], null)}
-          className="border-clay/50 bg-transparent text-cream/80 hover:bg-cream/10 hover:text-cream"
+          className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
         >
           Clear selected
         </Button>
@@ -202,24 +202,25 @@ export function AssignmentBoard() {
           variant="outline"
           disabled={busy || housekeepers.length === 0}
           onClick={() => void autoSplit()}
-          className="border-amber/60 bg-transparent text-cream hover:bg-amber/15 hover:text-cream"
+          className="border-brand-gold bg-white font-semibold text-brand-blue hover:bg-brand-gold/10"
         >
           Auto-split unassigned
         </Button>
-        <label className="ml-auto flex items-center gap-2 text-xs text-cream/60">
+        <label className="ml-auto flex items-center gap-2 text-xs font-semibold text-slate-600">
           <input
             type="checkbox"
             checked={onlyDirty}
             onChange={(event) => setOnlyDirty(event.target.checked)}
+            className="h-4 w-4 accent-[#004986]"
           />
           Only rooms needing service
         </label>
       </div>
 
       {!loaded ? (
-        <p className="mt-6 text-sm text-cream/55">Loading rooms…</p>
+        <p className="mt-6 text-sm text-slate-500">Loading rooms…</p>
       ) : visible.length === 0 ? (
-        <p className="mt-6 text-sm text-cream/55">No rooms match this filter right now.</p>
+        <p className="mt-6 text-sm text-slate-500">No rooms match this filter right now.</p>
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {visible.map((room) => {
@@ -229,19 +230,21 @@ export function AssignmentBoard() {
                 key={room.id}
                 type="button"
                 onClick={() => toggle(room.id)}
-                className={`border p-3 text-left transition ${
+                className={`rounded-xl border p-3 text-left transition ${
                   isSelected
-                    ? "border-amber bg-amber/20"
-                    : "border-cream/15 bg-ink/40 hover:border-cream/35"
+                    ? "border-brand-blue bg-[#E7EDF5] shadow-xs"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs"
                 }`}
               >
-                <span className="font-display text-lg">{room.number}</span>
-                <span className="mt-1 block text-[11px] uppercase tracking-wide text-cream/55">
+                <span className="font-mono text-lg font-bold text-brand-blue">{room.number}</span>
+                <span className="mt-1 block text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
                   {STATUS_LABEL[room.status] ?? room.status}
                 </span>
                 <Badge
                   className={`mt-2 text-[11px] ${
-                    room.assigned_name ? "bg-cream/15 text-cream" : "bg-transparent text-cream/45"
+                    room.assigned_name
+                      ? "bg-[#E7EDF5] text-[#004986]"
+                      : "bg-slate-100 text-slate-500"
                   }`}
                 >
                   {room.assigned_name ?? "Unassigned"}

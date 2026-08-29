@@ -26,16 +26,16 @@ type Row = {
 };
 
 const URGENCY_BADGE: Record<TicketUrgency, string> = {
-  Low: "bg-transparent text-cream/50",
-  Normal: "bg-cream/12 text-cream/80",
-  High: "bg-amber/20 text-amber",
-  Urgent: "bg-amber text-ink",
+  Low: "bg-slate-100 text-slate-500",
+  Normal: "bg-slate-100 text-slate-600",
+  High: "bg-[#FBF0E2] text-[#B45309]",
+  Urgent: "bg-[#B45309] text-white",
 };
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  Open: "bg-status-dirty/20 text-status-dirty",
-  "In Progress": "bg-amber/20 text-amber",
-  Resolved: "bg-status-clean/20 text-status-clean",
+  Open: "bg-[#FBF0E2] text-[#B45309]",
+  "In Progress": "bg-[#E5F0F9] text-[#0065AB]",
+  Resolved: "bg-[#E7F4EE] text-[#0F7B4F]",
 };
 
 function toTicket(row: Row): MaintenanceTicket {
@@ -146,36 +146,36 @@ export function MaintenanceTicketsPanel({
   }
 
   return (
-    <section className="mt-12 border border-cream/15 bg-cream/[0.04] p-6">
-      <p className="signage flex items-center gap-2 text-cream/60">
-        <span aria-hidden className="h-3 w-[3px] bg-amber" />
+    <section>
+      <p className="signage flex items-center gap-2 text-brand-gold">
+        <span aria-hidden className="h-3 w-[3px] bg-brand-gold" />
         Maintenance
       </p>
-      <h2 className="mt-3 font-display text-2xl">Repair tickets</h2>
-      <p className="mt-2 max-w-2xl text-sm text-cream/60">
+      <h2 className="mt-3 font-serif text-2xl font-bold text-brand-blue">Repair tickets</h2>
+      <p className="mt-2 max-w-2xl text-sm text-slate-600">
         Log a broken item against a room, track it through triage and close it out when the fix is
         done.
       </p>
 
       {canEdit ? (
-        <div className="mt-5 grid gap-3 border border-cream/15 bg-ink/40 p-4 md:grid-cols-[7rem_1fr_10rem_9rem_auto]">
+        <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[7rem_1fr_10rem_9rem_auto]">
           <Input
             value={room}
             onChange={(e) => setRoom(e.target.value)}
             placeholder="Room"
             inputMode="numeric"
-            className="border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
+            className="border-slate-300 bg-white text-slate-800 placeholder:text-slate-400"
           />
           <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What's broken?"
-            className="border-cream/20 bg-cream/[0.04] text-cream placeholder:text-cream/35"
+            className="border-slate-300 bg-white text-slate-800 placeholder:text-slate-400"
           />
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-10 border border-cream/20 bg-ink px-3 text-sm text-cream"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800"
           >
             {TICKET_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -186,7 +186,7 @@ export function MaintenanceTicketsPanel({
           <select
             value={urgency}
             onChange={(e) => setUrgency(e.target.value as TicketUrgency)}
-            className="h-10 border border-cream/20 bg-ink px-3 text-sm text-cream"
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800"
           >
             {TICKET_URGENCIES.map((u) => (
               <option key={u} value={u}>
@@ -197,7 +197,7 @@ export function MaintenanceTicketsPanel({
           <Button
             disabled={busy}
             onClick={() => void create()}
-            className="bg-amber text-ink hover:bg-amber/90"
+            className="bg-brand-gold font-bold text-brand-blue hover:bg-brand-gold/90"
           >
             Open ticket
           </Button>
@@ -210,10 +210,10 @@ export function MaintenanceTicketsPanel({
             key={option}
             type="button"
             onClick={() => setFilter(option)}
-            className={`signage border px-3 py-1.5 ${
+            className={`signage rounded-lg border px-3 py-1.5 transition ${
               filter === option
-                ? "border-amber bg-amber/15 text-amber"
-                : "border-cream/20 text-cream/60 hover:border-cream/40"
+                ? "border-brand-blue bg-brand-blue text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             {option}
@@ -222,26 +222,26 @@ export function MaintenanceTicketsPanel({
       </div>
 
       {!loaded ? (
-        <p className="mt-6 text-sm text-cream/55">Loading tickets…</p>
+        <p className="mt-6 text-sm text-slate-500">Loading tickets…</p>
       ) : visible.length === 0 ? (
-        <p className="mt-6 text-sm text-cream/55">No {filter.toLowerCase()} tickets right now.</p>
+        <p className="mt-6 text-sm text-slate-500">No {filter.toLowerCase()} tickets right now.</p>
       ) : (
         <ul className="mt-6 space-y-2">
           {visible.map((ticket) => (
             <li
               key={ticket.id}
-              className="flex flex-wrap items-center gap-3 border border-cream/15 bg-ink/40 px-4 py-3"
+              className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
             >
-              <span className="font-display text-lg">{ticket.room}</span>
-              <span className="text-sm text-cream/80">{ticket.description}</span>
-              <Badge className="bg-cream/10 text-[11px] text-cream/70">{ticket.category}</Badge>
+              <span className="font-mono text-lg font-bold text-brand-blue">{ticket.room}</span>
+              <span className="min-w-0 flex-1 text-sm text-slate-700">{ticket.description}</span>
+              <Badge className="bg-slate-100 text-[11px] text-slate-600">{ticket.category}</Badge>
               <Badge className={`text-[11px] ${URGENCY_BADGE[ticket.urgency]}`}>
                 {ticket.urgency}
               </Badge>
               <Badge className={`text-[11px] ${STATUS_BADGE[ticket.status]}`}>
                 {ticket.status}
               </Badge>
-              <span className="text-[11px] text-cream/45">
+              <span className="text-[11px] text-slate-400">
                 {ticket.reporter} · {new Date(ticket.date).toLocaleDateString()}
               </span>
               {canEdit ? (
@@ -252,7 +252,7 @@ export function MaintenanceTicketsPanel({
                       size="sm"
                       variant="outline"
                       onClick={() => void setStatus(ticket, s)}
-                      className="border-cream/25 bg-transparent text-xs text-cream/80 hover:bg-cream/10 hover:text-cream"
+                      className="border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       {s}
                     </Button>
