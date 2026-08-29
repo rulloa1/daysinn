@@ -69,7 +69,7 @@ function HousekeepingPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (!ready) {
+  if (!ready || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Housekeeping…
