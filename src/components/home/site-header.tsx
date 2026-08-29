@@ -37,7 +37,11 @@ export function SiteHeader() {
           </nav>
 
           <Link to="/checkin" search={{}} className={`hidden sm:inline-flex ${NAV_LINK}`}>
-            Sign in
+            Guest sign in
+          </Link>
+
+          <Link to="/staff-login" className={`hidden sm:inline-flex ${NAV_LINK}`}>
+            Staff login
           </Link>
 
           <a
