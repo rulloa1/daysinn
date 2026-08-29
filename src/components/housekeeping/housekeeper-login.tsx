@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -22,14 +22,13 @@ export function HousekeeperLogin({
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState(false);
 
-  // Auto-submit on 4 digits
-  useEffect(() => {
-    if (pin.length === 4 && selectedMember && !busy) {
-      void handleSubmitPin();
-    }
-  }, [pin, selectedMember]);
+  // Guards the auto-submit below against re-entry. A ref rather than `busy`
+  // because it updates synchronously: `busy` only flips back to false after the
+  // request settles, and on the success path the PIN is still four digits, so a
+  // state-based guard would re-fire while the parent swaps views.
+  const autoSubmittedRef = useRef(false);
 
-  async function handleSubmitPin() {
+  const handleSubmitPin = useCallback(async () => {
     if (!selectedMember) return;
     setBusy(true);
     try {
@@ -58,7 +57,18 @@ export function HousekeeperLogin({
     } finally {
       setBusy(false);
     }
-  }
+  }, [selectedMember, pin, verify, onSelect]);
+
+  // Auto-submit on 4 digits
+  useEffect(() => {
+    if (pin.length < 4) {
+      autoSubmittedRef.current = false;
+      return;
+    }
+    if (!selectedMember || autoSubmittedRef.current) return;
+    autoSubmittedRef.current = true;
+    void handleSubmitPin();
+  }, [pin, selectedMember, handleSubmitPin]);
 
   function handleDigit(d: string) {
     if (pin.length < 4 && !busy) {
