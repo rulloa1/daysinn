@@ -26,6 +26,7 @@ import { IssueDialog } from "@/components/housekeeping/issue-dialog";
 import { RoomDetailDialog } from "@/components/housekeeping/room-detail-dialog";
 import { RoomSyncBanner } from "@/components/room-sync-banner";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { toast } from "sonner";
 import type { StaffIdentity } from "@/lib/ops";
 import type { RoomRow } from "@/components/housekeeping/types";

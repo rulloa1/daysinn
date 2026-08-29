@@ -8,6 +8,7 @@ import { useStaffRole } from "@/hooks/use-staff-role";
 import { formatDuration } from "@/lib/ops";
 import { FloorPlan } from "@/components/floor-plan";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { DoThisNext } from "@/components/front-desk/do-this-next";
 import { RoomBoardTable } from "@/components/front-desk/room-board-table";
 import { BoardSidebar } from "@/components/front-desk/board-sidebar";
