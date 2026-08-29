@@ -115,6 +115,12 @@ export function InvitePanel() {
         directly. Links expire after 7 days; resending issues a fresh one and cancels the old.
       </p>
 
+      {notice ? (
+        <p className="mt-4 border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-cream/80">
+          {notice}
+        </p>
+      ) : null}
+
       <form
         className="mt-5 flex flex-wrap items-end gap-3"
         onSubmit={(event) => {
