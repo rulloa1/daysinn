@@ -1,4 +1,4 @@
-import { CatchBoundary, Link } from "@tanstack/react-router";
+import { CatchBoundary } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
