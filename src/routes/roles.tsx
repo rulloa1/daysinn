@@ -88,7 +88,9 @@ function RolesPage() {
               </p>
             </div>
           ) : (
-            <TeamPanel />
+            <StaffErrorBoundary id="roles-team">
+              <TeamPanel />
+            </StaffErrorBoundary>
           )}
         </div>
       </main>
