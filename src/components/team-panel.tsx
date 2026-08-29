@@ -50,7 +50,17 @@ export function TeamPanel() {
 
   async function load() {
     try {
-      setMembers(await fetchTeam({ data: undefined }));
+      const result = await fetchTeam({ data: undefined });
+      if (!result.ok) {
+        setMembers([]);
+        setLoadError(
+          result.reason === "authentication_required"
+            ? "Your staff session expired. Sign in again to manage the team."
+            : "Manager access is required to manage the team.",
+        );
+        return;
+      }
+      setMembers(result.members);
       setLoadError(null);
     } catch (error) {
       const requiresSignIn =
