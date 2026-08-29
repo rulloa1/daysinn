@@ -1,6 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { canViewScreen } from "@/lib/screen-access";
+import { signOutStaff } from "@/lib/staff-signout";
 
 export type OpsScreen = "front-desk" | "housekeeping" | "queue" | "team" | "roles" | "shifts";
 
