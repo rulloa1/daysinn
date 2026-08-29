@@ -112,10 +112,24 @@ function StaffPage() {
   );
 }
 
+/** Each dashboard tab maps to the screen policy that governs it. */
+const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
+  queue: "queue",
+  map: "map",
+  crm: "crm",
+  maintenance: "maintenance",
+  analytics: "analytics",
+  schedules: "shifts",
+  assignments: "assignments",
+  team: "team",
+};
+
 function Dashboard({ session }: { session: Session }) {
   const role = useStaffRole();
-  const { isManager, canTriage, loading: roleLoading, refresh } = role;
-  const canEditCrm = isManager || role.roles.includes("staff");
+  const { isManager, roles, loading: roleLoading, refresh } = role;
+  const canTriage = canActOnScreen(roles, "queue");
+  const canEditCrm = canActOnScreen(roles, "crm");
+  const canViewTab = (tab: DashboardTab) => canViewScreen(roles, TAB_SCREEN[tab]);
   const { staff, members, select, error: rosterError } = useStaffIdentity();
   const [pickerSkipped, setPickerSkipped] = useState(false);
 
@@ -124,6 +138,12 @@ function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     if (search.tab) setActiveTab(search.tab);
   }, [search.tab]);
+
+  // A deep link such as ?tab=team must not open for a role without it.
+  useEffect(() => {
+    if (roleLoading) return;
+    if (!canViewScreen(roles, TAB_SCREEN[activeTab])) setActiveTab("queue");
+  }, [roleLoading, roles, activeTab]);
 
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
