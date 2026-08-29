@@ -24,6 +24,7 @@ import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { SignIn } from "@/components/staff/sign-in";
+import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import type { DashboardTab } from "@/components/staff/types";
@@ -85,7 +86,8 @@ function Dashboard({ session }: { session: Session }) {
   const role = useStaffRole();
   const { isManager, canTriage, loading: roleLoading, refresh } = role;
   const canEditCrm = isManager || role.roles.includes("staff");
-  const { staff } = useStaffIdentity();
+  const { staff, members, select, error: rosterError } = useStaffIdentity();
+  const [pickerSkipped, setPickerSkipped] = useState(false);
 
   const [activeTab, setActiveTab] = useState<DashboardTab>("queue");
   const [mapFloor, setMapFloor] = useState<FloorView>(1);
@@ -114,6 +116,17 @@ function Dashboard({ session }: { session: Session }) {
       toast.error("Couldn't complete setup.");
     }
     setClaiming(false);
+  }
+
+  if (!staff && !pickerSkipped) {
+    return (
+      <StaffNamePicker
+        members={members}
+        onSelect={select}
+        rosterError={rosterError}
+        onSkip={() => setPickerSkipped(true)}
+      />
+    );
   }
 
   return (
