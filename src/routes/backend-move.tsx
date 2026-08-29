@@ -56,9 +56,13 @@ function BackendMovePage() {
         setLog((l) => [...l, `${table}: read failed — ${error.message}`]);
         continue;
       }
-      const rows = (data ?? []).map((row: Record<string, unknown>) =>
-        table === "staff_members" ? { ...row, user_id: null } : row,
-      );
+      const rows = (data ?? []).map((row: Record<string, unknown>) => {
+        const next: Record<string, unknown> = { ...row };
+        // Columns removed from the current schema.
+        delete next["pin"];
+        if (table === "staff_members") next["user_id"] = null;
+        return next;
+      });
       const res = await fetch("/api/public/migration-import", {
         method: "POST",
         headers: { "content-type": "application/json", "x-migration-token": MIGRATION_TOKEN },
