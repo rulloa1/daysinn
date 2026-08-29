@@ -91,8 +91,9 @@ try {
         return UNAVAILABLE_RESPONSE;
       }
 
-      try {
-        const parsed = JSON.parse(content) as Partial<AssistantResponse>;
+try {
+        const jsonText = content.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+        const parsed = JSON.parse(jsonText) as Partial<AssistantResponse>;
         if (typeof parsed.reply !== "string" || !parsed.reply.trim()) {
           logAssistantFailure("AI gateway response did not include a valid reply");
           return UNAVAILABLE_RESPONSE;
