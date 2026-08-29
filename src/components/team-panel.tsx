@@ -12,7 +12,6 @@ import {
   type TeamMember,
 } from "@/lib/roles.functions";
 import { forceStaffPasswordReset } from "@/lib/password-policy.functions";
-import { StaffPinPanel } from "@/components/staff-pin-panel";
 
 const ROLES: AppRole[] = ["manager", "staff", "housekeeper", "viewer"];
 const ROLE_LABEL: Record<AppRole, string> = {
@@ -109,8 +108,6 @@ export function TeamPanel() {
           {resetting ? "Sending resets…" : "Reset all passwords"}
         </Button>
       </div>
-
-      <StaffPinPanel />
 
       {/* Team Roster & Permissions Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
