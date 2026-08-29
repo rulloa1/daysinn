@@ -309,14 +309,16 @@ function Dashboard({ session }: { session: Session }) {
           <DashboardTabs
             active={activeTab}
             onSelect={setActiveTab}
-            isManager={isManager}
+            canViewTab={canViewTab}
             openCount={queue.openCount}
             roomCount={queue.rooms.length}
           />
 
-
-          {/* Tab Views */}
-          {activeTab === "queue" ? (
+          {/* Tab Views — the strip already hides these, and this refuses a
+              tab reached any other way. */}
+          {!canViewTab(activeTab) ? (
+            <PanelDenied screen={TAB_SCREEN[activeTab]} />
+          ) : activeTab === "queue" ? (
             <RequestQueue
               visible={queue.visible}
               counts={queue.counts}
