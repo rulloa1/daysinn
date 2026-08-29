@@ -18,47 +18,37 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
 
   useRealtimeRefresh({
     channel: "requests-feed",
-    tables: ["requests"],
+    // Rooms ride the same feed so the stat strip and watch chips stay in step
+    // with the queue instead of showing counts from page load.
+    tables: ["requests", "rooms"],
     onRefresh: async (signal) => {
       const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args?: Record<string, unknown>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) => any;
-      const { data, error } = await rpc("requests_board")
-        .select(REQUEST_COLUMNS)
-        .order("created_at", { ascending: false });
+      const [requestRes, roomRes] = await Promise.all([
+        rpc("requests_board").select(REQUEST_COLUMNS).order("created_at", { ascending: false }),
+        supabase.from("rooms").select("id, number, floor, status, guest_name").order("number"),
+      ]);
       if (signal.cancelled) return;
-      if (error) {
+      if (requestRes.error) {
         toast.error("Couldn't load the queue.");
-        return;
+      } else {
+        setRows((requestRes.data ?? []) as RequestRow[]);
       }
-      setRows((data ?? []) as RequestRow[]);
+      if (roomRes.data) {
+        setRooms(
+          roomRes.data.map((r) => ({
+            id: r.id,
+            number: r.number,
+            status: (r.status ?? "vacant_clean") as MapRoom["status"],
+            guest_name: r.guest_name,
+          })),
+        );
+      }
     },
   });
-
-  useEffect(() => {
-    let active = true;
-    async function loadRooms() {
-      const { data } = await supabase
-        .from("rooms")
-        .select("id, number, floor, status, guest_name")
-        .order("number");
-      if (!active || !data) return;
-      setRooms(
-        data.map((r) => ({
-          id: r.id,
-          number: r.number,
-          status: (r.status ?? "vacant_clean") as MapRoom["status"],
-          guest_name: r.guest_name,
-        })),
-      );
-    }
-    void loadRooms();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const visible = useMemo(
     () => (filter === "all" ? rows : rows.filter((row) => row.status === filter)),
