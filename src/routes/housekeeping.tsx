@@ -66,7 +66,7 @@ function HousekeepingPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Housekeeping…
       </div>
     );
@@ -153,7 +153,7 @@ function HousekeepingWorkspace({
   const progressPct = totalCount ? Math.round((cleanCount / totalCount) * 100) : 0;
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+    <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail for >= 1024px */}
       <NavRail current="rooms" staff={staff} />
 
@@ -169,27 +169,31 @@ function HousekeepingWorkspace({
           {/* ============================================================ */}
           <div className="block lg:hidden">
             {/* Top Mobile Bar */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white p-3.5 rounded-2xl shadow-xs mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-[#004986] font-mono text-xs font-bold text-white">
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
                   {initials}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">{staff.name}</p>
-                  <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Online & Synced
+                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#D4AF37] uppercase">
+                    Guest Hub · Housekeeping
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-white">{staff.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Online &amp; synced
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onSignOut}
-                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-white/25 px-2.5 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/10"
               >
                 Sign out
               </button>
             </div>
+
 
             {/* Mobile Tab Views */}
             {mobileTab === "route" ? (
@@ -354,7 +358,7 @@ function HousekeepingWorkspace({
             ) : (
               /* Shift Tab */
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="op-card p-5">
                   <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                     Shift Summary
                   </p>
@@ -501,7 +505,7 @@ function HousekeepingWorkspace({
 
             {/* 4-Column Stat Grid */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Rooms to turn
                 </p>
@@ -511,7 +515,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-slate-500">3 tied to arrivals</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Unassigned
                 </p>
@@ -519,7 +523,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Avg turnover
                 </p>
@@ -527,7 +531,7 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Done today
                 </p>
@@ -590,7 +594,7 @@ function HousekeepingWorkspace({
               ].map((member) => (
                 <div
                   key={member.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="op-card p-5"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

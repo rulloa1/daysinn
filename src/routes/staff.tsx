@@ -77,7 +77,7 @@ function StaffPage() {
 
   if (!ready || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F7] text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
         Loading Staff Portal…
       </div>
     );
@@ -138,7 +138,7 @@ function Dashboard({ session }: { session: Session }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+    <div className="ops-portal flex min-h-screen">
       {/* Navigation Rail */}
       <NavRail current="queue" staff={staff} />
 
@@ -192,7 +192,7 @@ function Dashboard({ session }: { session: Session }) {
               onSetStatus={queue.setStatus}
             />
           ) : activeTab === "map" ? (
-            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="space-y-4 op-card p-6">
               <FloorPlan
                 floor={mapFloor}
                 rooms={queue.rooms}
@@ -207,36 +207,36 @@ function Dashboard({ session }: { session: Session }) {
               />
             </div>
           ) : activeTab === "crm" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="op-card p-6">
               <GuestCrmPanel canEdit={canEditCrm} />
             </div>
           ) : activeTab === "maintenance" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="op-card p-6">
               <MaintenanceTicketsPanel
                 reporter={staff?.name ?? "Staff"}
                 reporterStaffId={staff?.id ?? null}
               />
             </div>
           ) : activeTab === "analytics" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="op-card p-6">
               <AnalyticsDashboard />
             </div>
           ) : activeTab === "schedules" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="op-card p-6">
               <ScheduleBoard />
             </div>
           ) : activeTab === "assignments" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="op-card p-6">
               <AssignmentBoard />
             </div>
           ) : activeTab === "team" ? (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="op-card p-6">
                 <StaffErrorBoundary id="staff-team">
                   <TeamPanel />
                 </StaffErrorBoundary>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="op-card p-6">
                 <StaffErrorBoundary id="staff-invites">
                   <InvitePanel />
                 </StaffErrorBoundary>

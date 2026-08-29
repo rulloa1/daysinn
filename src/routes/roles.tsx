@@ -48,7 +48,7 @@ function RolesPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800">
+    <div className="ops-portal flex min-h-screen">
       <NavRail current="roles" staff={staff} />
 
       <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-10">
@@ -71,7 +71,7 @@ function RolesPage() {
               Loading team permissions…
             </div>
           ) : !session ? (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xs">
+            <div className="mt-8 op-card p-8 text-center">
               <p className="text-sm font-semibold text-slate-700">
                 Please{" "}
                 <Link to="/staff" className="font-bold text-[#004986] underline">
