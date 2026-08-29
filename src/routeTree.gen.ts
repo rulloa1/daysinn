@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BackendMoveRouteImport } from './routes/backend-move'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as CollateralRouteImport } from './routes/collateral'
 import { Route as FrontDeskRouteImport } from './routes/front-desk'
@@ -39,6 +40,11 @@ import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/p
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackendMoveRoute = BackendMoveRouteImport.update({
+  id: '/backend-move',
+  path: '/backend-move',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckinRoute = CheckinRouteImport.update({
@@ -173,6 +179,7 @@ const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/backend-move': typeof BackendMoveRoute
   '/checkin': typeof CheckinRoute
   '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/backend-move': typeof BackendMoveRoute
   '/checkin': typeof CheckinRoute
   '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/backend-move': typeof BackendMoveRoute
   '/checkin': typeof CheckinRoute
   '/collateral': typeof CollateralRoute
   '/front-desk': typeof FrontDeskRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/backend-move'
     | '/checkin'
     | '/collateral'
     | '/front-desk'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/backend-move'
     | '/checkin'
     | '/collateral'
     | '/front-desk'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/backend-move'
     | '/checkin'
     | '/collateral'
     | '/front-desk'
@@ -345,6 +357,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BackendMoveRoute: typeof BackendMoveRoute
   CheckinRoute: typeof CheckinRoute
   CollateralRoute: typeof CollateralRoute
   FrontDeskRoute: typeof FrontDeskRoute
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backend-move': {
+      id: '/backend-move'
+      path: '/backend-move'
+      fullPath: '/backend-move'
+      preLoaderRoute: typeof BackendMoveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkin': {
@@ -561,6 +581,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BackendMoveRoute: BackendMoveRoute,
   CheckinRoute: CheckinRoute,
   CollateralRoute: CollateralRoute,
   FrontDeskRoute: FrontDeskRoute,
