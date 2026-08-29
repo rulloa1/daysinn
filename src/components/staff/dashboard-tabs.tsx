@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Calendar,
+  Bot,
   ClipboardCheck,
   ListFilter,
   Map as MapIcon,
@@ -26,6 +27,7 @@ function tabs(openCount: number, roomCount: number): TabSpec[] {
     { id: "crm", label: "Guest CRM", icon: Users },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "assistant", label: "Ops Assistant", icon: Bot },
     { id: "schedules", label: "Schedules", icon: Calendar, dividerBefore: true },
     { id: "assignments", label: "Assignments", icon: ClipboardCheck },
     { id: "team", label: "Team & Invites", icon: UserPlus },

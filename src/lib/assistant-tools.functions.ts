@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { average } from "@/lib/ops";
 import { ASSISTANT_ROOM_STATUSES, fromAssistantRoomStatus } from "@/lib/room-model";
 import type { Database } from "@/integrations/supabase/types";
@@ -25,7 +26,8 @@ function toSerializable(records: unknown[]): SerializableRecord[] {
 }
 
 export const listRooms = createServerFn({ method: "GET" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         status: z.string().trim().optional(),
@@ -45,7 +47,8 @@ export const listRooms = createServerFn({ method: "GET" })
   });
 
 export const listRequests = createServerFn({ method: "GET" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         status: z.enum(["new", "in_progress", "done", "all"]).default("all"),
@@ -65,7 +68,8 @@ export const listRequests = createServerFn({ method: "GET" })
   });
 
 export const updateRoomStatus = createServerFn({ method: "POST" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         room_number: z.string().trim().min(1).max(10),
@@ -99,7 +103,8 @@ export const updateRoomStatus = createServerFn({ method: "POST" })
   });
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
-  .validator((input) =>
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
     z
       .object({
         request_id: z.string().uuid(),
@@ -145,7 +150,8 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
   });
 
 export const getPropertySummary = createServerFn({ method: "GET" })
-  .validator((input) => z.object({}).parse(input ?? {}))
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { data: rooms, error: roomsError } = await context.supabase.rpc("rooms_board");
     if (roomsError) throw new Error(roomsError.message);
@@ -182,4 +188,70 @@ export const getPropertySummary = createServerFn({ method: "GET" })
       openRequests: openReqs,
       averageResponseSeconds: avgResponse,
     };
+  });
+
+export const listAssignments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        work_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        staff_name: z.string().trim().max(80).optional(),
+        limit: z.coerce.number().int().min(1).max(200).default(100),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
+      .from("shift_room_assignments")
+      .select("id, work_date, staff_name, room_number, schedule_id")
+      .order("work_date", { ascending: false })
+      .order("room_number")
+      .limit(data.limit);
+
+    if (data.work_date) query = query.eq("work_date", data.work_date);
+    if (data.staff_name) query = query.ilike("staff_name", `%${data.staff_name}%`);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const assignments = toSerializable(rows ?? []);
+    return { count: assignments.length, assignments };
+  });
+
+export const listSchedules = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        work_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        staff_name: z.string().trim().max(80).optional(),
+        department: z.string().trim().max(40).optional(),
+        limit: z.coerce.number().int().min(1).max(200).default(100),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
+      .from("staff_schedules")
+      .select("id, work_date, staff_name, department, start_time, end_time, published, notes")
+      .order("work_date", { ascending: false })
+      .order("start_time")
+      .limit(data.limit);
+
+    if (data.work_date) query = query.eq("work_date", data.work_date);
+    if (data.staff_name) query = query.ilike("staff_name", `%${data.staff_name}%`);
+    if (data.department) query = query.eq("department", data.department);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const schedules = toSerializable(rows ?? []);
+    return { count: schedules.length, schedules };
   });

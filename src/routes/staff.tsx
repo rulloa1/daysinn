@@ -25,6 +25,7 @@ import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
 import { NextActionCard, NextActionButton } from "@/components/ops/next-action";
 import { OpsStatStrip } from "@/components/ops/stat-strip";
 import { DemoTour } from "@/components/ops/demo-tour";
+import { OpsAssistant } from "@/components/ops-assistant";
 
 import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
@@ -47,6 +48,7 @@ const TABS = [
   "analytics",
   "schedules",
   "assignments",
+  "assistant",
   "team",
 ] as const;
 
@@ -127,6 +129,7 @@ const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
   analytics: "analytics",
   schedules: "shifts",
   assignments: "assignments",
+  assistant: "assistant",
   team: "team",
 };
 
@@ -404,6 +407,18 @@ function Dashboard({ session }: { session: Session }) {
           ) : activeTab === "assignments" ? (
             <div className="op-card p-6">
               <AssignmentBoard />
+            </div>
+          ) : activeTab === "assistant" ? (
+            <div className="op-card space-y-4 p-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Ops Assistant</h2>
+                <p className="text-sm text-slate-600">
+                  Ask about the request queue, room assignments, and shift schedules.
+                </p>
+              </div>
+              <StaffErrorBoundary id="staff-assistant">
+                <OpsAssistant canAct={canActOnScreen(roles, "assistant")} />
+              </StaffErrorBoundary>
             </div>
           ) : activeTab === "team" ? (
             <div className="space-y-6">

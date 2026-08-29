@@ -8,29 +8,32 @@ import {
 import {
   listRooms,
   listRequests,
+  listAssignments,
+  listSchedules,
   updateRoomStatus,
   updateRequestStatus,
   getPropertySummary,
 } from "@/lib/assistant-tools.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Send, Bot, User } from "lucide-react";
+import { Bot, Send, User } from "lucide-react";
 import { toast } from "sonner";
 
 type ChatMessage = AssistantMessage & { id: string; toolResult?: string };
 
 const SUGGESTIONS = [
-  "What's the property summary?",
-  "List dirty rooms on floor 2",
-  "Mark room 214 as clean",
-  "Show open requests for room 118",
+  "How many requests are open right now?",
+  "Who is cleaning which rooms today?",
+  "Show this week's housekeeping schedule",
+  "Give me the property summary",
 ];
 
-export function OpsAssistant() {
+export function OpsAssistant({ canAct = false }: { canAct?: boolean }) {
   const ask = useServerFn(askOpsAssistant);
   const fetchRooms = useServerFn(listRooms);
   const fetchRequests = useServerFn(listRequests);
+  const fetchAssignments = useServerFn(listAssignments);
+  const fetchSchedules = useServerFn(listSchedules);
   const setRoomStatus = useServerFn(updateRoomStatus);
   const setRequestStatus = useServerFn(updateRequestStatus);
   const fetchSummary = useServerFn(getPropertySummary);
@@ -40,7 +43,7 @@ export function OpsAssistant() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hi — I'm Ops Assistant. Ask me about rooms, requests, or tell me to update a status.",
+        "Hi — I'm Ops Assistant. Ask me about the request queue, room assignments, or shift schedules.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -58,7 +61,7 @@ export function OpsAssistant() {
           const { count, rooms } = await fetchRooms({
             data: call.parameters as { status?: string; floor?: number; limit?: number },
           });
-          return `Found ${count} rooms:\n${JSON.stringify(rooms.slice(0, 5), null, 2)}${count > 5 ? "\n..." : ""}`;
+          return `${count} rooms\n${JSON.stringify(rooms.slice(0, 8), null, 2)}`;
         }
         case "list_requests": {
           const { count, requests } = await fetchRequests({
@@ -68,9 +71,31 @@ export function OpsAssistant() {
               limit?: number;
             },
           });
-          return `Found ${count} requests:\n${JSON.stringify(requests.slice(0, 5), null, 2)}${count > 5 ? "\n..." : ""}`;
+          return `${count} requests\n${JSON.stringify(requests.slice(0, 8), null, 2)}`;
+        }
+        case "list_assignments": {
+          const { count, assignments } = await fetchAssignments({
+            data: call.parameters as { work_date?: string; staff_name?: string; limit?: number },
+          });
+          return `${count} assignments\n${JSON.stringify(assignments.slice(0, 12), null, 2)}`;
+        }
+        case "list_schedules": {
+          const { count, schedules } = await fetchSchedules({
+            data: call.parameters as {
+              work_date?: string;
+              staff_name?: string;
+              department?: string;
+              limit?: number;
+            },
+          });
+          return `${count} scheduled shifts\n${JSON.stringify(schedules.slice(0, 12), null, 2)}`;
+        }
+        case "property_summary": {
+          const summary = await fetchSummary({ data: {} });
+          return JSON.stringify(summary, null, 2);
         }
         case "update_room_status": {
+          if (!canAct) return "You don't have permission to change room status.";
           const result = await setRoomStatus({
             data: call.parameters as { room_number: string; status: string; dnd?: boolean },
           });
@@ -79,6 +104,7 @@ export function OpsAssistant() {
           return `Updated room ${room["number"]} to ${room["status"]}.`;
         }
         case "update_request_status": {
+          if (!canAct) return "You don't have permission to update requests.";
           const result = await setRequestStatus({
             data: call.parameters as {
               request_id: string;
@@ -147,85 +173,80 @@ export function OpsAssistant() {
   }
 
   return (
-    <Card className="border-cream/10 bg-cream/[0.04]">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium text-cream/80">
-          <Sparkles className="h-4 w-4 text-amber" />
-          Ops Assistant
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="h-64 space-y-3 overflow-y-auto rounded border border-cream/10 bg-ink/50 p-3">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
-              {msg.role === "assistant" ? (
-                <Bot className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
-              ) : null}
-              <div
-                className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                  msg.role === "user" ? "bg-amber text-ink" : "bg-cream/10 text-cream"
-                }`}
-              >
-                <p>{msg.content}</p>
-                {msg.toolResult ? (
-                  <pre className="mt-2 max-h-32 overflow-auto rounded bg-ink p-2 text-xs text-cream/70">
-                    {msg.toolResult}
-                  </pre>
-                ) : null}
-              </div>
-              {msg.role === "user" ? (
-                <User className="mt-0.5 h-4 w-4 shrink-0 text-cream/60" />
-              ) : null}
-            </div>
-          ))}
-          {busy ? (
-            <div className="flex gap-2">
-              <Bot className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
-              <div className="rounded-lg bg-cream/10 px-3 py-2 text-sm text-cream/70">
-                Thinking…
-              </div>
-            </div>
-          ) : null}
-          <div ref={bottomRef} />
-        </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void send(input);
-          }}
-          className="flex gap-2"
-        >
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about rooms or requests…"
-            className="flex-1 border-cream/20 bg-ink text-cream placeholder:text-cream/40"
-            disabled={busy}
-          />
-          <Button
-            type="submit"
-            disabled={busy || !input.trim()}
-            className="bg-amber text-ink hover:bg-amber/90"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-
-        <div className="flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => void send(s)}
-              disabled={busy}
-              className="rounded-full border border-cream/15 px-2.5 py-1 text-xs text-cream/70 transition-colors duration-200 hover:border-amber/50 hover:text-amber"
+    <div className="space-y-3">
+      <div className="h-[26rem] space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4">
+        {messages.map((msg) => (
+          <div key={msg.id} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
+            {msg.role === "assistant" ? (
+              <Bot className="mt-1 h-4 w-4 shrink-0 text-[#004986]" />
+            ) : null}
+            <div
+              className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                msg.role === "user"
+                  ? "bg-[#004986] text-white"
+                  : "border border-slate-200 bg-white text-slate-800"
+              }`}
             >
-              {s}
-            </button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+              <p className="whitespace-pre-wrap">{msg.content}</p>
+              {msg.toolResult ? (
+                <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-slate-900 p-2 text-xs text-slate-100">
+                  {msg.toolResult}
+                </pre>
+              ) : null}
+            </div>
+            {msg.role === "user" ? (
+              <User className="mt-1 h-4 w-4 shrink-0 text-slate-500" />
+            ) : null}
+          </div>
+        ))}
+        {busy ? (
+          <div className="flex gap-2">
+            <Bot className="mt-1 h-4 w-4 shrink-0 text-[#004986]" />
+            <div className="animate-pulse rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500">
+              Thinking…
+            </div>
+          </div>
+        ) : null}
+        <div ref={bottomRef} />
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send(input);
+        }}
+        className="flex gap-2"
+      >
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask about the queue, assignments, or schedules…"
+          className="min-h-11 flex-1 border-slate-300 bg-white text-slate-900 placeholder:text-slate-400"
+          disabled={busy}
+        />
+        <Button
+          type="submit"
+          disabled={busy || !input.trim()}
+          className="min-h-11 bg-[#004986] text-white hover:bg-[#004986]/90"
+          aria-label="Send message"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </form>
+
+      <div className="flex flex-wrap gap-2">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => void send(s)}
+            disabled={busy}
+            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-[#004986] hover:text-[#004986]"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
