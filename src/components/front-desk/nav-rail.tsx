@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   ListFilter,
@@ -8,9 +9,11 @@ import {
   Calendar,
   BarChart3,
   Printer,
+  LogOut,
 } from "lucide-react";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import type { StaffIdentity } from "@/lib/ops";
+import { signOutStaff } from "@/lib/staff-signout";
 
 interface NavRailProps {
   current?: "board" | "queue" | "rooms" | "team" | "roles" | "shifts" | "reports" | "print";
