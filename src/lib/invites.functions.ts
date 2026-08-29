@@ -92,7 +92,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.lovable.app";
+    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.app";
     const redirectTo = `${origin}/staff`;
 
     // Find or create the auth user so the role can be granted up front.
