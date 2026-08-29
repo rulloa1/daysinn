@@ -12,13 +12,17 @@ const schemaGuardMiddleware = createMiddleware().server(async ({ next }) => {
   return next();
 });
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+const errorMiddleware = createMiddleware().server(async ({ next, handlerType }) => {
   try {
     return await next();
   } catch (error) {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
+    // Server-function callers must receive the original RPC error so local
+    // component error handling can show a toast/state instead of trying to
+    // deserialize an HTML error page and replacing the whole application.
+    if (handlerType === "serverFn") throw error;
     console.error(error);
     return new Response(renderErrorPage(), {
       status: 500,

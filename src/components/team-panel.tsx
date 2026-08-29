@@ -27,6 +27,7 @@ export function TeamPanel() {
   const revokeRole = useServerFn(revokeTeamRole);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const forceReset = useServerFn(forceStaffPasswordReset);
   const [resetting, setResetting] = useState(false);
 
@@ -50,8 +51,17 @@ export function TeamPanel() {
   async function load() {
     try {
       setMembers(await fetchTeam({ data: undefined }));
-    } catch {
-      toast.error("Couldn't load the team list.");
+      setLoadError(null);
+    } catch (error) {
+      const requiresSignIn =
+        error instanceof Error &&
+        (error.message.includes("Authentication required") ||
+          error.message.includes("Unauthorized"));
+      const message = requiresSignIn
+        ? "Your staff session expired. Sign in again to manage the team."
+        : "Couldn't load the team list.";
+      setLoadError(message);
+      toast.error(message);
     }
   }
 
@@ -124,6 +134,15 @@ export function TeamPanel() {
             {members.length} members
           </span>
         </div>
+
+        {loadError ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+            <span>{loadError}</span>
+            <Button size="sm" variant="outline" onClick={load}>
+              Try again
+            </Button>
+          </div>
+        ) : null}
 
         <ul className="divide-y divide-slate-100">
           {members.map((member) => {
