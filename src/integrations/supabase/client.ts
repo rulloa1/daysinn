@@ -153,6 +153,17 @@ function createUnavailableSupabaseClient(): AppSupabaseClient {
   return new Proxy({} as AppSupabaseClient, handler) as AppSupabaseClient;
 }
 
+let passwordRecoveryDetected = false;
+
+/**
+ * True when this page load arrived through a password-recovery link. A recovery
+ * link grants a real session, so it must always force a new password rather than
+ * dropping the visitor straight into the portal.
+ */
+export function hasPasswordRecoverySession(): boolean {
+  return passwordRecoveryDetected;
+}
+
 function createSupabaseClient(): AppSupabaseClient {
   const SUPABASE_URL = DAYS_INN_SUPABASE_CONFIG.url;
   const SUPABASE_PUBLISHABLE_KEY = DAYS_INN_SUPABASE_CONFIG.publishableKey;
@@ -164,7 +175,7 @@ function createSupabaseClient(): AppSupabaseClient {
     return createUnavailableSupabaseClient();
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const created = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: { fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY) },
     auth: {
       storage: brokeredPreviewStorage(),
@@ -172,6 +183,15 @@ function createSupabaseClient(): AppSupabaseClient {
       autoRefreshToken: true,
     },
   });
+
+  // Recorded here, at client construction, because PASSWORD_RECOVERY fires while
+  // the recovery URL is being consumed — before any component has mounted to
+  // hear it. Components that mount later read the flag instead of missing it.
+  created.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") passwordRecoveryDetected = true;
+  });
+
+  return created;
 }
 
 let client: AppSupabaseClient | undefined;
