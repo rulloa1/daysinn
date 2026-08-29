@@ -231,7 +231,9 @@ function Dashboard({ session }: { session: Session }) {
                 </StaffErrorBoundary>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <InvitePanel />
+                <StaffErrorBoundary id="staff-invites">
+                  <InvitePanel />
+                </StaffErrorBoundary>
               </div>
             </div>
           ) : null}
