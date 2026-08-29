@@ -90,24 +90,39 @@ describe("DND and Extended Stay logic", () => {
 });
 
 describe("Role-based access restrictions", () => {
-  function createMockSupabase(roles: string[]) {
-    return {
-      from: (_table: string) => ({
-        select: (_columns: string) => ({
-          eq: (_col: string, _val: string) => ({
-            eq: (_c: string, roleVal: string) => ({
-              maybeSingle: async () => ({
-                data: roles.includes(roleVal) ? { role: roleVal } : null,
-              }),
-            }),
-            in: (_c: string, allowed: string[]) => {
-              const matched = roles.filter((r) => allowed.includes(r));
-              return Promise.resolve({
-                data: matched.map((r) => ({ role: r })),
-              });
-            },
+  // The guards check `password_reset_requirements` before any role lookup, so
+  // the double has to answer for both tables. `pendingReset` defaults to false;
+  // the dedicated cover for a pending requirement lives in roles.guard.test.ts.
+  function createMockSupabase(roles: string[], pendingReset = false) {
+    const resetChain = {
+      eq: () => resetChain,
+      is: () => resetChain,
+      maybeSingle: async () => ({
+        data: pendingReset ? { user_id: "user-123" } : null,
+        error: null,
+      }),
+    };
+
+    const roleChain = {
+      eq: (_col: string, _val: string) => ({
+        eq: (_c: string, roleVal: string) => ({
+          maybeSingle: async () => ({
+            data: roles.includes(roleVal) ? { role: roleVal } : null,
           }),
         }),
+        in: (_c: string, allowed: string[]) => {
+          const matched = roles.filter((r) => allowed.includes(r));
+          return Promise.resolve({
+            data: matched.map((r) => ({ role: r })),
+          });
+        },
+      }),
+    };
+
+    return {
+      from: (table: string) => ({
+        select: (_columns: string) =>
+          table === "password_reset_requirements" ? resetChain : roleChain,
       }),
     } as unknown as Parameters<typeof assertStaff>[0];
   }
