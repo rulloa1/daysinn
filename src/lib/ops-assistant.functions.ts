@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { generateText } from "ai";
 import { z } from "zod";
+import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
-const LOVABLE_AI_URL = "https://api.lovable.ai/v1/chat/completions";
-const AI_REQUEST_TIMEOUT_MS = 12_000;
+const AI_REQUEST_TIMEOUT_MS = 15_000;
 
 export type AssistantMessage = {
   role: "system" | "user" | "assistant";
@@ -63,49 +64,34 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<AssistantResponse> => {
+.handler(async ({ data }): Promise<AssistantResponse> => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) {
       logAssistantFailure("LOVABLE_API_KEY is not configured");
       return UNAVAILABLE_RESPONSE;
     }
 
-    const messages: AssistantMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...data.messages.filter((message) => message.role !== "system"),
-    ];
+const messages = data.messages.filter((message) => message.role !== "system");
 
     try {
-      const res = await fetch(LOVABLE_AI_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${key}`,
-          "X-User-Id": context.userId ?? "anonymous",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        }),
-        signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
+const gateway = createLovableAiGatewayProvider(key);
+      const result = await generateText({
+        model: gateway("google/gemini-3.7-flash"),
+        system: SYSTEM_PROMPT,
+        messages,
+        temperature: 0.3,
+        abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
 
-      if (!res.ok) {
-        logAssistantFailure(`AI gateway responded with HTTP ${res.status}`);
-        return UNAVAILABLE_RESPONSE;
-      }
-
-      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = json.choices?.[0]?.message?.content?.trim();
+      const content = result.text.trim();
       if (!content) {
         logAssistantFailure("AI gateway response did not include message content");
         return UNAVAILABLE_RESPONSE;
       }
 
       try {
-        const parsed = JSON.parse(content) as Partial<AssistantResponse>;
+        const jsonText = content.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+        const parsed = JSON.parse(jsonText) as Partial<AssistantResponse>;
         if (typeof parsed.reply !== "string" || !parsed.reply.trim()) {
           logAssistantFailure("AI gateway response did not include a valid reply");
           return UNAVAILABLE_RESPONSE;
