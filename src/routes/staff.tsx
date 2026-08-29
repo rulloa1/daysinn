@@ -24,6 +24,7 @@ import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
 import { NextActionCard, NextActionButton } from "@/components/ops/next-action";
 import { OpsStatStrip } from "@/components/ops/stat-strip";
+import { DemoTour } from "@/components/ops/demo-tour";
 
 import { DashboardTabs } from "@/components/staff/dashboard-tabs";
 import { RequestQueue } from "@/components/staff/request-queue";
