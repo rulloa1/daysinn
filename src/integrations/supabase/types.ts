@@ -801,7 +801,6 @@ export type Database = {
           id: string
           is_supervisor: boolean
           name: string
-          pin: string | null
           sms_alerts: boolean
           sms_phone: string | null
           updated_at: string
@@ -814,7 +813,6 @@ export type Database = {
           id?: string
           is_supervisor?: boolean
           name: string
-          pin?: string | null
           sms_alerts?: boolean
           sms_phone?: string | null
           updated_at?: string
@@ -827,7 +825,6 @@ export type Database = {
           id?: string
           is_supervisor?: boolean
           name?: string
-          pin?: string | null
           sms_alerts?: boolean
           sms_phone?: string | null
           updated_at?: string
