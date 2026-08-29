@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { BOOKING_URL } from "@/components/franchise-footer";
+import { checkAvailability, type AvailabilityRow } from "@/lib/availability.functions";
 
-export type AvailabilityRow = {
-  room_type: string;
-  label: string;
-  beds: string;
-  max_occupancy: number;
-  nightly_rate: number;
-  available_count: number;
-};
+export type { AvailabilityRow };
+
 
 /**
  * Date/guest selection and the indicative availability snapshot behind the
