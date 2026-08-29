@@ -111,9 +111,9 @@ export async function advanceRequest(
   const { error } = await supabase.rpc("advance_request", {
     p_request_id: current.id,
     p_next_status: next,
-    p_author_staff_id: staff?.id ?? null,
-    p_author_name: staff?.name ?? null,
-    p_note: note?.trim() || null,
+    p_author_staff_id: staff?.id ?? undefined,
+    p_author_name: staff?.name ?? undefined,
+    p_note: note?.trim() || undefined,
   });
   if (error) return { error: error.message, updated: false } satisfies RequestTransitionResult;
 
