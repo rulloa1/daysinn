@@ -332,12 +332,33 @@ function Dashboard({ session }: { session: Session }) {
             />
           ) : activeTab === "map" ? (
             <div className="space-y-4 op-card p-6">
-              <FloorPlan
-                floor={mapFloor}
-                rooms={queue.rooms}
-                openRequests={queue.openRequestsByRoom}
-                onFloorChange={setMapFloor}
-                onSelect={(roomId) => setSelectedRoomId(roomId)}
+              <div className="flex flex-wrap items-center gap-2">
+                {([1, 2, "both"] as const).map((value) => (
+                  <button
+                    key={String(value)}
+                    type="button"
+                    onClick={() => setMapFloor(value)}
+                    aria-pressed={mapFloor === value}
+                    className={`min-h-10 rounded-lg border px-4 text-xs font-bold ${
+                      mapFloor === value
+                        ? "border-[#004986] bg-[#004986] text-white"
+                        : "border-[#C7D5E4] bg-white text-[#004986]"
+                    }`}
+                  >
+                    {value === 1 ? "Ground floor" : value === 2 ? "Upper floor" : "All rooms"}
+                  </button>
+                ))}
+              </div>
+              <LivePropertyMap
+                pins={mapPins}
+                selected={selectedRoom?.number ?? null}
+                dimmed={EMPTY_DIMMED}
+                shownLabel={`${mapPins.length} rooms · ${
+                  mapFloor === 1 ? "ground floor" : mapFloor === 2 ? "upper floor" : "all floors"
+                }`}
+                onSelect={(number) =>
+                  setSelectedRoomId(queue.rooms.find((r) => r.number === number)?.id ?? null)
+                }
               />
               <RoomInspector
                 room={selectedRoom}
