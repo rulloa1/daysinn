@@ -214,9 +214,6 @@ function Dashboard({ session }: { session: Session }) {
     return <ScreenDenied screen="queue" suggestion={null} />;
   }
 
-
-
-
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Navigation Rail */}
@@ -276,7 +273,12 @@ function Dashboard({ session }: { session: Session }) {
               { label: "Open requests", value: queue.openCount },
               { label: "Rooms", value: roomStats.total },
               { label: "Ready", value: roomStats.ready, trend: "clean", trendTone: "up" },
-              { label: "Vacant dirty", value: roomStats.dirty, trend: "to turn", trendTone: "down" },
+              {
+                label: "Vacant dirty",
+                value: roomStats.dirty,
+                trend: "to turn",
+                trendTone: "down",
+              },
               { label: "Occupied", value: roomStats.occupied },
             ]}
           />

@@ -172,7 +172,6 @@ function HousekeepingWorkspace({
           <OpsScreenSwitcher current="housekeeping" />
         </div>
         <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
-
           <RoomSyncBanner
             summary={board.syncSummary}
             onRetry={board.flushQueuedRoomStatusChanges}
@@ -207,7 +206,6 @@ function HousekeepingWorkspace({
                 Sign out
               </button>
             </div>
-
 
             {/* Mobile Tab Views */}
             {mobileTab === "route" ? (
@@ -606,10 +604,7 @@ function HousekeepingWorkspace({
                   ],
                 },
               ].map((member) => (
-                <div
-                  key={member.id}
-                  className="op-card p-5"
-                >
+                <div key={member.id} className="op-card p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">

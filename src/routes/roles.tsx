@@ -56,7 +56,6 @@ function RolesPage() {
       <main className="flex-1 overflow-y-auto">
         <OpsScreenSwitcher current="roles" />
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 lg:px-10">
-
           <div>
             <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
               Management &amp; Access Control
@@ -67,7 +66,6 @@ function RolesPage() {
             <p className="mt-1.5 text-xs text-slate-500">
               Manage team members, assign department roles, and enforce security policies.
             </p>
-
           </div>
 
           {!ready || role.loading ? (

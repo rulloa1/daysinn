@@ -144,7 +144,6 @@ function Board() {
       <main className="flex-1 overflow-y-auto">
         <OpsScreenSwitcher current="front-desk" />
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
-
           {/* Header Row */}
           <header className="flex flex-wrap items-end justify-between gap-4">
             <div>
