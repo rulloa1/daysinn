@@ -33,8 +33,26 @@ import { NavRail } from "@/components/front-desk/nav-rail";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import type { DashboardTab } from "@/components/staff/types";
 
+const TABS = [
+  "queue",
+  "map",
+  "crm",
+  "maintenance",
+  "analytics",
+  "schedules",
+  "assignments",
+  "team",
+] as const;
+
 export const Route = createFileRoute("/staff")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>): { tab?: DashboardTab } => {
+    const tab = search["tab"];
+    return typeof tab === "string" && (TABS as readonly string[]).includes(tab)
+      ? { tab: tab as DashboardTab }
+      : {};
+  },
+
   head: () => ({
     meta: [
       { title: "Request Queue & Staff Portal — Days Inn Hub" },
