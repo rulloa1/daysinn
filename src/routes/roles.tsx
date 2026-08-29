@@ -6,6 +6,7 @@ import { TeamPanel } from "@/components/team-panel";
 import { useStaffRole } from "@/hooks/use-staff-role";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { NavRail } from "@/components/front-desk/nav-rail";
+import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 
 export const Route = createFileRoute("/roles")({
   ssr: false,
