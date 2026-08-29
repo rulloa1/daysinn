@@ -478,7 +478,10 @@ function HousekeepingWorkspace({
                 Shift
               </button>
             </nav>
+            </>
+            )}
           </div>
+
 
           {/* ============================================================ */}
           {/* SUPERVISOR TABLET VIEW (≥ 1024px) */}
