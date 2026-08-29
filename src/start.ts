@@ -1,8 +1,16 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
+import { assertSchemaIntegrity } from "./lib/schema-guard.server";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 import { optionalSupabaseAuth } from "@/integrations/supabase/optional-auth-middleware";
+
+// Verifies once per server process that the live database matches the
+// generated types (and that retired PIN columns are really gone).
+const schemaGuardMiddleware = createMiddleware().server(async ({ next }) => {
+  await assertSchemaIntegrity();
+  return next();
+});
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -28,5 +36,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth, optionalSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, schemaGuardMiddleware, csrfMiddleware],
 }));
