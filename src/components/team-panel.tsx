@@ -98,9 +98,13 @@ export function TeamPanel() {
   async function revoke(userId: string) {
     setBusy(userId);
     try {
-      await revokeRole({ data: { userId } });
-      toast.success("Access revoked.");
-      await load();
+      const result = await revokeRole({ data: { userId } });
+      if (!result.ok) {
+        toast.error(result.message);
+      } else {
+        toast.success("Access revoked.");
+        await load();
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't revoke that role.");
     }
