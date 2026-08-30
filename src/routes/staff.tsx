@@ -19,6 +19,7 @@ import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { type FloorView } from "@/components/floor-plan";
+import { liveStatusForRoom } from "@/lib/live-map-status";
 import { LivePropertyMap, type LivePin } from "@/components/live-property-map";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { OpsPageHeading, OpsActionButton } from "@/components/ops/page-heading";
@@ -169,7 +170,15 @@ function Dashboard({ session }: { session: Session }) {
           const n = Number(r.number);
           return mapFloor === 1 ? n < 200 : n >= 200;
         })
-        .map((r) => ({ id: r.id, number: r.number, status: r.status as LivePin["status"] })),
+        .map((r) => ({
+          id: r.id,
+          number: r.number,
+          status: liveStatusForRoom({
+            status: r.status,
+            dnd: r.dnd ?? null,
+            hk_stage: r.hk_stage ?? null,
+          }),
+        })),
     [queue.rooms, mapFloor],
   );
 

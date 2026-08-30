@@ -14,6 +14,7 @@ import {
   LIVE_EVENT_TEXT,
   LIVE_STATUS_META,
   LIVE_STATUS_ORDER,
+  liveStatusForRoom,
   type LiveStatus,
 } from "@/lib/live-map-status";
 
@@ -133,7 +134,7 @@ function LiveBoard() {
     const { data, error } = await supabase
       .from("rooms")
       .select(
-        "id, number, floor, status, updated_at, assigned_name, hk_stage, guest_name, bed_type, wing",
+        "id, number, floor, status, dnd, updated_at, assigned_name, hk_stage, guest_name, bed_type, wing",
       )
       .order("floor")
       .order("number");
@@ -142,7 +143,12 @@ function LiveBoard() {
       setLoadError("Unable to load live room status. Please try again.");
       if (manual) toast.error("Unable to refresh live room status.");
     } else {
-      setRooms((data ?? []) as LiveRoom[]);
+      setRooms(
+        ((data ?? []) as Array<LiveRoom & { dnd: boolean | null }>).map((room) => ({
+          ...room,
+          status: liveStatusForRoom(room),
+        })),
+      );
       setLastRefresh(new Date().toISOString());
       setLoadError(null);
     }
