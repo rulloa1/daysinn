@@ -101,11 +101,27 @@ function StaffPage() {
       setSession(next);
       if (!next) void navigate({ to: "/staff-login", replace: true });
     });
-    supabase.auth.getSession().then(({ data: { session: current } }) => {
-      setSession(current);
-      setReady(true);
-      if (!current) void navigate({ to: "/staff-login", replace: true });
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session: current } }) => {
+        if (!current) {
+          setReady(true);
+          void navigate({ to: "/staff-login", replace: true });
+          return;
+        }
+        // A locally stored token can outlive the backend that issued it. Verify
+        // it server-side, otherwise the portal renders as a role-less account.
+        const live = await verifyLiveSession();
+        if (!live) {
+          await resetStaffSession();
+          setReady(true);
+          void navigate({ to: "/staff-login", replace: true });
+          return;
+        }
+        setSession(current);
+        setReady(true);
+      })
+      .catch(() => setReady(true));
     return () => data.subscription.unsubscribe();
   }, [navigate]);
 
@@ -123,6 +139,7 @@ function StaffPage() {
     </PasswordResetGate>
   );
 }
+
 
 /** Each dashboard tab maps to the screen policy that governs it. */
 const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
