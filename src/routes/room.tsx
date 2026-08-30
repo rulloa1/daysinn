@@ -217,7 +217,7 @@ function RoomHub() {
           <div className="space-y-6">
             <DndToggle
               active={Boolean(thread.data?.dnd)}
-              busy={dndBusy || thread.isFetching}
+              busy={dndBusy}
               onToggle={(next) => void toggleDnd(next)}
             />
             <KeyAndAmenities room={session.room} pin={thread.data?.key?.pin} />
