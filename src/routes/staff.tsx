@@ -39,6 +39,8 @@ import { NavRail } from "@/components/front-desk/nav-rail";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
 import { canActOnScreen, canViewScreen, type OpsScreenId } from "@/lib/screen-access";
+import { resetStaffSession, verifyLiveSession } from "@/lib/session-health";
+
 import type { DashboardTab } from "@/components/staff/types";
 
 const EMPTY_DIMMED = new Set<string>();
