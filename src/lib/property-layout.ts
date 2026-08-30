@@ -213,7 +213,8 @@ export function frontBlock(floor: FloorKey): {
         }
       : {}),
     services: [
-      { kind: "space", label: "Authorized Personnel" },
+      // The space directly beneath room 206, facing the pool.
+      { kind: "space", label: "Authorized Personnel Only" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },
     ],
     upstairsRight: isUpperFloor ? ["200", "202", "204", "206", "208"] : [],
