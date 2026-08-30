@@ -106,17 +106,13 @@ export function useRealtimeRefresh({
     // Poll on a timer even while the socket reports connected: a subscription can
     // stay "SUBSCRIBED" while silently missing events (proxy idling a websocket,
     // a phone waking from sleep), and every device must converge on room state.
-    const timer = window.setInterval(
-      () => {
-        if (document.visibilityState !== "visible") return;
-        // A device that is plainly offline can't reach the API; skip the request
-        // and let the `online` listener pull fresh data the moment it reconnects.
-        if (typeof navigator !== "undefined" && navigator.onLine === false) return;
-        refresh.schedule();
-      },
-      connected ? pollMs * 2 : pollMs,
-    );
-
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      // A device that is plainly offline can't reach the API; skip the request
+      // and let the `online` listener pull fresh data the moment it reconnects.
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      refresh.schedule();
+    }, pollMs);
 
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh.schedule();
@@ -128,6 +124,7 @@ export function useRealtimeRefresh({
     return () => {
       refresh.cancel();
       window.clearInterval(timer);
+      if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
       window.removeEventListener("online", onVisible);
