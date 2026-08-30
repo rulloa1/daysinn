@@ -9,9 +9,7 @@ import {
   Sparkles,
   WifiOff,
   ChevronRight,
-  Plus,
   Printer,
-  Moon,
   AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
