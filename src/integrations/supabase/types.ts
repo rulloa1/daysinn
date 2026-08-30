@@ -98,6 +98,47 @@ export type Database = {
         }
         Relationships: []
       }
+      dnd_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          acknowledged_by_name: string | null
+          acknowledged_by_staff_id: string | null
+          acknowledged_by_user_id: string | null
+          created_at: string
+          dnd_set_at: string | null
+          id: string
+          room: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          acknowledged_by_name?: string | null
+          acknowledged_by_staff_id?: string | null
+          acknowledged_by_user_id?: string | null
+          created_at?: string
+          dnd_set_at?: string | null
+          id?: string
+          room: string
+        }
+        Update: {
+          acknowledged_at?: string
+          acknowledged_by_name?: string | null
+          acknowledged_by_staff_id?: string | null
+          acknowledged_by_user_id?: string | null
+          created_at?: string
+          dnd_set_at?: string | null
+          id?: string
+          room?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dnd_acknowledgements_acknowledged_by_staff_id_fkey"
+            columns: ["acknowledged_by_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_auth_attempts: {
         Row: {
           created_at: string
