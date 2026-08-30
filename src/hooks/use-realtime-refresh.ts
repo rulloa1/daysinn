@@ -93,8 +93,14 @@ export function useRealtimeRefresh({
     // Poll whenever the live socket is down, and refresh as soon as the tab
     // comes back to the foreground so a phone that slept shows current data.
     const timer = window.setInterval(() => {
-      if (!connected && document.visibilityState === "visible") refresh.schedule();
+      if (connected) return;
+      if (document.visibilityState !== "visible") return;
+      // A device that is plainly offline can't reach the API; skip the request
+      // and let the `online` listener pull fresh data the moment it reconnects.
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      refresh.schedule();
     }, pollMs);
+
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh.schedule();
     };
