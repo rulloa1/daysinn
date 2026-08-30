@@ -190,7 +190,8 @@ export function northBuilding(floor: FloorKey): {
 export const southBuilding = northBuilding;
 
 export type StripCell =
-  { kind: "room"; number: string } | { kind: "space"; label: string; wide?: boolean };
+  | { kind: "room"; number: string }
+  | { kind: "space"; label: string; wide?: boolean; underRoom?: string };
 
 /** Top-left lobby and administrative services block. */
 export function frontBlock(floor: FloorKey): {
@@ -214,7 +215,9 @@ export function frontBlock(floor: FloorKey): {
       : {}),
     services: [
       // The space directly beneath room 206, facing the pool.
-      { kind: "space", label: "Authorized Personnel Only" },
+      { kind: "space", label: "Authorized Personnel Only", underRoom: "206" },
+      // A second restricted room directly beneath room 209.
+      { kind: "space", label: "Authorized Personnel Only", underRoom: "209" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },
     ],
     upstairsRight: isUpperFloor ? ["200", "202", "204", "206", "208"] : [],
