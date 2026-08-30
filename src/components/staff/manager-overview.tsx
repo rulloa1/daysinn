@@ -114,9 +114,12 @@ export function ManagerOverview({
             const meta = LIVE_STATUS_META[status];
             const value = byStatus.get(status) ?? 0;
             return (
-              <div
+              <button
                 key={status}
-                className="rounded-xl border border-[#D8E0EA] p-3"
+                type="button"
+                onClick={onOpenMap}
+                title={`Open the property map · ${meta.mapLabel}`}
+                className="rounded-xl border border-[#D8E0EA] p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-[#004986] focus-visible:outline-none"
                 style={{ background: meta.chip }}
               >
                 <p
@@ -129,7 +132,7 @@ export function ManagerOverview({
                   {meta.short}
                 </p>
                 <p className="mt-1 text-[0.68rem] text-slate-500">{meta.mapLabel}</p>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -190,10 +193,30 @@ export function ManagerOverview({
             onAction={onOpenQueue}
           />
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <Metric label="Aging 30m+" value={attention.aging.length} tone="#B91C1C" />
-            <Metric label="Arrivals held" value={attention.arrivals} tone="#0E7490" />
-            <Metric label="Out of order" value={attention.blockedRooms.length} tone="#B91C1C" />
-            <Metric label="DND deferred" value={attention.dndRooms.length} tone="#7C3AED" />
+            <Metric
+              label="Aging 30m+"
+              value={attention.aging.length}
+              tone="#B91C1C"
+              onClick={onOpenQueue}
+            />
+            <Metric
+              label="Arrivals held"
+              value={attention.arrivals}
+              tone="#0E7490"
+              onClick={onOpenMap}
+            />
+            <Metric
+              label="Out of order"
+              value={attention.blockedRooms.length}
+              tone="#B91C1C"
+              onClick={onOpenMap}
+            />
+            <Metric
+              label="DND deferred"
+              value={attention.dndRooms.length}
+              tone="#7C3AED"
+              onClick={onOpenMap}
+            />
           </div>
 
           <ul className="mt-4 space-y-2">
@@ -267,15 +290,29 @@ function Header({
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: number; tone: string }) {
+function Metric({
+  label,
+  value,
+  tone,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-xl border border-[#D8E0EA] bg-[#F5F8FC] p-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-xl border border-[#D8E0EA] bg-[#F5F8FC] p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-[#004986] focus-visible:outline-none"
+    >
       <p className="text-[1.25rem] leading-none font-semibold tabular-nums" style={{ color: tone }}>
         {value}
       </p>
       <p className="mt-1.5 text-[0.66rem] font-bold tracking-[0.1em] text-slate-500 uppercase">
         {label}
       </p>
-    </div>
+    </button>
   );
 }
