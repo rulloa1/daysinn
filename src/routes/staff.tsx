@@ -29,6 +29,7 @@ import { DemoTour } from "@/components/ops/demo-tour";
 import { OpsAssistant } from "@/components/ops-assistant";
 
 import { DashboardTabs } from "@/components/staff/dashboard-tabs";
+import { ManagerOverview } from "@/components/staff/manager-overview";
 import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { StaffNamePicker } from "@/components/staff/name-picker";
@@ -42,6 +43,7 @@ import type { DashboardTab } from "@/components/staff/types";
 const EMPTY_DIMMED = new Set<string>();
 
 const TABS = [
+  "overview",
   "queue",
   "map",
   "crm",
@@ -123,6 +125,7 @@ function StaffPage() {
 
 /** Each dashboard tab maps to the screen policy that governs it. */
 const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
+  overview: "overview",
   queue: "queue",
   map: "map",
   crm: "crm",
@@ -148,6 +151,15 @@ function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     if (search.tab) setActiveTab(search.tab);
   }, [search.tab]);
+
+  // Managers land on the summary dashboard unless they deep-linked elsewhere.
+  const [landed, setLanded] = useState(false);
+
+  useEffect(() => {
+    if (landed || roleLoading) return;
+    setLanded(true);
+    if (!search.tab && isManager) setActiveTab("overview");
+  }, [landed, roleLoading, isManager, search.tab]);
 
   // A deep link such as ?tab=team must not open for a role without it.
   useEffect(() => {
@@ -357,6 +369,13 @@ function Dashboard({ session }: { session: Session }) {
               canTriage={canTriage}
               staff={staff ?? null}
               onSetStatus={queue.setStatus}
+            />
+          ) : activeTab === "overview" ? (
+            <ManagerOverview
+              rooms={queue.rooms}
+              requests={queue.rows}
+              onOpenQueue={() => setActiveTab("queue")}
+              onOpenMap={() => setActiveTab("map")}
             />
           ) : activeTab === "map" ? (
             <div className="space-y-4 op-card p-6">

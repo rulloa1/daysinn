@@ -34,4 +34,4 @@ export const NEXT_ACTION: Record<string, { status: string; label: string } | nul
 };
 
 export type DashboardTab =
-  "queue" | "map" | "crm" | "maintenance" | "analytics" | "schedules" | "assignments" | "assistant" | "team";
+  "overview" | "queue" | "map" | "crm" | "maintenance" | "analytics" | "schedules" | "assignments" | "assistant" | "team";

@@ -2,6 +2,7 @@ import type { AppRole } from "@/hooks/use-staff-role";
 
 /** Every guarded surface in the ops portal. */
 export type OpsScreenId =
+  | "overview"
   | "front-desk"
   | "housekeeping"
   | "queue"
@@ -35,6 +36,7 @@ const OPERATIONS = ["manager", "staff", "housekeeper"] as const;
  * who bypasses the UI still cannot read or write outside their role.
  */
 export const SCREEN_ACCESS: Record<OpsScreenId, ScreenPolicy> = {
+  overview: { label: "Manager dashboard", view: MANAGER, act: MANAGER },
   "front-desk": { label: "Front desk", view: FRONT_DESK, act: FRONT_DESK },
   housekeeping: { label: "Housekeeping", view: OPERATIONS, act: OPERATIONS },
   queue: { label: "Request queue", view: OPERATIONS, act: OPERATIONS },
