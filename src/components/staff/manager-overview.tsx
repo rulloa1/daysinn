@@ -194,11 +194,32 @@ export function ManagerOverview({
             onAction={onOpenQueue}
           />
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <Metric label="Aging 30m+" value={attention.aging.length} tone="#B91C1C" />
-            <Metric label="Arrivals held" value={attention.arrivals} tone="#0E7490" />
-            <Metric label="Out of order" value={attention.blockedRooms.length} tone="#B91C1C" />
-            <Metric label="DND deferred" value={attention.dndRooms.length} tone="#7C3AED" />
+            <Metric
+              label="Aging 30m+"
+              value={attention.aging.length}
+              tone="#B91C1C"
+              onClick={onOpenQueue}
+            />
+            <Metric
+              label="Arrivals held"
+              value={attention.arrivals}
+              tone="#0E7490"
+              onClick={onOpenMap}
+            />
+            <Metric
+              label="Out of order"
+              value={attention.blockedRooms.length}
+              tone="#B91C1C"
+              onClick={onOpenMap}
+            />
+            <Metric
+              label="DND deferred"
+              value={attention.dndRooms.length}
+              tone="#7C3AED"
+              onClick={onOpenMap}
+            />
           </div>
+
 
           <ul className="mt-4 space-y-2">
             {attention.openRequests.slice(0, 5).map((request) => (
