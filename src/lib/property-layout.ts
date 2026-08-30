@@ -131,7 +131,8 @@ function roomPair(start: number, count: number): Array<[string, string]> {
  * The visible parking-side rows begin at rooms 109 and 209. Their paired
  * courtyard-side rooms are 108 and 208, respectively, and the rows end at
  * rooms 135 and 235. Exterior stairs sit between rooms 132 and 130. The
- * breezeway separates the upper and lower sections.
+ * breezeway runs between rooms 117 and 119 on the ground floor (217 and 219
+ * upstairs), separating the upper and lower sections.
  */
 export function westWing(floor: FloorKey): WingRow[] {
   const base = floor === 1 ? 108 : 208;
@@ -139,8 +140,9 @@ export function westWing(floor: FloorKey): WingRow[] {
   const rows: WingRow[] = [];
 
   courtyardSide.forEach((outer, index) => {
-    // Rooms 134–118 come before the breezeway; 116–108 follow it.
-    if (index === 9) rows.push({ kind: "divider", label: "Breezeway" });
+    // Rooms 134–126 / 109–117 come before the breezeway (between rooms 117 and
+    // 119 on the ground floor, 217 and 219 upstairs); 124–108 / 119–135 follow.
+    if (index === 5) rows.push({ kind: "divider", label: "Breezeway" });
     const inner = String(base + 1 + index * 2);
     rows.push({ kind: "rooms", outer, inner, left: outer, right: inner });
   });

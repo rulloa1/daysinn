@@ -13,7 +13,7 @@ function roomRows(floor: 1 | 2) {
 }
 
 describe("authoritative property wing drawing", () => {
-  it("orders the ground-floor sides from rooms 134/109 and places the breezeway before 116/127", () => {
+it("orders the ground-floor sides from rooms 134/109 and places the breezeway between rooms 117 and 119", () => {
     const rows = roomRows(1);
 
     expect(rows.map((row) => row.outer)).toEqual([
@@ -48,7 +48,24 @@ describe("authoritative property wing drawing", () => {
       "133",
       "135",
     ]);
-    expect(westWing(1).filter((row) => row.kind === "divider")).toEqual([
+
+    const wing = westWing(1);
+    const dividerIndex = wing.findIndex((row) => row.kind === "divider");
+    expect(wing[dividerIndex - 1]).toEqual({
+      kind: "rooms",
+      outer: "126",
+      inner: "117",
+      left: "126",
+      right: "117",
+    });
+    expect(wing[dividerIndex + 1]).toEqual({
+      kind: "rooms",
+      outer: "124",
+      inner: "119",
+      left: "124",
+      right: "119",
+    });
+    expect(wing.filter((row) => row.kind === "divider")).toEqual([
       { kind: "divider", label: "Breezeway" },
     ]);
   });
