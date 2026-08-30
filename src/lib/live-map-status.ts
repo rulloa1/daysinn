@@ -151,7 +151,10 @@ const KNOWN: ReadonlySet<string> = new Set<string>(LIVE_STATUS_ORDER);
 /** Derive the pill status every live view renders. */
 export function liveStatusForRoom(room: LiveStatusSource): LiveStatus {
   const base = room.status && KNOWN.has(room.status) ? (room.status as LiveStatus) : "vacant_clean";
-  if (room.hk_stage === "in_progress") return "cleaning";
+  // DND is checked first on purpose: it is the state with a consequence if the
+  // front desk misses it. A room flagged DND part-way through a clean must not
+  // read as "being cleaned" on the map.
   if (room.dnd) return "occupied_dnd";
+  if (room.hk_stage === "in_progress") return "cleaning";
   return base;
 }

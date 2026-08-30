@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import { assertManager } from "./roles.guard";
+import { SITE_URL } from "./site";
 import {
   completeForcedPasswordReset,
   MIN_PASSWORD_LENGTH,
@@ -106,7 +107,7 @@ export const forceStaffPasswordReset = createServerFn({ method: "POST" }).handle
     // Reset links are built from this, not from Supabase's Site URL. Without it
     // the mail falls back to Site URL, which is how these links ended up
     // pointing at localhost. Mirrors the origin used by the invite flow.
-    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.lovable.app";
+    const origin = process.env["PUBLIC_SITE_URL"] ?? SITE_URL;
     const redirectTo = `${origin}/staff`;
 
     let emailed = 0;

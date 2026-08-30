@@ -3,20 +3,27 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useStaffRole } from "@/hooks/use-staff-role";
-import { canViewScreen } from "@/lib/screen-access";
+import { canViewScreen, type OpsScreenId } from "@/lib/screen-access";
 import { signOutStaff } from "@/lib/staff-signout";
 
-export type OpsScreen = "front-desk" | "housekeeping" | "queue" | "team" | "roles" | "shifts";
+export type OpsScreen = OpsScreenId;
 
-type Target = { id: OpsScreen; label: string; to: string; search?: Record<string, string> };
+type Target = { id: OpsScreenId; label: string; to: string; search?: Record<string, string> };
 
+/**
+ * Every pill names the screen it actually opens, so `current` can be the screen
+ * id the page is showing and the highlight follows the tab the user is on.
+ */
 const TARGETS: Target[] = [
-  { id: "front-desk", label: "Front desk", to: "/staff", search: { tab: "map" } },
+  { id: "overview", label: "Manager dashboard", to: "/staff", search: { tab: "overview" } },
+  { id: "front-desk", label: "Front desk", to: "/front-desk" },
+  { id: "queue", label: "Request queue", to: "/staff", search: { tab: "queue" } },
   { id: "housekeeping", label: "Housekeeping", to: "/housekeeping" },
-  { id: "queue", label: "Request queue", to: "/staff" },
-  { id: "team", label: "Team & invites", to: "/staff", search: { tab: "team" } },
-  { id: "roles", label: "Roles", to: "/roles" },
+  { id: "map", label: "Property map", to: "/staff", search: { tab: "map" } },
   { id: "shifts", label: "Shifts", to: "/staff", search: { tab: "schedules" } },
+  { id: "team", label: "Team & invites", to: "/staff", search: { tab: "team" } },
+  { id: "analytics", label: "Reports", to: "/staff", search: { tab: "analytics" } },
+  { id: "roles", label: "Roles", to: "/roles" },
 ];
 
 /**
@@ -33,7 +40,7 @@ export function OpsScreenSwitcher({ current }: { current: OpsScreen }) {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
-async function logOff() {
+  async function logOff() {
     if (signingOut) return;
     setSigningOut(true);
     try {
@@ -58,6 +65,7 @@ async function logOff() {
             key={target.id}
             to={target.to}
             {...(target.search ? { search: target.search } : {})}
+            aria-current={on ? "page" : undefined}
             className={`rounded-lg border px-3.5 py-2 text-xs font-bold transition ${
               on
                 ? "border-[#004986] bg-[#004986] text-white"

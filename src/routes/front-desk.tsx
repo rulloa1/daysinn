@@ -143,7 +143,7 @@ function Board() {
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail */}
-      <NavRail current="board" staff={board.staff} />
+      <NavRail current="front-desk" staff={board.staff} />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">

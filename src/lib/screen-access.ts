@@ -14,7 +14,8 @@ export type OpsScreenId =
   | "maintenance"
   | "analytics"
   | "assignments"
-  | "assistant";
+  | "assistant"
+  | "collateral";
 
 type ScreenPolicy = {
   label: string;
@@ -47,6 +48,7 @@ export const SCREEN_ACCESS: Record<OpsScreenId, ScreenPolicy> = {
   shifts: { label: "Shifts", view: MANAGER, act: MANAGER },
   assignments: { label: "Assignments", view: MANAGER, act: MANAGER },
   assistant: { label: "Ops Assistant", view: OPERATIONS, act: FRONT_DESK },
+  collateral: { label: "Print collateral", view: FRONT_DESK, act: FRONT_DESK },
   team: { label: "Team & invites", view: MANAGER, act: MANAGER },
   roles: { label: "Roles", view: MANAGER, act: MANAGER },
 };

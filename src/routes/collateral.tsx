@@ -9,6 +9,7 @@ import { NavRail } from "@/components/front-desk/nav-rail";
 import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import { supabase } from "@/integrations/supabase/client";
 import { OMITTED_ROOM_NUMBERS } from "@/lib/property-layout";
+import { guestCheckinUrl } from "@/lib/site";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 
 export const Route = createFileRoute("/collateral")({
@@ -80,7 +81,7 @@ function CollateralPageContent() {
       const entries: Record<string, string> = {};
       for (const roomNum of displayedRooms) {
         if (!active) return;
-        const url = `https://daysinn.lovable.app/checkin?room=${roomNum}`;
+        const url = guestCheckinUrl(roomNum);
         try {
           const dataUrl = await QRCode.toDataURL(url, {
             margin: 1,
@@ -113,7 +114,7 @@ function CollateralPageContent() {
     <div className="flex min-h-screen bg-[#EEF2F7] text-slate-800 print:bg-white print:p-0">
       {/* Desktop Navigation Rail (hidden during print) */}
       <div className="print:hidden">
-        <NavRail current="rooms" staff={staff} />
+        <NavRail current="collateral" staff={staff} />
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 print:p-0">

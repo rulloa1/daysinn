@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { QrCode } from "@/components/qr-code";
 import { revokeRoomQr, rotateRoomQr } from "@/lib/guest.functions";
+import { guestCheckinUrl } from "@/lib/site";
 import type { RoomRow } from "./types";
 
 /**
@@ -31,9 +32,7 @@ export function RoomQrDialog({ room, onClose }: { room: RoomRow | null; onClose:
       try {
         const result = await rotate({ data: { room: roomNumber } });
         setState({
-          url: `${window.location.origin}/checkin?room=${encodeURIComponent(
-            roomNumber,
-          )}&t=${result.token}`,
+          url: guestCheckinUrl(roomNumber, result.token),
           expiresAt: result.expiresAt,
         });
       } catch {

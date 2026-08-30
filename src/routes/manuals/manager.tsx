@@ -526,7 +526,7 @@ function ManagerManualContent() {
 
 function ManagerManual() {
   return (
-    <StaffOnly title="Manager manual">
+    <StaffOnly title="Manager manual" requireRole="manager">
       <ManagerManualContent />
     </StaffOnly>
   );

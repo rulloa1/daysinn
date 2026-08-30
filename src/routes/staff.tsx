@@ -208,7 +208,7 @@ function Dashboard({ session }: { session: Session }) {
         toast.success("You're now the manager.");
         await refresh();
       } else {
-        toast.error("A manager already exists — ask them for access.");
+        toast.error("Roles are already set up here — ask a manager for access.");
       }
     } catch {
       toast.error("Couldn't complete setup.");
@@ -258,11 +258,11 @@ function Dashboard({ session }: { session: Session }) {
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Navigation Rail */}
-      <NavRail current="queue" staff={staff} />
+      <NavRail current={TAB_SCREEN[activeTab]} staff={staff} />
 
       {/* Main Container */}
       <main className="flex-1 overflow-y-auto">
-        <OpsScreenSwitcher current={activeTab === "team" ? "team" : "queue"} />
+        <OpsScreenSwitcher current={TAB_SCREEN[activeTab]} />
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 md:px-8 lg:px-10">
           <OpsPageHeading
             eyebrow={`Request queue · ${staff?.name ?? "Front desk"} · ${today}`}

@@ -81,7 +81,7 @@ export function useHousekeepingBoard(
 
   useRealtimeRefresh({
     channel: "housekeeping-feed",
-    tables: ["rooms", "requests"],
+    tables: ["rooms", "requests", "room_status_events"],
     onEvent: alerts.handleRoomEvent,
     onRefresh: async (signal) => {
       const [roomRes, issueRes] = await Promise.all([

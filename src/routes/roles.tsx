@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,11 +28,18 @@ export const Route = createFileRoute("/roles")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  beforeLoad: async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw redirect({ to: "/staff-login" });
+  },
   errorComponent: ({ error, reset }) => <StaffErrorFallback error={error} reset={reset} />,
   component: RolesPage,
 });
 
 function RolesPage() {
+  const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const role = useStaffRole();
@@ -42,12 +49,24 @@ function RolesPage() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setReady(true);
+      if (!data.session) void navigate({ to: "/staff-login", replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, next) => {
       setSession(next);
+      if (!next) void navigate({ to: "/staff-login", replace: true });
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
+
+  // Every other ops route refuses before it paints; this one used to render the
+  // rail, the switcher and a staff avatar around a "please sign in" card.
+  if (!ready || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#a8b7ca] text-sm text-slate-600">
+        Loading team permissions…
+      </div>
+    );
+  }
 
   return (
     <div className="ops-portal flex min-h-screen">
@@ -68,19 +87,9 @@ function RolesPage() {
             </p>
           </div>
 
-          {!ready || role.loading ? (
+          {role.loading ? (
             <div className="mt-12 flex h-32 items-center justify-center text-xs font-semibold text-slate-400">
               Loading team permissions…
-            </div>
-          ) : !session ? (
-            <div className="mt-8 op-card p-8 text-center">
-              <p className="text-sm font-semibold text-slate-700">
-                Please{" "}
-                <Link to="/staff" className="font-bold text-[#004986] underline">
-                  sign in to the staff portal
-                </Link>{" "}
-                to manage team roles.
-              </p>
             </div>
           ) : !canViewScreen(role.roles, "roles") ? (
             <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-xs">

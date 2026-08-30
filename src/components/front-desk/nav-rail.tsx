@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  Gauge,
   LayoutGrid,
   ListFilter,
   DoorClosed,
-  Users,
   Shield,
-  Calendar,
   BarChart3,
   Printer,
   LogOut,
@@ -15,72 +14,62 @@ import { toast } from "sonner";
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
 import type { StaffIdentity } from "@/lib/ops";
 import { signOutStaff } from "@/lib/staff-signout";
+import { useStaffRole } from "@/hooks/use-staff-role";
+import { canViewScreen, type OpsScreenId } from "@/lib/screen-access";
+
+type RailItem = {
+  id: OpsScreenId;
+  label: string;
+  to: string;
+  search?: Record<string, string>;
+  icon: typeof LayoutGrid;
+};
+
+/**
+ * The rail and the screen switcher answer to the same policy table, so a role
+ * is never offered a destination its guard will refuse. Ids are screen ids for
+ * that reason — one vocabulary across both navigations.
+ */
+const ITEMS: RailItem[] = [
+  { id: "overview", label: "Overview", to: "/staff", search: { tab: "overview" }, icon: Gauge },
+  { id: "front-desk", label: "Board", to: "/front-desk", icon: LayoutGrid },
+  { id: "queue", label: "Queue", to: "/staff", search: { tab: "queue" }, icon: ListFilter },
+  { id: "housekeeping", label: "Rooms", to: "/housekeeping", icon: DoorClosed },
+  { id: "collateral", label: "Print", to: "/collateral", icon: Printer },
+  { id: "roles", label: "Roles", to: "/roles", icon: Shield },
+  {
+    id: "analytics",
+    label: "Reports",
+    to: "/staff",
+    search: { tab: "analytics" },
+    icon: BarChart3,
+  },
+];
 
 interface NavRailProps {
-  current?: "board" | "queue" | "rooms" | "team" | "roles" | "shifts" | "reports" | "print";
+  /** The screen being shown. Falls back to the current path when omitted. */
+  current?: OpsScreenId;
   staff?: StaffIdentity | null;
 }
 
-export function NavRail({ current = "board", staff }: NavRailProps) {
+/** Best-effort screen id for a path, used only when `current` is not given. */
+function screenForPath(path: string): OpsScreenId | null {
+  if (path.startsWith("/front-desk")) return "front-desk";
+  if (path.startsWith("/housekeeping")) return "housekeeping";
+  if (path.startsWith("/collateral")) return "collateral";
+  if (path.startsWith("/roles")) return "roles";
+  if (path.startsWith("/staff")) return "queue";
+  return null;
+}
+
+export function NavRail({ current, staff }: NavRailProps) {
   const routerState = useRouterState();
-  const path = routerState.location.pathname;
+  const { roles, loading } = useStaffRole();
 
-  const activeItem =
-    current ||
-    (path.startsWith("/front-desk")
-      ? "board"
-      : path.startsWith("/housekeeping")
-        ? "rooms"
-        : path.startsWith("/collateral")
-          ? "print"
-          : path.startsWith("/manuals")
-            ? "manuals"
-            : path.startsWith("/roles")
-              ? "roles"
-              : path.startsWith("/staff")
-                ? "queue"
-                : "board");
+  const activeItem = current ?? screenForPath(routerState.location.pathname);
+  const items = loading ? [] : ITEMS.filter((item) => canViewScreen(roles, item.id));
 
-  const items = [
-    {
-      id: "board",
-      label: "Board",
-      href: "/front-desk",
-      icon: LayoutGrid,
-    },
-    {
-      id: "queue",
-      label: "Queue",
-      href: "/staff",
-      icon: ListFilter,
-    },
-    {
-      id: "rooms",
-      label: "Rooms",
-      href: "/housekeeping",
-      icon: DoorClosed,
-    },
-    {
-      id: "print",
-      label: "Print",
-      href: "/collateral",
-      icon: Printer,
-    },
-    {
-      id: "roles",
-      label: "Roles",
-      href: "/roles",
-      icon: Shield,
-    },
-    {
-      id: "reports",
-      label: "Reports",
-      href: "/staff",
-      icon: BarChart3,
-    },
-  ] as const;
-
-const initials = staff?.name
+  const initials = staff?.name
     ? staff.name
         .split(" ")
         .map((p) => p[0])
@@ -92,7 +81,7 @@ const initials = staff?.name
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
-async function logOff() {
+  async function logOff() {
     if (signingOut) return;
     setSigningOut(true);
     try {
@@ -130,7 +119,9 @@ async function logOff() {
           return (
             <Link
               key={item.id}
-              to={item.href}
+              to={item.to}
+              {...(item.search ? { search: item.search } : {})}
+              aria-current={isActive ? "page" : undefined}
               className="group flex flex-col items-center gap-1.5 text-center transition"
             >
               <span
@@ -154,7 +145,7 @@ async function logOff() {
         })}
       </div>
 
-{/* Staff profile badge + log off */}
+      {/* Staff profile badge + log off */}
       <div className="mt-auto flex flex-col items-center gap-4 pt-4">
         <div
           title={staff ? staff.name : "Front Desk"}
@@ -172,7 +163,7 @@ async function logOff() {
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/12 text-white transition group-hover:bg-[#B91C1C] group-hover:text-white">
             <LogOut className="h-5 w-5" strokeWidth={2} />
           </span>
-          <span className="text-[9px] font-bold tracking-wider uppercase transition text-white/60 group-hover:text-white">
+          <span className="text-[9px] font-bold tracking-wider text-white/60 uppercase transition group-hover:text-white">
             {signingOut ? "Bye…" : "Log off"}
           </span>
         </button>

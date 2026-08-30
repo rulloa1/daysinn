@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { assertManager } from "./roles.guard";
+import { SITE_URL } from "./site";
 
 export type AppRole = "manager" | "staff" | "viewer" | "housekeeper";
 
@@ -104,7 +105,7 @@ export const sendStaffInvite = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://daysinn.lovable.app";
+    const origin = process.env["PUBLIC_SITE_URL"] ?? SITE_URL;
     const redirectTo = `${origin}/staff`;
 
     // Find or create the auth user so the role can be granted up front.

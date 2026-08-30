@@ -116,18 +116,34 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Shape of the `claim_first_manager` migration function. The generated
+ * `types.ts` won't list it until it is regenerated, so the admin client is
+ * narrowed here rather than cast at the call site.
+ */
+type ClaimFirstManagerRpc = {
+  rpc(
+    fn: "claim_first_manager",
+    args: { p_user_id: string },
+  ): PromiseLike<{ data: boolean | null; error: { message: string } | null }>;
+};
+
+/**
+ * Grants manager to the caller, but only while the roster is completely empty.
+ *
+ * The decision is made inside `claim_first_manager`, which holds an advisory
+ * lock for the length of its transaction: a check-then-insert here could let
+ * two concurrent callers both become manager.
+ */
 export const claimFirstManager = createServerFn({ method: "POST" }).handler(async ({ context }) => {
   const userId = context.userId;
   if (!userId) throw new Error("Authentication required");
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { count } = await supabaseAdmin
-    .from("user_roles")
-    .select("id", { count: "exact", head: true });
-  if ((count ?? 0) > 0) return { claimed: false };
-  const { error } = await supabaseAdmin
-    .from("user_roles")
-    .insert({ user_id: userId, role: "manager" });
-  if (error) throw error;
-  return { claimed: true };
+  const admin = supabaseAdmin as unknown as ClaimFirstManagerRpc;
+
+  const { data, error } = await admin.rpc("claim_first_manager", { p_user_id: userId });
+  if (error) throw new Error(error.message);
+
+  return { claimed: data === true };
 });

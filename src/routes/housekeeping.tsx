@@ -183,7 +183,7 @@ function HousekeepingWorkspace({
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail for >= 1024px */}
-      <NavRail current="rooms" staff={staff} />
+      <NavRail current="housekeeping" staff={staff} />
 
       <main className="flex-1 overflow-y-auto pb-20 lg:pb-10">
         <div className="hidden md:block">
