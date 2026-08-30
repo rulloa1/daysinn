@@ -29,6 +29,12 @@ export type RealtimeRefreshOptions = {
   enabled?: boolean;
   /** How long to wait for a burst of table events to settle. */
   debounceMs?: number;
+  /**
+   * Safety-net poll interval. Used while the realtime socket is not connected
+   * (locked phone, flaky hotel Wi-Fi, dropped websocket) so every device still
+   * converges on the same room state.
+   */
+  pollMs?: number;
 };
 
 /**
@@ -45,6 +51,7 @@ export function useRealtimeRefresh({
   onEvent,
   enabled = true,
   debounceMs = 250,
+  pollMs = 20000,
 }: RealtimeRefreshOptions) {
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
@@ -77,11 +84,31 @@ export function useRealtimeRefresh({
         },
       );
     }
-    subscription.subscribe();
+    let connected = false;
+    subscription.subscribe((status) => {
+      connected = status === "SUBSCRIBED";
+      if (connected) refresh.schedule();
+    });
+
+    // Poll whenever the live socket is down, and refresh as soon as the tab
+    // comes back to the foreground so a phone that slept shows current data.
+    const timer = window.setInterval(() => {
+      if (!connected && document.visibilityState === "visible") refresh.schedule();
+    }, pollMs);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh.schedule();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    window.addEventListener("online", onVisible);
 
     return () => {
       refresh.cancel();
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      window.removeEventListener("online", onVisible);
       void supabase.removeChannel(subscription);
     };
-  }, [channel, tableKey, enabled, debounceMs]);
+  }, [channel, tableKey, enabled, debounceMs, pollMs]);
 }

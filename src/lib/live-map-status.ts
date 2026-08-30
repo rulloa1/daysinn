@@ -5,7 +5,13 @@
  * side panels, kept in one place so the map, counts, legend and feed match.
  */
 export type LiveStatus =
-  "vacant_clean" | "vacant_dirty" | "occupied" | "occupied_dnd" | "reserved" | "out_of_order";
+  | "vacant_clean"
+  | "vacant_dirty"
+  | "cleaning"
+  | "occupied"
+  | "occupied_dnd"
+  | "reserved"
+  | "out_of_order";
 
 export type LiveStatusMeta = {
   /** Long label used in the legend and the selected-room chip. */
@@ -46,6 +52,16 @@ export const LIVE_STATUS_META: Record<LiveStatus, LiveStatusMeta> = {
     pill: "#F5A524",
     pillFg: "#3A2404",
     note: "Awaiting housekeeping turn",
+  },
+  cleaning: {
+    mapLabel: "Being cleaned",
+    label: "Cleaning",
+    short: "Cleaning",
+    color: "#7A5AF8",
+    chip: "#EDE9FE",
+    pill: "#6D5AE6",
+    pillFg: "#FFFFFF",
+    note: "Housekeeping in progress",
   },
   occupied: {
     mapLabel: "Occupied",
@@ -92,6 +108,7 @@ export const LIVE_STATUS_META: Record<LiveStatus, LiveStatusMeta> = {
 export const LIVE_STATUS_ORDER: readonly LiveStatus[] = [
   "vacant_clean",
   "vacant_dirty",
+  "cleaning",
   "occupied",
   "occupied_dnd",
   "reserved",
@@ -102,6 +119,7 @@ export const LIVE_STATUS_ORDER: readonly LiveStatus[] = [
 export const LIVE_ATTENTION: ReadonlySet<LiveStatus> = new Set<LiveStatus>([
   "out_of_order",
   "vacant_dirty",
+  "cleaning",
   "reserved",
   "occupied_dnd",
 ]);
@@ -110,8 +128,30 @@ export const LIVE_ATTENTION: ReadonlySet<LiveStatus> = new Set<LiveStatus>([
 export const LIVE_EVENT_TEXT: Record<LiveStatus, string> = {
   vacant_clean: "marked clean",
   vacant_dirty: "checked out",
+  cleaning: "is being cleaned",
   occupied: "checked in",
   occupied_dnd: "set to do-not-disturb",
   reserved: "assigned to an arrival",
   out_of_order: "blocked for maintenance",
 };
+
+/**
+ * Room shape the map needs to colour a pin. Housekeeping writes `dnd` and
+ * `hk_stage` alongside `status`, so the map has to fold all three together or
+ * a housekeeper's "in progress" / DND tap would be invisible at the front desk.
+ */
+export type LiveStatusSource = {
+  status: string | null;
+  dnd?: boolean | null;
+  hk_stage?: string | null;
+};
+
+const KNOWN: ReadonlySet<string> = new Set<string>(LIVE_STATUS_ORDER);
+
+/** Derive the pill status every live view renders. */
+export function liveStatusForRoom(room: LiveStatusSource): LiveStatus {
+  const base = room.status && KNOWN.has(room.status) ? (room.status as LiveStatus) : "vacant_clean";
+  if (room.hk_stage === "in_progress") return "cleaning";
+  if (room.dnd) return "occupied_dnd";
+  return base;
+}
