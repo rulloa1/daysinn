@@ -68,6 +68,8 @@ export function RoomTypesSection({ bookingLink }: { bookingLink: (roomType?: str
               src={roomType.image}
               alt={roomType.alt}
               loading="lazy"
+            decoding="async"
+              decoding="async"
               className="block h-[220px] w-full object-cover"
             />
             <div className="flex flex-1 flex-col px-6 pt-[22px] pb-6">
@@ -109,6 +111,7 @@ export function AmenitiesSection() {
             src={POOL_PHOTO}
             alt={POOL_PHOTO_ALT}
             loading="lazy"
+            decoding="async"
             className="mt-6 block h-[280px] w-full rounded-2xl object-cover"
           />
         </div>
@@ -281,6 +284,8 @@ export function GallerySection() {
               src={photo.src}
               alt={photo.alt}
               loading="lazy"
+            decoding="async"
+              decoding="async"
               className="block h-[150px] w-full object-cover"
             />
             <figcaption className="px-3 py-[11px] text-[0.72rem] font-semibold tracking-[0.1em] text-[var(--gh-body)] uppercase">

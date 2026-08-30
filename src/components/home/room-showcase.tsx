@@ -140,6 +140,9 @@ export function RoomShowcaseSection({
                   src={room.image}
                   alt={room.alt}
                   loading="lazy"
+                  decoding="async"
+            decoding="async"
+              decoding="async"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />

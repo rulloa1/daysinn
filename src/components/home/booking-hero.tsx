@@ -86,6 +86,8 @@ export function BookingHero({ availability }: { availability: Availability }) {
         alt="Days Inn Wildwood exterior at dusk with lit walkways"
         width={1600}
         height={1067}
+        fetchPriority="high"
+        decoding="async"
         className="absolute inset-0 h-full w-full object-cover opacity-55"
       />
       <div
