@@ -40,7 +40,26 @@ export function SignIn() {
     if (mode === "signup") toast.success("Check your email to confirm the account.");
   }
 
+  async function signInWithGoogle() {
+    if (!isSupabaseConfigured) {
+      toast.error("The live data service is not configured. Please contact an administrator.");
+      return;
+    }
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setBusy(false);
+      toast.error(result.error.message ?? "Google sign-in failed. Please try again.");
+      return;
+    }
+    if (result.redirected) return;
+    setBusy(false);
+  }
+
   async function sendReset() {
+
     const target = email.trim();
     if (!isSupabaseConfigured) {
       toast.error("The live data service is not configured. Please contact an administrator.");
