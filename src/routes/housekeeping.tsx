@@ -130,6 +130,44 @@ function HousekeepingFlow() {
   return <HousekeepingWorkspace staff={staff} onSignOut={() => select(null)} />;
 }
 
+
+type MobileTab = "route" | "map" | "issues" | "shift";
+
+const ROUTE_FILTERS = [
+  { key: "todo", label: "To do" },
+  { key: "mine", label: "Mine" },
+  { key: "dnd", label: "DND" },
+  { key: "done", label: "Done" },
+  { key: "all", label: "All" },
+] as const;
+
+type RouteFilter = (typeof ROUTE_FILTERS)[number]["key"];
+
+/** Lower sorts first: what a cart should hit next. */
+function routeWeight(room: RoomRow, staffId: string | null) {
+  const mine = staffId && room.assigned_staff_id === staffId ? 0 : 40;
+  if (room.hk_stage === "in_progress") return mine + 0;
+  if (room.status === "vacant_dirty") return mine + 1;
+  if (room.status === "occupied") return mine + 2;
+  if (room.status === "occupied_dnd" || room.dnd) return mine + 6;
+  if (room.status === "vacant_clean") return mine + 8;
+  return mine + 5;
+}
+
+function statusChip(room: RoomRow) {
+  if (room.hk_stage === "in_progress")
+    return { label: "Cleaning", cls: "bg-[#E4F2F5] text-[#0E7490]", bar: "bg-[#0E7490]" };
+  if (room.status === "vacant_clean")
+    return { label: "Ready", cls: "bg-[#E7F4EE] text-[#0F7B4F]", bar: "bg-[#0F7B4F]" };
+  if (room.dnd || room.status === "occupied_dnd")
+    return { label: "DND", cls: "bg-[#F1EAFC] text-[#7C3AED]", bar: "bg-[#7C3AED]" };
+  if (room.status === "out_of_order")
+    return { label: "Out of order", cls: "bg-slate-100 text-slate-500", bar: "bg-slate-400" };
+  if (room.status === "occupied")
+    return { label: "Stay", cls: "bg-[#E5F0F9] text-[#0065AB]", bar: "bg-[#0065AB]" };
+  return { label: "Turn", cls: "bg-[#FBF0E2] text-[#B45309]", bar: "bg-[#B45309]" };
+}
+
 function HousekeepingWorkspace({
   staff,
   onSignOut,
@@ -138,10 +176,13 @@ function HousekeepingWorkspace({
   onSignOut: () => void;
 }) {
   const board = useHousekeepingBoard(staff, "all", "");
-  const [mobileTab, setMobileTab] = useState<"route" | "map" | "issues" | "shift">("route");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("route");
   const [activeRoom, setActiveRoom] = useState<RoomRow | null>(null);
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
+  const [routeFilter, setRouteFilter] = useState<RouteFilter>("todo");
+  const [query, setQuery] = useState("");
+  const [skipped, setSkipped] = useState<string[]>([]);
 
   // The phone flow opens on the shift hand-off screen once per person per day,
   // so a housekeeper confirms their sheet before the route view takes over.
@@ -151,21 +192,55 @@ function HousekeepingWorkspace({
     setShiftStarted(window.localStorage.getItem(shiftKey) === "1");
   }, [shiftKey]);
 
+  const staffId = staff.id ?? null;
+
   const assignedRooms = useMemo(
-    () => board.rooms.filter((r) => r.assigned_staff_id === staff.id),
-    [board.rooms, staff.id],
+    () => board.rooms.filter((r) => r.assigned_staff_id === staffId),
+    [board.rooms, staffId],
   );
   const claimableRooms = useMemo(
     () => board.rooms.filter((r) => !r.assigned_staff_id && r.status === "vacant_dirty"),
     [board.rooms],
   );
 
-  // Compute priority room (the "Do this next" room on mobile)
-  const nextRoom = useMemo(() => {
-    const dirtyRooms = board.rooms.filter((r) => r.status === "vacant_dirty");
-    // Priority to arrival rooms first, then lowest number
-    return dirtyRooms[0] ?? board.rooms[0] ?? null;
-  }, [board.rooms]);
+  // My route: assigned rooms when there are any, otherwise the open turns.
+  const routeRooms = useMemo(() => {
+    const base = assignedRooms.length ? assignedRooms : board.rooms;
+    return [...base].sort(
+      (a, b) => routeWeight(a, staffId) - routeWeight(b, staffId) || a.number.localeCompare(b.number),
+    );
+  }, [assignedRooms, board.rooms, staffId]);
+
+  const nextRoom = useMemo(
+    () =>
+      routeRooms.find(
+        (r) =>
+          !skipped.includes(r.id) &&
+          (r.hk_stage === "in_progress" ||
+            r.status === "vacant_dirty" ||
+            r.status === "occupied"),
+      ) ?? null,
+    [routeRooms, skipped],
+  );
+
+  const visibleRooms = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return routeRooms.filter((room) => {
+      if (q && !room.number.toLowerCase().includes(q)) return false;
+      switch (routeFilter) {
+        case "mine":
+          return room.assigned_staff_id === staffId;
+        case "todo":
+          return room.status === "vacant_dirty" || room.hk_stage === "in_progress";
+        case "dnd":
+          return room.dnd || room.status === "occupied_dnd";
+        case "done":
+          return room.status === "vacant_clean";
+        default:
+          return true;
+      }
+    });
+  }, [routeRooms, routeFilter, query, staffId]);
 
   const initials = staff.name
     ? staff.name
@@ -176,16 +251,56 @@ function HousekeepingWorkspace({
         .slice(0, 2)
     : "HK";
 
+  const myDone = assignedRooms.filter((r) => r.status === "vacant_clean").length;
+  const myTotal = assignedRooms.length;
   const cleanCount = board.rooms.filter((r) => r.status === "vacant_clean").length;
   const totalCount = board.rooms.length;
-  const progressPct = totalCount ? Math.round((cleanCount / totalCount) * 100) : 0;
+  const turnCount = board.rooms.filter((r) => r.status === "vacant_dirty").length;
+  const dndCount = board.rooms.filter((r) => r.dnd || r.status === "occupied_dnd").length;
+  const progressPct = myTotal
+    ? Math.round((myDone / myTotal) * 100)
+    : totalCount
+      ? Math.round((cleanCount / totalCount) * 100)
+      : 0;
+
+  const nextChip = nextRoom ? statusChip(nextRoom) : null;
+  const inProgress = nextRoom?.hk_stage === "in_progress";
+
+  // Supervisor view data, grouped from the live board instead of samples.
+  const unassigned = useMemo(
+    () => board.rooms.filter((r) => !r.assigned_staff_id && r.status === "vacant_dirty"),
+    [board.rooms],
+  );
+  const groups = useMemo(() => {
+    const map = new Map<string, { name: string; rooms: RoomRow[] }>();
+    for (const room of board.rooms) {
+      if (!room.assigned_staff_id) continue;
+      const key = room.assigned_staff_id;
+      const entry = map.get(key) ?? { name: room.assigned_name || "Unnamed", rooms: [] };
+      entry.rooms.push(room);
+      map.set(key, entry);
+    }
+    return [...map.entries()]
+      .map(([id, entry]) => {
+        const done = entry.rooms.filter((r) => r.status === "vacant_clean").length;
+        return {
+          id,
+          name: entry.name,
+          done,
+          total: entry.rooms.length,
+          pct: entry.rooms.length ? Math.round((done / entry.rooms.length) * 100) : 0,
+          rooms: [...entry.rooms].sort((a, b) => a.number.localeCompare(b.number)),
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [board.rooms]);
 
   return (
     <div className="ops-portal flex min-h-screen">
       {/* Desktop Navigation Rail for >= 1024px */}
       <NavRail current="rooms" staff={staff} />
 
-      <main className="flex-1 overflow-y-auto pb-20 lg:pb-10">
+      <main className="flex-1 overflow-y-auto pb-28 lg:pb-10">
         <div className="hidden md:block">
           <OpsScreenSwitcher current="housekeeping" />
         </div>
@@ -214,25 +329,33 @@ function HousekeepingWorkspace({
               <>
                 {/* Top Mobile Bar */}
                 <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[#00243F] px-4 py-3.5 shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#D4AF37] font-mono text-xs font-bold text-[#004986]">
                       {initials}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-[10px] font-bold tracking-[0.18em] text-[#D4AF37] uppercase">
-                        Guest Hub · Housekeeping
+                        Housekeeping
                       </p>
-                      <p className="mt-0.5 text-sm font-bold text-white">{staff.name}</p>
+                      <p className="mt-0.5 truncate text-sm font-bold text-white">{staff.name}</p>
                       <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                        Online &amp; synced
+                        {board.syncSummary?.pending ? (
+                          <>
+                            <WifiOff className="h-3 w-3" /> Saving offline
+                          </>
+                        ) : (
+                          <>
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                            Live &amp; synced
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={onSignOut}
-                    className="rounded-lg border border-white/25 px-2.5 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/10"
+                    className="min-h-[44px] shrink-0 rounded-lg border border-white/25 px-3 text-xs font-semibold text-white/80 transition active:bg-white/10"
                   >
                     Sign out
                   </button>
@@ -244,82 +367,119 @@ function HousekeepingWorkspace({
                     {/* "Do This Next" Hero Card */}
                     {nextRoom ? (
                       <section className="rounded-2xl bg-[#004986] p-5 text-white shadow-sm">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <p className="text-[10px] font-bold tracking-widest text-[#D4AF37] uppercase">
                             Do this next
                           </p>
-                          <span className="rounded-full bg-[#D4AF37]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#D4AF37]">
-                            Front desk priority
-                          </span>
+                          {nextChip ? (
+                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${nextChip.cls}`}>
+                              {nextChip.label}
+                            </span>
+                          ) : null}
                         </div>
 
                         <div className="mt-3 flex items-baseline gap-3">
                           <span className="font-mono text-5xl font-bold tracking-tight">
                             {nextRoom.number}
                           </span>
-                          <span className="text-xs font-bold tracking-wider text-[#D4AF37] uppercase">
-                            Guest arriving 4 PM
-                          </span>
+                          {nextRoom.priority ? (
+                            <span className="text-xs font-bold tracking-wider text-[#D4AF37] uppercase">
+                              {nextRoom.priority}
+                            </span>
+                          ) : null}
                         </div>
 
                         <p className="mt-2 text-xs leading-relaxed text-white/80">
-                          {nextRoom.bed_type || "1 King bed"} · Linens flagged. Main building, Floor{" "}
-                          {nextRoom.floor}.
+                          Floor {nextRoom.floor}
+                          {nextRoom.bed_type ? ` · ${nextRoom.bed_type}` : ""}
+                          {nextRoom.linen_change ? " · Linen change" : ""}
+                          {nextRoom.notes ? ` · ${nextRoom.notes}` : ""}
                         </p>
-
-                        {nextRoom.hk_stage === "in_progress" ? (
-                          <p className="mt-2.5 text-[0.82rem] font-bold tabular-nums text-[#D4AF37]">
-                            In progress
-                          </p>
-                        ) : null}
 
                         <button
                           type="button"
                           onClick={() => {
-                            if (nextRoom.hk_stage === "in_progress") {
+                            if (inProgress) {
                               void board.setStatus(nextRoom, "vacant_clean");
                               void board.setStage(nextRoom, null);
                             } else {
                               void board.setStage(nextRoom, "in_progress");
                             }
                           }}
-                          className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
+                          className="mt-4 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
                         >
                           <Sparkles className="h-4 w-4" />
-                          {nextRoom.hk_stage === "in_progress"
+                          {inProgress
                             ? `Finish room ${nextRoom.number}`
                             : `Start room ${nextRoom.number}`}
                         </button>
 
-
-                        <div className="mt-2.5 grid grid-cols-2 gap-2">
+                        <div className="mt-2.5 grid grid-cols-3 gap-2">
                           <button
                             type="button"
-                            onClick={() => setIssueRoom(nextRoom)}
-                            className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
+                            onClick={() => setActiveRoom(nextRoom)}
+                            className="flex min-h-[44px] items-center justify-center rounded-xl border border-white/35 text-xs font-semibold text-white transition active:bg-white/10"
                           >
-                            Flag issue
+                            Details
                           </button>
                           <button
                             type="button"
-                            onClick={() => toast.info(`Room ${nextRoom.number} skipped.`)}
-                            className="flex min-h-[42px] items-center justify-center rounded-xl border border-white/35 bg-transparent text-xs font-semibold text-white transition active:bg-white/10"
+                            onClick={() => setIssueRoom(nextRoom)}
+                            className="flex min-h-[44px] items-center justify-center gap-1 rounded-xl border border-white/35 text-xs font-semibold text-white transition active:bg-white/10"
                           >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Issue
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSkipped((prev) => [...prev, nextRoom.id]);
+                              toast.info(`Room ${nextRoom.number} moved down your route.`);
+                            }}
+                            className="flex min-h-[44px] items-center justify-center gap-1 rounded-xl border border-white/35 text-xs font-semibold text-white transition active:bg-white/10"
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
                             Skip
                           </button>
                         </div>
                       </section>
-                    ) : null}
+                    ) : (
+                      <section className="rounded-2xl border border-[#CDE7DA] bg-[#E7F4EE] p-5 text-center">
+                        <Sparkles className="mx-auto h-6 w-6 text-[#0F7B4F]" />
+                        <p className="mt-2 text-sm font-bold text-[#0F7B4F]">
+                          Your route is clear
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600">
+                          Nothing waiting on a cart right now. Check the map or flag an issue.
+                        </p>
+                        {skipped.length ? (
+                          <button
+                            type="button"
+                            onClick={() => setSkipped([])}
+                            className="mt-3 min-h-[44px] rounded-xl border border-[#0F7B4F]/30 px-4 text-xs font-bold text-[#0F7B4F]"
+                          >
+                            Restore {skipped.length} skipped
+                          </button>
+                        ) : null}
+                      </section>
+                    )}
 
                     {/* Your Shift Progress Card */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                       <div className="flex items-center justify-between text-xs">
                         <p className="font-bold text-slate-700">
-                          {cleanCount} of {totalCount} done
+                          {myTotal ? `${myDone} of ${myTotal} of your rooms done` : `${cleanCount} of ${totalCount} rooms ready`}
                         </p>
-                        <span className="font-mono text-slate-400">Since 8:00 AM</span>
+                        <span className="font-mono text-slate-400">{progressPct}%</span>
                       </div>
-                      <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100"
+                        role="progressbar"
+                        aria-valuenow={progressPct}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label="Shift progress"
+                      >
                         <div
                           className="h-full rounded-full bg-[#D4AF37] transition-all"
                           style={{ width: `${progressPct}%` }}
@@ -327,72 +487,87 @@ function HousekeepingWorkspace({
                       </div>
                       <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-2.5 text-center">
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">To clean</p>
-                          <p className="font-mono text-lg font-bold text-[#004986]">
-                            {totalCount - cleanCount}
-                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">To turn</p>
+                          <p className="font-mono text-lg font-bold text-[#B45309]">{turnCount}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">
-                            Yours left
-                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">Yours left</p>
                           <p className="font-mono text-lg font-bold text-[#004986]">
-                            {totalCount - cleanCount}
+                            {Math.max(myTotal - myDone, 0)}
                           </p>
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-slate-400 uppercase">DND</p>
-                          <p className="font-mono text-lg font-bold text-[#7C3AED]">
-                            {board.rooms.filter((r) => r.status.includes("dnd")).length}
-                          </p>
+                          <p className="font-mono text-lg font-bold text-[#7C3AED]">{dndCount}</p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Filters + search */}
+                    <div className="flex flex-col gap-2">
+                      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                        {ROUTE_FILTERS.map((f) => (
+                          <button
+                            key={f.key}
+                            type="button"
+                            onClick={() => setRouteFilter(f.key)}
+                            aria-pressed={routeFilter === f.key}
+                            className={`min-h-[38px] shrink-0 rounded-full px-4 text-xs font-bold transition ${
+                              routeFilter === f.key
+                                ? "bg-[#004986] text-white"
+                                : "border border-slate-200 bg-white text-slate-600"
+                            }`}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        inputMode="numeric"
+                        placeholder="Find a room number"
+                        aria-label="Find a room number"
+                        className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-[#004986] focus:outline-none"
+                      />
                     </div>
 
                     {/* Rest of Your Route */}
                     <div className="flex flex-col gap-2">
                       <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                        Rest of your route · {board.rooms.length}
+                        {assignedRooms.length ? "Your rooms" : "Open rooms"} · {visibleRooms.length}
                       </p>
 
-                      {board.rooms.map((room) => {
-                        const isClean = room.status === "vacant_clean";
-                        const isDnd = room.status.includes("dnd");
+                      {visibleRooms.length === 0 ? (
+                        <p className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-xs text-slate-500">
+                          No rooms match this filter.
+                        </p>
+                      ) : null}
 
+                      {visibleRooms.map((room) => {
+                        const chip = statusChip(room);
                         return (
                           <button
                             key={room.id}
                             type="button"
                             onClick={() => setActiveRoom(room)}
-                            className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-[#004986]"
+                            className="flex min-h-[64px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition active:border-[#004986]"
                           >
-                            <div className="flex items-center gap-3">
-                              <span
-                                className={`h-9 w-1.5 rounded-full ${
-                                  isClean ? "bg-[#0F7B4F]" : isDnd ? "bg-[#7C3AED]" : "bg-[#B45309]"
-                                }`}
-                              />
-                              <div>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className={`h-10 w-1.5 shrink-0 rounded-full ${chip.bar}`} />
+                              <div className="min-w-0">
                                 <span className="font-mono text-lg font-bold text-[#004986]">
                                   {room.number}
                                 </span>
-                                <p className="text-xs text-slate-500">
-                                  {room.notes ||
-                                    `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
+                                <p className="truncate text-xs text-slate-500">
+                                  {room.notes || `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
                                 </p>
                               </div>
                             </div>
-
                             <span
-                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                                isClean
-                                  ? "bg-[#E7F4EE] text-[#0F7B4F]"
-                                  : isDnd
-                                    ? "bg-[#F1EAFC] text-[#7C3AED]"
-                                    : "bg-[#FBF0E2] text-[#B45309]"
-                              }`}
+                              className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${chip.cls}`}
                             >
-                              {isClean ? "Ready" : isDnd ? "DND" : "Turn"}
+                              {chip.label}
                             </span>
                           </button>
                         );
@@ -423,35 +598,49 @@ function HousekeepingWorkspace({
                   <div className="flex flex-col gap-4">
                     <div className="op-card p-5">
                       <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                        Shift Summary
+                        Shift summary
                       </p>
                       <h2 className="mt-1 font-serif text-2xl font-bold text-[#004986]">
                         Nice work, {staff.name}
                       </h2>
-                      <p className="mt-1 text-xs text-slate-500">8:00 AM – Today on duty</p>
 
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-slate-50 p-3">
                           <p className="text-[10px] font-bold text-slate-400 uppercase">
                             Rooms turned
                           </p>
-                          <p className="font-mono text-xl font-bold text-[#0F7B4F]">{cleanCount}</p>
+                          <p className="font-mono text-xl font-bold text-[#0F7B4F]">{myDone}</p>
                         </div>
                         <div className="rounded-xl bg-slate-50 p-3">
                           <p className="text-[10px] font-bold text-slate-400 uppercase">
-                            Avg per room
+                            Still assigned
                           </p>
-                          <p className="font-mono text-xl font-bold text-[#004986]">34m</p>
+                          <p className="font-mono text-xl font-bold text-[#004986]">
+                            {Math.max(myTotal - myDone, 0)}
+                          </p>
+                        </div>
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            Property ready
+                          </p>
+                          <p className="font-mono text-xl font-bold text-[#004986]">
+                            {cleanCount}/{totalCount}
+                          </p>
+                        </div>
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">DND rooms</p>
+                          <p className="font-mono text-xl font-bold text-[#7C3AED]">{dndCount}</p>
                         </div>
                       </div>
 
                       <button
                         type="button"
                         onClick={() => {
+                          window.localStorage.removeItem(shiftKey);
                           onSignOut();
                           toast.success("Clocked out for the shift.");
                         }}
-                        className="mt-6 flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm"
+                        className="mt-6 flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#004986] text-sm font-bold text-white shadow-sm"
                       >
                         Clock out
                       </button>
@@ -460,47 +649,39 @@ function HousekeepingWorkspace({
                 )}
 
                 {/* Mobile Fixed Bottom Navigation Bar */}
-                <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-slate-200 bg-white py-2 shadow-lg">
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("route")}
-                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                      mobileTab === "route" ? "text-[#004986]" : "text-slate-400"
-                    }`}
-                  >
-                    <Footprints className="h-5 w-5" />
-                    Route
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("map")}
-                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                      mobileTab === "map" ? "text-[#004986]" : "text-slate-400"
-                    }`}
-                  >
-                    <MapIcon className="h-5 w-5" />
-                    Map
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("issues")}
-                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                      mobileTab === "issues" ? "text-[#004986]" : "text-slate-400"
-                    }`}
-                  >
-                    <Wrench className="h-5 w-5" />
-                    Issues
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("shift")}
-                    className={`flex flex-col items-center gap-1 p-1 text-[10px] font-bold uppercase transition ${
-                      mobileTab === "shift" ? "text-[#004986]" : "text-slate-400"
-                    }`}
-                  >
-                    <Clock className="h-5 w-5" />
-                    Shift
-                  </button>
+                <nav
+                  aria-label="Housekeeping sections"
+                  className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur shadow-lg"
+                >
+                  {(
+                    [
+                      { key: "route", label: "Route", Icon: Footprints, badge: turnCount },
+                      { key: "map", label: "Map", Icon: MapIcon, badge: 0 },
+                      { key: "issues", label: "Issues", Icon: Wrench, badge: board.openIssues.length },
+                      { key: "shift", label: "Shift", Icon: Clock, badge: 0 },
+                    ] as { key: MobileTab; label: string; Icon: typeof Footprints; badge: number }[]
+                  ).map(({ key, label, Icon, badge }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setMobileTab(key)}
+                      aria-current={mobileTab === key ? "page" : undefined}
+                      className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 text-[10px] font-bold uppercase transition ${
+                        mobileTab === key ? "text-[#004986]" : "text-slate-400"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {label}
+                      {badge > 0 ? (
+                        <span className="absolute top-1.5 right-1/2 translate-x-5 rounded-full bg-[#B45309] px-1.5 text-[9px] font-bold text-white">
+                          {badge > 99 ? "99+" : badge}
+                        </span>
+                      ) : null}
+                      {mobileTab === key ? (
+                        <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[#D4AF37]" />
+                      ) : null}
+                    </button>
+                  ))}
                 </nav>
               </>
             )}
@@ -509,7 +690,7 @@ function HousekeepingWorkspace({
           {/* ============================================================ */}
           {/* SUPERVISOR TABLET VIEW (≥ 1024px) */}
           {/* ============================================================ */}
-          <div className="hidden lg:flex flex-col gap-6">
+          <div className="hidden flex-col gap-6 lg:flex">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -524,16 +705,8 @@ function HousekeepingWorkspace({
               <div className="flex items-center gap-2.5">
                 <Button
                   type="button"
-                  onClick={() => toast.success("Auto-assigned unassigned rooms by zone.")}
-                  className="rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm hover:bg-[#004986]/90"
-                >
-                  <Plus className="mr-1.5 h-4 w-4" />
-                  Auto-assign 9 rooms
-                </Button>
-                <Button
-                  type="button"
                   variant="outline"
-                  onClick={() => toast.info("Printing turn sheet...")}
+                  onClick={() => window.print()}
                   className="rounded-xl border-slate-300 bg-white text-xs font-semibold text-[#004986] hover:bg-slate-50"
                 >
                   <Printer className="mr-1.5 h-4 w-4" />
@@ -542,70 +715,81 @@ function HousekeepingWorkspace({
               </div>
             </div>
 
-            {/* Light Advisory Panel ("Do This Next" for Supervisor) */}
-            <section className="rounded-2xl border border-[#E4D9B4] border-l-4 border-l-[#D4AF37] bg-[#FDFBF4] p-5 shadow-xs">
-              <p className="text-[11px] font-bold tracking-widest text-[#8A6D1F] uppercase">
-                Supervisor Recommendation
-              </p>
-              <h2 className="mt-1 text-base font-bold text-[#004986]">
-                Room 122 has a 4 PM arrival and no housekeeper assigned.
-              </h2>
-              <p className="mt-1 text-xs text-slate-600">
-                Teresa López finishes Room 209 in about 10 minutes and is located in the same
-                building.
-              </p>
-              <div className="mt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => toast.success("Assigned Room 122 to Teresa López")}
-                  className="rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-bold text-[#004986] shadow-sm hover:bg-[#D4AF37]/90"
-                >
-                  Assign 122 to Teresa
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toast.info("Filtering unassigned rooms")}
-                  className="rounded-xl border border-[#D9C88E] bg-white px-3.5 py-2 text-xs font-semibold text-[#8A6D1F] hover:bg-[#FDFBF4]"
-                >
-                  See all unassigned
-                </button>
-              </div>
-            </section>
+            {/* Live advisory panel */}
+            {unassigned.length ? (
+              <section className="rounded-2xl border border-[#E4D9B4] border-l-4 border-l-[#D4AF37] bg-[#FDFBF4] p-5 shadow-xs">
+                <p className="text-[11px] font-bold tracking-widest text-[#8A6D1F] uppercase">
+                  Needs attention
+                </p>
+                <h2 className="mt-1 text-base font-bold text-[#004986]">
+                  {unassigned.length} dirty {unassigned.length === 1 ? "room has" : "rooms have"} no
+                  housekeeper assigned.
+                </h2>
+                <p className="mt-1 text-xs text-slate-600">
+                  {unassigned
+                    .slice(0, 8)
+                    .map((r) => r.number)
+                    .join(", ")}
+                  {unassigned.length > 8 ? "…" : ""}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {unassigned.slice(0, 6).map((room) => (
+                    <button
+                      key={room.id}
+                      type="button"
+                      onClick={() => setActiveRoom(room)}
+                      className="rounded-xl border border-[#D9C88E] bg-white px-3.5 py-2 font-mono text-xs font-bold text-[#8A6D1F] hover:bg-[#FDFBF4]"
+                    >
+                      Assign {room.number}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <section className="rounded-2xl border border-[#CDE7DA] bg-[#E7F4EE] p-5">
+                <p className="text-[11px] font-bold tracking-widest text-[#0F7B4F] uppercase">
+                  All covered
+                </p>
+                <h2 className="mt-1 text-base font-bold text-[#004986]">
+                  Every dirty room has a housekeeper assigned.
+                </h2>
+              </section>
+            )}
 
             {/* 4-Column Stat Grid */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
               <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
                   Rooms to turn
                 </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">
-                  {board.rooms.filter((r) => r.status.includes("dirty")).length}
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">3 tied to arrivals</p>
+                <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">{turnCount}</p>
+                <p className="mt-1.5 text-xs text-slate-500">{unassigned.length} unassigned</p>
               </div>
 
               <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Unassigned
+                  In progress
                 </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#B45309]">2</p>
-                <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
+                <p className="mt-2 font-mono text-3xl font-bold text-[#0E7490]">
+                  {board.rooms.filter((r) => r.hk_stage === "in_progress").length}
+                </p>
+                <p className="mt-1.5 text-xs text-slate-500">being cleaned now</p>
               </div>
 
               <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Avg turnover
+                  DND / blocked
                 </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">38m</p>
-                <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
+                <p className="mt-2 font-mono text-3xl font-bold text-[#7C3AED]">{dndCount}</p>
+                <p className="mt-1.5 text-xs text-slate-500">revisit later in the shift</p>
               </div>
 
               <div className="op-card p-5">
                 <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Done today
+                  Ready
                 </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#0F7B4F]">{cleanCount}</p>
-                <p className="mt-1.5 text-xs text-slate-500">of {totalCount} planned</p>
+                <p className="mt-1.5 text-xs text-slate-500">of {totalCount} rooms</p>
               </div>
             </div>
 
@@ -615,61 +799,23 @@ function HousekeepingWorkspace({
                 Assignments by housekeeper
               </p>
 
-              {[
-                {
-                  id: "hk-1",
-                  name: "Marisol R.",
-                  zone: "Main building · Floor 1",
-                  done: 4,
-                  total: 11,
-                  pct: 36,
-                  rooms: [
-                    { num: "114", status: "4 PM", color: "#0E7490", tint: "#E4F2F5" },
-                    { num: "113", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "121", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
-                    { num: "117", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "110", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
-                  ],
-                },
-                {
-                  id: "hk-2",
-                  name: "Ana G.",
-                  zone: "Main building · Floor 2",
-                  done: 7,
-                  total: 12,
-                  pct: 58,
-                  rooms: [
-                    { num: "202", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "205", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "201", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "206", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "209", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
-                  ],
-                },
-                {
-                  id: "hk-3",
-                  name: "Teresa L.",
-                  zone: "Building 2 · Floors 1–2",
-                  done: 9,
-                  total: 10,
-                  pct: 90,
-                  rooms: [
-                    { num: "209", status: "Now", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "121", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "124", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "125", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
-                  ],
-                },
-              ].map((member) => (
+              {groups.length === 0 ? (
+                <p className="op-card p-6 text-sm text-slate-500">
+                  No rooms are assigned yet. Assign rooms from the shift schedule or by opening a
+                  room below.
+                </p>
+              ) : null}
+
+              {groups.map((member) => (
                 <div key={member.id} className="op-card p-5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">
-                        {member.name.slice(0, 2)}
+                        {member.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-bold text-slate-800">{member.name}</p>
-                        <p className="text-xs text-slate-400">{member.zone}</p>
+                        <p className="text-xs text-slate-400">{member.total} rooms assigned</p>
                       </div>
                     </div>
 
@@ -687,25 +833,23 @@ function HousekeepingWorkspace({
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-                    {member.rooms.map((rm, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold shadow-2xs"
-                        style={{ backgroundColor: rm.tint }}
-                      >
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: rm.color }}
-                        />
-                        <span className="font-mono font-bold text-[#004986]">{rm.num}</span>
-                        <span
-                          className="text-[10px] font-bold uppercase tracking-wider"
-                          style={{ color: rm.color }}
+                    {member.rooms.map((room) => {
+                      const chip = statusChip(room);
+                      return (
+                        <button
+                          key={room.id}
+                          type="button"
+                          onClick={() => setActiveRoom(room)}
+                          className={`inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold shadow-2xs transition hover:border-[#004986] ${chip.cls}`}
                         >
-                          {rm.status}
-                        </span>
-                      </span>
-                    ))}
+                          <span className={`h-2 w-2 rounded-full ${chip.bar}`} />
+                          <span className="font-mono font-bold text-[#004986]">{room.number}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">
+                            {chip.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
