@@ -4,6 +4,7 @@ import {
   Bot,
   ClipboardCheck,
   ListFilter,
+  LayoutDashboard,
   Map as MapIcon,
   UserPlus,
   Users,
@@ -22,6 +23,7 @@ type TabSpec = {
 
 function tabs(openCount: number, roomCount: number): TabSpec[] {
   return [
+    { id: "overview", label: "Manager dashboard", icon: LayoutDashboard },
     { id: "queue", label: `Request queue (${openCount})`, icon: ListFilter },
     { id: "map", label: `Property map (${roomCount})`, icon: MapIcon },
     { id: "crm", label: "Guest CRM", icon: Users },
