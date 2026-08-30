@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { BellRing, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BellRing, Check } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import type { QueueRoom } from "./use-request-queue";
+
+type Ack = { name: string | null; at: string };
 
 /** A room counts as DND when the guest flag is up or the status says so. */
 function isDnd(room: QueueRoom) {
