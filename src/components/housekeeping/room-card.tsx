@@ -135,7 +135,7 @@ export function RoomCard({
                 e.stopPropagation();
                 onToggleAssignment(room, !isMine);
               }}
-              className={`signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border px-2 py-2 text-center text-[0.62rem] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`signage flex min-h-11 touch-manipulation items-center justify-center rounded-md border px-2 py-2 text-center text-[0.62rem] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                 isMine
                   ? "border-cream/25 text-cream/60 hover:bg-cream/10 hover:text-cream"
                   : "border-amber/60 text-amber hover:bg-amber hover:text-ink"
@@ -150,7 +150,7 @@ export function RoomCard({
               e.stopPropagation();
               onOpen(room.id);
             }}
-            className="signage flex min-h-10 touch-manipulation items-center justify-center rounded-md border border-cream/20 px-2 py-2 text-center text-[0.62rem] text-cream/65 transition-colors hover:border-cream/45 hover:bg-cream/10 hover:text-cream"
+            className="signage flex min-h-11 touch-manipulation items-center justify-center rounded-md border border-cream/20 px-2 py-2 text-center text-[0.62rem] text-cream/65 transition-colors hover:border-cream/45 hover:bg-cream/10 hover:text-cream"
           >
             {actionable ? "Details & status" : "View details"}
           </button>

@@ -79,7 +79,7 @@ export function InteractiveAmenitiesSection() {
               src={POOL_PHOTO}
               alt={POOL_PHOTO_ALT}
               loading="lazy"
-            decoding="async"
+              decoding="async"
               className="h-[240px] w-full object-cover opacity-85 transition-transform duration-700 hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

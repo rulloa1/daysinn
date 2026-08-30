@@ -136,7 +136,6 @@ export function ManagerOverview({
             );
           })}
         </div>
-
       </section>
 
       <StuckRoomAlerts rooms={rooms} />
@@ -219,7 +218,6 @@ export function ManagerOverview({
               onClick={onOpenMap}
             />
           </div>
-
 
           <ul className="mt-4 space-y-2">
             {attention.openRequests.slice(0, 5).map((request) => (
@@ -316,6 +314,5 @@ function Metric({
         {label}
       </p>
     </button>
-
   );
 }

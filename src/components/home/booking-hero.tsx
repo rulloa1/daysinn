@@ -109,8 +109,8 @@ export function BookingHero({ availability }: { availability: Availability }) {
         </h1>
 
         <p className="mt-[18px] max-w-[40rem] text-[1.05rem] leading-relaxed text-white/85 text-pretty">
-          Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free high-speed Wi-Fi, and RV/truck
-          parking — just 10 minutes from The Villages.
+          Check-in 3:00 PM · Check-out 11:00 AM. Pet-friendly rooms, free high-speed Wi-Fi, and
+          RV/truck parking — just 10 minutes from The Villages.
         </p>
 
         {/* Quick Highlights Ribbon */}
@@ -223,4 +223,3 @@ export function BookingHero({ availability }: { availability: Availability }) {
     </section>
   );
 }
-

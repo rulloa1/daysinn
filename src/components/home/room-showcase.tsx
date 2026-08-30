@@ -33,7 +33,7 @@ export function RoomShowcaseSection({
   bookingLink: (roomType?: string) => string;
 }) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | "king" | "queen" | "suite">(
-    "all"
+    "all",
   );
   const [comparedRooms, setComparedRooms] = useState<RoomSpec[]>([]);
   const [compareModalOpen, setCompareModalOpen] = useState(false);
@@ -279,7 +279,10 @@ export function RoomShowcaseSection({
       )}
 
       {/* Quick View Room Dialog */}
-      <Dialog open={quickViewRoom !== null} onOpenChange={(open) => !open && setQuickViewRoom(null)}>
+      <Dialog
+        open={quickViewRoom !== null}
+        onOpenChange={(open) => !open && setQuickViewRoom(null)}
+      >
         {quickViewRoom && (
           <DialogContent className="max-w-2xl overflow-hidden rounded-3xl border border-[var(--gh-border)] bg-white p-0 shadow-2xl">
             <div className="relative h-60 w-full bg-slate-100">
@@ -405,7 +408,9 @@ export function RoomShowcaseSection({
                     ))}
                   </tr>
                   <tr>
-                    <td className="py-3 font-semibold text-slate-600">Micro-Fridge &amp; Microwave</td>
+                    <td className="py-3 font-semibold text-slate-600">
+                      Micro-Fridge &amp; Microwave
+                    </td>
                     {comparedRooms.map((r) => (
                       <td key={r.id} className="py-3 text-emerald-600 font-semibold">
                         ✓ Included
