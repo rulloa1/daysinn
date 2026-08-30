@@ -69,7 +69,6 @@ export function RoomTypesSection({ bookingLink }: { bookingLink: (roomType?: str
               alt={roomType.alt}
               loading="lazy"
             decoding="async"
-              decoding="async"
               className="block h-[220px] w-full object-cover"
             />
             <div className="flex flex-1 flex-col px-6 pt-[22px] pb-6">
@@ -285,7 +284,6 @@ export function GallerySection() {
               alt={photo.alt}
               loading="lazy"
             decoding="async"
-              decoding="async"
               className="block h-[150px] w-full object-cover"
             />
             <figcaption className="px-3 py-[11px] text-[0.72rem] font-semibold tracking-[0.1em] text-[var(--gh-body)] uppercase">
