@@ -268,11 +268,47 @@ function Dashboard({ session }: { session: Session }) {
     );
   }
 
-  // Accounts with no operational role (viewers, or invites not yet granted a
-  // role) get no queue at all rather than a read-only copy of guest data.
+  // Signed in, but the backend returned no roles at all. That is almost always a
+  // stale session from an older install rather than a real permission decision,
+  // so offer a clean sign-in instead of a dead-end refusal screen.
+  if (!roleLoading && roles.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#00243F] px-6 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-amber-500/30 bg-white/5 p-8 text-center backdrop-blur-md">
+          <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+            Session out of date
+          </p>
+          <h1 className="mt-2 font-serif text-2xl font-bold">Sign in again</h1>
+          <p className="mt-3 text-sm text-white/70">
+            We couldn&apos;t load your access for this device. Signing in again usually fixes it.
+          </p>
+          <Button
+            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
+            onClick={() => void refresh()}
+          >
+            Retry
+          </Button>
+          <Button
+            variant="ghost"
+            className="mt-2 w-full text-white/70 hover:text-white"
+            onClick={async () => {
+              await resetStaffSession();
+              window.location.href = "/staff-login";
+            }}
+          >
+            Sign out and start over
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Accounts with a role that still excludes the queue (viewers) keep the
+  // explicit refusal screen.
   if (!roleLoading && !canViewScreen(roles, "queue")) {
     return <ScreenDenied screen="queue" suggestion={null} />;
   }
+
 
   return (
     <div className="ops-portal flex min-h-screen">
