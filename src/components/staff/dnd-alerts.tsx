@@ -1,7 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { BellRing, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BellRing, Check } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useStaffIdentity } from "@/hooks/use-staff-identity";
 import type { QueueRoom } from "./use-request-queue";
+
+/** Who acknowledged a room's current DND, and when. */
+type Ack = { name: string | null; at: string };
 
 /** A room counts as DND when the guest flag is up or the status says so. */
 function isDnd(room: QueueRoom) {
@@ -23,13 +28,16 @@ function sinceLabel(iso: string | null) {
 /**
  * Front-desk banner for rooms that just went Do Not Disturb. Times come from
  * the room status event log so the alert shows when DND was actually set,
- * not when the row was last touched.
+ * not when the row was last touched. Acknowledgements are recorded in the
+ * database, so the banner stays cleared for every device until DND is re-set.
  */
 export function DndAlerts({ rooms }: { rooms: QueueRoom[] }) {
+  const { staff } = useStaffIdentity();
   const dndRooms = useMemo(() => rooms.filter(isDnd), [rooms]);
   const key = useMemo(() => dndRooms.map((r) => r.number).sort().join(","), [dndRooms]);
   const [setAt, setSetAt] = useState<Record<string, string>>({});
-  const [dismissed, setDismissed] = useState<string[]>([]);
+  const [acks, setAcks] = useState<Record<string, Ack>>({});
+  const [saving, setSaving] = useState<string | null>(null);
   const [, forceTick] = useState(0);
 
   useEffect(() => {
@@ -43,6 +51,7 @@ export function DndAlerts({ rooms }: { rooms: QueueRoom[] }) {
     const numbers = key ? key.split(",") : [];
     if (numbers.length === 0) {
       setSetAt({});
+      setAcks({});
       return;
     }
     void (async () => {
@@ -65,12 +74,67 @@ export function DndAlerts({ rooms }: { rooms: QueueRoom[] }) {
     };
   }, [key]);
 
-  // Drop stale dismissals so a room re-entering DND alerts again.
+  // Load acknowledgements for the rooms currently on DND.
   useEffect(() => {
-    setDismissed((prev) => prev.filter((n) => key.split(",").includes(n)));
-  }, [key]);
+    let cancelled = false;
+    const numbers = key ? key.split(",") : [];
+    if (numbers.length === 0) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("dnd_acknowledgements")
+        .select("room, dnd_set_at, acknowledged_by_name, acknowledged_at")
+        .in("room", numbers)
+        .order("acknowledged_at", { ascending: false })
+        .limit(200);
+      if (cancelled) return;
+      const latest: Record<string, Ack & { forSetAt: string | null }> = {};
+      for (const row of data ?? []) {
+        if (!latest[row.room]) {
+          latest[row.room] = {
+            name: row.acknowledged_by_name,
+            at: row.acknowledged_at,
+            forSetAt: row.dnd_set_at,
+          };
+        }
+      }
+      setAcks(
+        Object.fromEntries(
+          Object.entries(latest)
+            // An acknowledgement only clears the DND period it was made for.
+            .filter(([room, v]) => (setAt[room] ?? null) === v.forSetAt)
+            .map(([room, v]) => [room, { name: v.name, at: v.at }]),
+        ),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [key, setAt]);
 
-  const active = dndRooms.filter((r) => !dismissed.includes(r.number));
+  const acknowledge = useCallback(
+    async (room: string) => {
+      setSaving(room);
+      const name = staff?.name ?? "Front desk";
+      const { data: auth } = await supabase.auth.getUser();
+      const { error } = await supabase.from("dnd_acknowledgements").insert({
+        room,
+        dnd_set_at: setAt[room] ?? null,
+        acknowledged_by_name: name,
+        acknowledged_by_staff_id: staff?.id ?? null,
+        acknowledged_by_user_id: auth.user?.id ?? null,
+      });
+      setSaving(null);
+      if (error) {
+        toast.error("Couldn't record the acknowledgement.");
+        return;
+      }
+      setAcks((prev) => ({ ...prev, [room]: { name, at: new Date().toISOString() } }));
+      toast.success(`Room ${room} DND acknowledged by ${name}.`);
+    },
+    [staff, setAt],
+  );
+
+  const active = dndRooms.filter((r) => !acks[r.number]);
   if (active.length === 0) return null;
 
   return (
@@ -97,11 +161,13 @@ export function DndAlerts({ rooms }: { rooms: QueueRoom[] }) {
             </span>
             <button
               type="button"
-              onClick={() => setDismissed((prev) => [...prev, room.number])}
+              disabled={saving === room.number}
+              onClick={() => void acknowledge(room.number)}
               aria-label={`Acknowledge Do Not Disturb alert for room ${room.number}`}
-              className="ml-1 grid h-8 w-8 place-items-center rounded-lg text-rose-700 hover:bg-rose-100"
+              className="ml-1 inline-flex min-h-9 items-center gap-1 rounded-lg border border-rose-300 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
             >
-              <X className="h-4 w-4" aria-hidden />
+              <Check className="h-4 w-4" aria-hidden />
+              {saving === room.number ? "Saving…" : "Acknowledge"}
             </button>
           </li>
         ))}
