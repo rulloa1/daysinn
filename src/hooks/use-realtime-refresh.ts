@@ -85,15 +85,28 @@ export function useRealtimeRefresh({
       );
     }
     let connected = false;
+    let reconnectTimer: number | undefined;
     subscription.subscribe((status) => {
       connected = status === "SUBSCRIBED";
-      if (connected) refresh.schedule();
+      if (connected) {
+        refresh.schedule();
+        return;
+      }
+      // A dropped or errored socket used to leave a device frozen on stale room
+      // state until the tab was refocused. Rejoin the channel on a short delay.
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        if (reconnectTimer !== undefined) return;
+        reconnectTimer = window.setTimeout(() => {
+          reconnectTimer = undefined;
+          void subscription.subscribe();
+        }, 3000);
+      }
     });
 
-    // Poll whenever the live socket is down, and refresh as soon as the tab
-    // comes back to the foreground so a phone that slept shows current data.
+    // Poll on a timer even while the socket reports connected: a subscription can
+    // stay "SUBSCRIBED" while silently missing events (proxy idling a websocket,
+    // a phone waking from sleep), and every device must converge on room state.
     const timer = window.setInterval(() => {
-      if (connected) return;
       if (document.visibilityState !== "visible") return;
       // A device that is plainly offline can't reach the API; skip the request
       // and let the `online` listener pull fresh data the moment it reconnects.
@@ -111,6 +124,7 @@ export function useRealtimeRefresh({
     return () => {
       refresh.cancel();
       window.clearInterval(timer);
+      if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
       window.removeEventListener("online", onVisible);
