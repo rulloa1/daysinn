@@ -175,16 +175,15 @@ export const setGuestDnd = createServerFn({ method: "POST" })
       return { ok: false as const, dnd: false, error: "We couldn't verify your room." };
     }
 
+    // Keep the board status in step so the live map, front desk and
+    // housekeeping all read the same signal.
+    const patch: { dnd: boolean; status?: "occupied_dnd" | "occupied" } = { dnd: data.dnd };
+    if (data.dnd) patch.status = "occupied_dnd";
+    else if (guest.status === "occupied_dnd") patch.status = "occupied";
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("rooms")
-      .update({
-        dnd: data.dnd,
-        // Keep the board status in step so the live map, front desk and
-        // housekeeping all read the same signal.
-        status: data.dnd ? "occupied_dnd" : guest.status === "occupied_dnd" ? "occupied" : undefined,
-      })
-      .eq("number", guest.room);
+    const { error } = await supabaseAdmin.from("rooms").update(patch).eq("number", guest.room);
+
 
     if (error) return { ok: false as const, dnd: guest.dnd, error: "Could not update the sign." };
 
