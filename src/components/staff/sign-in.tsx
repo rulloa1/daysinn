@@ -135,6 +135,27 @@ export function SignIn() {
             {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
+        <div className="mt-5 flex items-center gap-3 text-xs uppercase tracking-widest text-cream/40">
+          <span className="h-px flex-1 bg-cream/15" />
+          or
+          <span className="h-px flex-1 bg-cream/15" />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={signInWithGoogle}
+          disabled={busy || !isSupabaseConfigured}
+          className="mt-5 w-full gap-2 border-cream/25 bg-cream/[0.06] text-cream hover:bg-cream/15 hover:text-cream"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4">
+            <path
+              fill="#EA4335"
+              d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1a6.2 6.2 0 1 1 0-12.4c1.9 0 3.2.8 4 1.5l2.7-2.6C17 3 14.7 2 12 2a10 10 0 1 0 0 20c5.8 0 9.6-4 9.6-9.7 0-.7-.1-1.2-.2-1.7H12z"
+            />
+          </svg>
+          Continue with Google
+        </Button>
+
         {isSupabaseConfigured && mode === "signin" ? (
           <button
             type="button"
