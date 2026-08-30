@@ -114,9 +114,12 @@ export function ManagerOverview({
             const meta = LIVE_STATUS_META[status];
             const value = byStatus.get(status) ?? 0;
             return (
-              <div
+              <button
                 key={status}
-                className="rounded-xl border border-[#D8E0EA] p-3"
+                type="button"
+                onClick={onOpenMap}
+                title={`Open the property map · ${meta.mapLabel}`}
+                className="rounded-xl border border-[#D8E0EA] p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-[#004986] focus-visible:outline-none"
                 style={{ background: meta.chip }}
               >
                 <p
@@ -129,10 +132,11 @@ export function ManagerOverview({
                   {meta.short}
                 </p>
                 <p className="mt-1 text-[0.68rem] text-slate-500">{meta.mapLabel}</p>
-              </div>
+              </button>
             );
           })}
         </div>
+
       </section>
 
       <StuckRoomAlerts rooms={rooms} />
