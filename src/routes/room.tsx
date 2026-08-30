@@ -7,9 +7,10 @@ import { LogOut, Phone } from "lucide-react";
 import { BrandLockup } from "@/components/brand-lockup";
 import { FranchiseLegal } from "@/components/franchise-footer";
 import { guestRequests } from "@/lib/guest.functions";
-import { guestSendMessage, guestThread } from "@/lib/guest-hub.functions";
+import { guestSendMessage, guestThread, setGuestDnd } from "@/lib/guest-hub.functions";
 import { clearGuestSession, readGuestSession, type GuestSession } from "@/lib/guest-session";
 import { ActiveRequests } from "@/components/room/active-requests";
+import { DndToggle } from "@/components/room/dnd-toggle";
 import { DeskChat } from "@/components/room/desk-chat";
 import { KeyAndAmenities } from "@/components/room/key-and-amenities";
 import { ServiceRequestDialog } from "@/components/room/service-request-dialog";
@@ -49,11 +50,13 @@ function RoomHub() {
   const fetchRequests = useServerFn(guestRequests);
   const fetchThread = useServerFn(guestThread);
   const sendMessage = useServerFn(guestSendMessage);
+  const updateDnd = useServerFn(setGuestDnd);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [ready, setReady] = useState(false);
   const [openService, setOpenService] = useState<RoomService | null>(null);
   const [chatDraft, setChatDraft] = useState("");
   const [chatSending, setChatSending] = useState(false);
+  const [dndBusy, setDndBusy] = useState(false);
 
   useEffect(() => {
     const stored = readGuestSession();
@@ -95,6 +98,21 @@ function RoomHub() {
       return;
     }
     setChatDraft("");
+    void thread.refetch();
+  }
+
+  async function toggleDnd(next: boolean) {
+    if (!session) return;
+    setDndBusy(true);
+    const result = await updateDnd({
+      data: { room: session.room, lastName: session.lastName, dnd: next },
+    });
+    setDndBusy(false);
+    if (!result.ok) {
+      toast.error(result.error ?? "Could not update the sign.");
+      return;
+    }
+    toast.success(next ? "Do Not Disturb is on." : "Do Not Disturb is off.");
     void thread.refetch();
   }
 
@@ -196,7 +214,14 @@ function RoomHub() {
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <ActiveRequests rows={rows} loading={history.isLoading} />
-          <KeyAndAmenities room={session.room} pin={thread.data?.key?.pin} />
+          <div className="space-y-6">
+            <DndToggle
+              active={Boolean(thread.data?.dnd)}
+              busy={dndBusy || thread.isFetching}
+              onToggle={(next) => void toggleDnd(next)}
+            />
+            <KeyAndAmenities room={session.room} pin={thread.data?.key?.pin} />
+          </div>
         </div>
 
         <DeskChat
