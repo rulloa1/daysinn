@@ -292,15 +292,30 @@ function Header({
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: number; tone: string }) {
+function Metric({
+  label,
+  value,
+  tone,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-xl border border-[#D8E0EA] bg-[#F5F8FC] p-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-xl border border-[#D8E0EA] bg-[#F5F8FC] p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-[#004986] focus-visible:outline-none"
+    >
       <p className="text-[1.25rem] leading-none font-semibold tabular-nums" style={{ color: tone }}>
         {value}
       </p>
       <p className="mt-1.5 text-[0.66rem] font-bold tracking-[0.1em] text-slate-500 uppercase">
         {label}
       </p>
-    </div>
+    </button>
+
   );
 }
