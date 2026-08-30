@@ -169,9 +169,9 @@ describe("authoritative property wing drawing", () => {
     expect(frontBlock(2).upstairsLeftStairwellAfter).toBe("201");
   });
 
-  it("places the authorized-personnel area before the lobby, breakfast, and dining area", () => {
+it("places the authorized-personnel-only area (under room 206, pool-facing) before the lobby, breakfast, and dining area", () => {
     expect(frontBlock(1).services).toEqual([
-      { kind: "space", label: "Authorized Personnel" },
+      { kind: "space", label: "Authorized Personnel Only" },
       { kind: "space", label: "Lobby / Breakfast / Dining", wide: true },
     ]);
   });
