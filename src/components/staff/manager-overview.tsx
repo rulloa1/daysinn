@@ -7,6 +7,7 @@ import {
   liveStatusForRoom,
   type LiveStatus,
 } from "@/lib/live-map-status";
+import { StuckRoomAlerts } from "./stuck-room-alerts";
 import type { QueueRoom } from "./use-request-queue";
 import type { RequestRow } from "./types";
 
@@ -133,6 +134,8 @@ export function ManagerOverview({
           })}
         </div>
       </section>
+
+      <StuckRoomAlerts rooms={rooms} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="op-card p-6">
