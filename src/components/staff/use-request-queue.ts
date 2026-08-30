@@ -11,6 +11,7 @@ import type { RequestRow } from "./types";
 export type QueueRoom = MapRoom & {
   dnd?: boolean | null;
   hk_stage?: string | null;
+  assigned_name?: string | null;
   updated_at?: string | null;
 };
 
@@ -36,7 +37,7 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
       ) => any;
       const [requestRes, roomRes] = await Promise.all([
         rpc("requests_board").select(REQUEST_COLUMNS).order("created_at", { ascending: false }),
-        supabase.from("rooms").select("id, number, floor, status, guest_name, dnd, hk_stage, updated_at").order("number"),
+        supabase.from("rooms").select("id, number, floor, status, guest_name, dnd, hk_stage, assigned_name, updated_at").order("number"),
       ]);
       if (signal.cancelled) return;
       if (requestRes.error) {
@@ -53,6 +54,7 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
             guest_name: r.guest_name,
             dnd: r.dnd,
             hk_stage: r.hk_stage,
+            assigned_name: r.assigned_name,
             updated_at: r.updated_at,
           })),
         );
