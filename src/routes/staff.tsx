@@ -39,6 +39,8 @@ import { NavRail } from "@/components/front-desk/nav-rail";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
 import { canActOnScreen, canViewScreen, type OpsScreenId } from "@/lib/screen-access";
+import { resetStaffSession, verifyLiveSession } from "@/lib/session-health";
+
 import type { DashboardTab } from "@/components/staff/types";
 
 const EMPTY_DIMMED = new Set<string>();
@@ -101,11 +103,27 @@ function StaffPage() {
       setSession(next);
       if (!next) void navigate({ to: "/staff-login", replace: true });
     });
-    supabase.auth.getSession().then(({ data: { session: current } }) => {
-      setSession(current);
-      setReady(true);
-      if (!current) void navigate({ to: "/staff-login", replace: true });
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session: current } }) => {
+        if (!current) {
+          setReady(true);
+          void navigate({ to: "/staff-login", replace: true });
+          return;
+        }
+        // A locally stored token can outlive the backend that issued it. Verify
+        // it server-side, otherwise the portal renders as a role-less account.
+        const live = await verifyLiveSession();
+        if (!live) {
+          await resetStaffSession();
+          setReady(true);
+          void navigate({ to: "/staff-login", replace: true });
+          return;
+        }
+        setSession(current);
+        setReady(true);
+      })
+      .catch(() => setReady(true));
     return () => data.subscription.unsubscribe();
   }, [navigate]);
 
@@ -123,6 +141,7 @@ function StaffPage() {
     </PasswordResetGate>
   );
 }
+
 
 /** Each dashboard tab maps to the screen policy that governs it. */
 const TAB_SCREEN: Record<DashboardTab, OpsScreenId> = {
@@ -249,11 +268,47 @@ function Dashboard({ session }: { session: Session }) {
     );
   }
 
-  // Accounts with no operational role (viewers, or invites not yet granted a
-  // role) get no queue at all rather than a read-only copy of guest data.
+  // Signed in, but the backend returned no roles at all. That is almost always a
+  // stale session from an older install rather than a real permission decision,
+  // so offer a clean sign-in instead of a dead-end refusal screen.
+  if (!roleLoading && roles.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#00243F] px-6 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-amber-500/30 bg-white/5 p-8 text-center backdrop-blur-md">
+          <p className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+            Session out of date
+          </p>
+          <h1 className="mt-2 font-serif text-2xl font-bold">Sign in again</h1>
+          <p className="mt-3 text-sm text-white/70">
+            We couldn&apos;t load your access for this device. Signing in again usually fixes it.
+          </p>
+          <Button
+            className="mt-6 w-full bg-[#D4AF37] font-bold text-[#004986] hover:bg-[#D4AF37]/90"
+            onClick={() => void refresh()}
+          >
+            Retry
+          </Button>
+          <Button
+            variant="ghost"
+            className="mt-2 w-full text-white/70 hover:text-white"
+            onClick={async () => {
+              await resetStaffSession();
+              window.location.href = "/staff-login";
+            }}
+          >
+            Sign out and start over
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Accounts with a role that still excludes the queue (viewers) keep the
+  // explicit refusal screen.
   if (!roleLoading && !canViewScreen(roles, "queue")) {
     return <ScreenDenied screen="queue" suggestion={null} />;
   }
+
 
   return (
     <div className="ops-portal flex min-h-screen">
