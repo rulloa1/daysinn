@@ -5,6 +5,8 @@ export type VerifiedGuest = {
   checkOut: string | null;
   doorPin: string | null;
   doorPinSetAt: string | null;
+  dnd: boolean;
+  status: string | null;
 };
 
 function lastNameOf(fullName: string): string {
@@ -16,7 +18,7 @@ export async function verifyGuest(room: string, lastName: string): Promise<Verif
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("rooms")
-    .select("number, guest_name, check_out, door_pin, door_pin_set_at")
+    .select("number, guest_name, check_out, door_pin, door_pin_set_at, dnd, status")
     .eq("number", room)
     .maybeSingle();
 
@@ -29,5 +31,7 @@ export async function verifyGuest(room: string, lastName: string): Promise<Verif
     checkOut: data.check_out,
     doorPin: data.door_pin,
     doorPinSetAt: data.door_pin_set_at,
+    dnd: Boolean(data.dnd),
+    status: data.status,
   };
 }

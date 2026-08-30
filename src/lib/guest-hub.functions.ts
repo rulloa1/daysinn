@@ -19,12 +19,12 @@ export const guestThread = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { allowGuestAttempt, recordAudit } = await import("@/lib/audit.server");
     if (!(await allowGuestAttempt("guest_thread", data.room))) {
-      return { ok: false as const, messages: [], key: null };
+      return { ok: false as const, dnd: false, messages: [], key: null };
     }
 
     const guest = await verifyGuest(data.room, data.lastName);
     if (!guest || isPastCheckout(guest.checkOut)) {
-      return { ok: false as const, messages: [], key: null };
+      return { ok: false as const, dnd: false, messages: [], key: null };
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -53,6 +53,7 @@ export const guestThread = createServerFn({ method: "POST" })
     return {
       ok: true as const,
       messages: rows ?? [],
+      dnd: guest.dnd,
       key: {
         pin: guest.doorPin,
         issuedAt: guest.doorPinSetAt,
@@ -163,4 +164,35 @@ export const readDoorPin = createServerFn({ method: "POST" })
     });
 
     return { pin: row?.door_pin ?? null, issuedAt: row?.door_pin_set_at ?? null };
+  });
+
+/** Guest raises or clears their own Do Not Disturb sign from the in-room portal. */
+export const setGuestDnd = createServerFn({ method: "POST" })
+  .validator((input: unknown) => credentials.extend({ dnd: z.boolean() }).parse(input))
+  .handler(async ({ data }) => {
+    const guest = await verifyGuest(data.room, data.lastName);
+    if (!guest || isPastCheckout(guest.checkOut)) {
+      return { ok: false as const, dnd: false, error: "We couldn't verify your room." };
+    }
+
+    // Keep the board status in step so the live map, front desk and
+    // housekeeping all read the same signal.
+    const patch: { dnd: boolean; status?: "occupied_dnd" | "occupied" } = { dnd: data.dnd };
+    if (data.dnd) patch.status = "occupied_dnd";
+    else if (guest.status === "occupied_dnd") patch.status = "occupied";
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("rooms").update(patch).eq("number", guest.room);
+
+
+    if (error) return { ok: false as const, dnd: guest.dnd, error: "Could not update the sign." };
+
+    const { recordAudit } = await import("@/lib/audit.server");
+    await recordAudit({
+      entity: "rooms",
+      action: data.dnd ? "guest_dnd_on" : "guest_dnd_off",
+      room: guest.room,
+    });
+
+    return { ok: true as const, dnd: data.dnd };
   });
