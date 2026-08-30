@@ -94,11 +94,11 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
     }
     return input;
   })
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<RoleMutationResult> => {
     await assertManager(context.supabase, context.userId);
 
     if (data.userId === context.userId) {
-      throw new Error("You can't remove your own manager access");
+      return { ok: false, message: "You can't remove your own manager access" };
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
