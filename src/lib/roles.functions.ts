@@ -49,6 +49,8 @@ export const listTeam = createServerFn({ method: "POST" }).handler(
   },
 );
 
+export type RoleMutationResult = { ok: true } | { ok: false; message: string };
+
 export const setTeamRole = createServerFn({ method: "POST" })
   .validator((input: { userId: string; role: AppRole }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
@@ -59,11 +61,11 @@ export const setTeamRole = createServerFn({ method: "POST" })
     }
     return input;
   })
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<RoleMutationResult> => {
     await assertManager(context.supabase, context.userId);
 
     if (data.userId === context.userId && data.role !== "manager") {
-      throw new Error("You can't remove your own manager access");
+      return { ok: false, message: "You can't remove your own manager access" };
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -92,11 +94,11 @@ export const revokeTeamRole = createServerFn({ method: "POST" })
     }
     return input;
   })
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<RoleMutationResult> => {
     await assertManager(context.supabase, context.userId);
 
     if (data.userId === context.userId) {
-      throw new Error("You can't remove your own manager access");
+      return { ok: false, message: "You can't remove your own manager access" };
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
