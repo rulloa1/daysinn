@@ -34,6 +34,7 @@ import { RequestQueue } from "@/components/staff/request-queue";
 import { RoomInspector } from "@/components/staff/room-inspector";
 import { StaffNamePicker } from "@/components/staff/name-picker";
 import { useRequestQueue } from "@/components/staff/use-request-queue";
+import { DndAlerts } from "@/components/staff/dnd-alerts";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { StaffErrorBoundary, StaffErrorFallback } from "@/components/staff-error-boundary";
 import { ScreenDenied, PanelDenied } from "@/components/ops/screen-guard";
@@ -282,6 +283,8 @@ function Dashboard({ session }: { session: Session }) {
               </>
             }
           />
+
+          <DndAlerts rooms={queue.rooms} />
 
           {queue.openCount > 0 ? (
             <NextActionCard
