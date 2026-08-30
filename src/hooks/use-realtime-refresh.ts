@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createCoalescedRefresh, type RefreshSignal } from "@/lib/coalesced-refresh";
 
@@ -61,6 +61,9 @@ export function useRealtimeRefresh({
   // Depend on the contents rather than the array identity, so callers can pass
   // an inline literal without resubscribing on every render.
   const tableKey = tables.join(",");
+  // Bumped to tear down and rebuild the channel after a dropped socket: a
+  // Phoenix channel instance can only be joined once, so reusing it throws.
+  const [rejoinToken, setRejoinToken] = useState(0);
 
   useEffect(() => {
     if (!enabled) return;
@@ -98,7 +101,7 @@ export function useRealtimeRefresh({
         if (reconnectTimer !== undefined) return;
         reconnectTimer = window.setTimeout(() => {
           reconnectTimer = undefined;
-          void subscription.subscribe();
+          setRejoinToken((value) => value + 1);
         }, 3000);
       }
     });
@@ -130,5 +133,5 @@ export function useRealtimeRefresh({
       window.removeEventListener("online", onVisible);
       void supabase.removeChannel(subscription);
     };
-  }, [channel, tableKey, enabled, debounceMs, pollMs]);
+  }, [channel, tableKey, enabled, debounceMs, pollMs, rejoinToken]);
 }
