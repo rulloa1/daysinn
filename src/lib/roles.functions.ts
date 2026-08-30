@@ -49,6 +49,8 @@ export const listTeam = createServerFn({ method: "POST" }).handler(
   },
 );
 
+export type RoleMutationResult = { ok: true } | { ok: false; message: string };
+
 export const setTeamRole = createServerFn({ method: "POST" })
   .validator((input: { userId: string; role: AppRole }) => {
     if (typeof input?.userId !== "string" || !input.userId) {
