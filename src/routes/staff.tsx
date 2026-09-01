@@ -205,6 +205,8 @@ function Dashboard({ session }: { session: Session }) {
         .map((r) => ({
           id: r.id,
           number: r.number,
+          guest_name: r.guest_name ?? null,
+          floor: Number(r.number) >= 200 ? 2 : 1,
           status: liveStatusForRoom({
             status: r.status,
             dnd: r.dnd ?? null,
