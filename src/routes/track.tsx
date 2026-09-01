@@ -32,6 +32,10 @@ const STEP_CONFIG: Record<string, { label: string; description: string }> = {
   done: { label: "Completed", description: "Delivered & resolved" },
 };
 
+function requestLabel(type: string) {
+  return type.replace(/[_-]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export const Route = createFileRoute("/track")({
   ssr: false,
   head: () => ({
@@ -165,9 +169,18 @@ function TrackPage() {
           </form>
 
           {error ? (
-            <div className="mt-5 flex items-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+            <div
+              role="alert"
+              className="mt-5 flex items-start gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive"
+            >
               <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
+              <span>
+                {error}{" "}
+                <a href="tel:+13527487766" className="font-bold underline underline-offset-2">
+                  Call the front desk
+                </a>
+                .
+              </span>
             </div>
           ) : null}
         </section>
@@ -199,7 +212,7 @@ function TrackPage() {
                       <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-3">
                         <div>
                           <span className="font-serif text-base font-bold text-foreground">
-                            {row.type}
+                            {requestLabel(row.type)}
                           </span>
                           {row.details ? (
                             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">

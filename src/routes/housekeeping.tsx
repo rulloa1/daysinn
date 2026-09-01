@@ -128,7 +128,6 @@ function HousekeepingFlow() {
   return <HousekeepingWorkspace staff={staff} onSignOut={() => select(null)} />;
 }
 
-
 type MobileTab = "route" | "map" | "issues" | "shift";
 
 const ROUTE_FILTERS = [
@@ -205,7 +204,8 @@ function HousekeepingWorkspace({
   const routeRooms = useMemo(() => {
     const base = assignedRooms.length ? assignedRooms : board.rooms;
     return [...base].sort(
-      (a, b) => routeWeight(a, staffId) - routeWeight(b, staffId) || a.number.localeCompare(b.number),
+      (a, b) =>
+        routeWeight(a, staffId) - routeWeight(b, staffId) || a.number.localeCompare(b.number),
     );
   }, [assignedRooms, board.rooms, staffId]);
 
@@ -214,9 +214,7 @@ function HousekeepingWorkspace({
       routeRooms.find(
         (r) =>
           !skipped.includes(r.id) &&
-          (r.hk_stage === "in_progress" ||
-            r.status === "vacant_dirty" ||
-            r.status === "occupied"),
+          (r.hk_stage === "in_progress" || r.status === "vacant_dirty" || r.status === "occupied"),
       ) ?? null,
     [routeRooms, skipped],
   );
@@ -255,6 +253,22 @@ function HousekeepingWorkspace({
   const totalCount = board.rooms.length;
   const turnCount = board.rooms.filter((r) => r.status === "vacant_dirty").length;
   const dndCount = board.rooms.filter((r) => r.dnd || r.status === "occupied_dnd").length;
+  const inProgressCount = board.rooms.filter((r) => r.hk_stage === "in_progress").length;
+  const urgentRooms = useMemo(
+    () =>
+      board.rooms
+        .filter(
+          (room) =>
+            room.status === "vacant_dirty" &&
+            (!room.assigned_staff_id || /urgent|high|rush|vip/i.test(room.priority ?? "")),
+        )
+        .sort(
+          (a, b) =>
+            Number(Boolean(a.assigned_staff_id)) - Number(Boolean(b.assigned_staff_id)) ||
+            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime(),
+        ),
+    [board.rooms],
+  );
   const progressPct = myTotal
     ? Math.round((myDone / myTotal) * 100)
     : totalCount
@@ -370,7 +384,9 @@ function HousekeepingWorkspace({
                             Do this next
                           </p>
                           {nextChip ? (
-                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${nextChip.cls}`}>
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${nextChip.cls}`}
+                            >
                               {nextChip.label}
                             </span>
                           ) : null}
@@ -444,9 +460,7 @@ function HousekeepingWorkspace({
                     ) : (
                       <section className="rounded-2xl border border-[#CDE7DA] bg-[#E7F4EE] p-5 text-center">
                         <Sparkles className="mx-auto h-6 w-6 text-[#0F7B4F]" />
-                        <p className="mt-2 text-sm font-bold text-[#0F7B4F]">
-                          Your route is clear
-                        </p>
+                        <p className="mt-2 text-sm font-bold text-[#0F7B4F]">Your route is clear</p>
                         <p className="mt-1 text-xs text-slate-600">
                           Nothing waiting on a cart right now. Check the map or flag an issue.
                         </p>
@@ -466,7 +480,9 @@ function HousekeepingWorkspace({
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                       <div className="flex items-center justify-between text-xs">
                         <p className="font-bold text-slate-700">
-                          {myTotal ? `${myDone} of ${myTotal} of your rooms done` : `${cleanCount} of ${totalCount} rooms ready`}
+                          {myTotal
+                            ? `${myDone} of ${myTotal} of your rooms done`
+                            : `${cleanCount} of ${totalCount} rooms ready`}
                         </p>
                         <span className="font-mono text-slate-400">{progressPct}%</span>
                       </div>
@@ -489,7 +505,9 @@ function HousekeepingWorkspace({
                           <p className="font-mono text-lg font-bold text-[#B45309]">{turnCount}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">Yours left</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            Yours left
+                          </p>
                           <p className="font-mono text-lg font-bold text-[#004986]">
                             {Math.max(myTotal - myDone, 0)}
                           </p>
@@ -558,7 +576,8 @@ function HousekeepingWorkspace({
                                   {room.number}
                                 </span>
                                 <p className="truncate text-xs text-slate-500">
-                                  {room.notes || `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
+                                  {room.notes ||
+                                    `Floor ${room.floor} · ${room.bed_type || "Standard"}`}
                                 </p>
                               </div>
                             </div>
@@ -626,7 +645,9 @@ function HousekeepingWorkspace({
                           </p>
                         </div>
                         <div className="rounded-xl bg-slate-50 p-3">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">DND rooms</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            DND rooms
+                          </p>
                           <p className="font-mono text-xl font-bold text-[#7C3AED]">{dndCount}</p>
                         </div>
                       </div>
@@ -655,7 +676,12 @@ function HousekeepingWorkspace({
                     [
                       { key: "route", label: "Route", Icon: Footprints, badge: turnCount },
                       { key: "map", label: "Map", Icon: MapIcon, badge: 0 },
-                      { key: "issues", label: "Issues", Icon: Wrench, badge: board.openIssues.length },
+                      {
+                        key: "issues",
+                        label: "Issues",
+                        Icon: Wrench,
+                        badge: board.openIssues.length,
+                      },
                       { key: "shift", label: "Shift", Icon: Clock, badge: 0 },
                     ] as { key: MobileTab; label: string; Icon: typeof Footprints; badge: number }[]
                   ).map(({ key, label, Icon, badge }) => (
@@ -769,7 +795,7 @@ function HousekeepingWorkspace({
                   In progress
                 </p>
                 <p className="mt-2 font-mono text-3xl font-bold text-[#0E7490]">
-                  {board.rooms.filter((r) => r.hk_stage === "in_progress").length}
+                  {inProgressCount}
                 </p>
                 <p className="mt-1.5 text-xs text-slate-500">being cleaned now</p>
               </div>
@@ -790,6 +816,70 @@ function HousekeepingWorkspace({
                 <p className="mt-1.5 text-xs text-slate-500">of {totalCount} rooms</p>
               </div>
             </div>
+
+            <section className="op-card overflow-hidden" aria-labelledby="priority-queue-title">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 p-5">
+                <div>
+                  <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                    Live exceptions
+                  </p>
+                  <h2 id="priority-queue-title" className="mt-1 text-lg font-bold text-[#004986]">
+                    Priority action queue
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Unassigned turns and rooms flagged urgent appear here first.
+                  </p>
+                </div>
+                <div className="flex gap-2 text-center">
+                  <div className="rounded-xl bg-[#FBF0E2] px-3 py-2">
+                    <p className="text-[10px] font-bold text-[#B45309] uppercase">Rooms</p>
+                    <p className="font-mono text-lg font-bold text-[#B45309]">
+                      {urgentRooms.length}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-rose-50 px-3 py-2">
+                    <p className="text-[10px] font-bold text-rose-700 uppercase">Open issues</p>
+                    <p className="font-mono text-lg font-bold text-rose-700">
+                      {board.openIssues.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {urgentRooms.length ? (
+                <div className="divide-y divide-slate-100">
+                  {urgentRooms.slice(0, 8).map((room) => {
+                    const isUrgent = /urgent|high|rush|vip/i.test(room.priority ?? "");
+                    return (
+                      <button
+                        key={room.id}
+                        type="button"
+                        onClick={() => setActiveRoom(room)}
+                        className="grid min-h-[64px] w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3 text-left transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#004986]"
+                      >
+                        <span className="grid h-10 w-14 place-items-center rounded-xl bg-[#004986] font-mono text-base font-bold text-white">
+                          {room.number}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-800">
+                            {isUrgent ? room.priority : "Needs assignment"}
+                          </span>
+                          <span className="block truncate text-xs text-slate-500">
+                            Floor {room.floor} · {room.bed_type || "Standard"}
+                            {room.notes ? ` · ${room.notes}` : ""}
+                          </span>
+                        </span>
+                        <span className="text-xs font-bold text-[#004986]">Open →</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-5 text-sm text-[#0F7B4F]">
+                  <Sparkles className="h-5 w-5" /> No unassigned or urgent turns right now.
+                </div>
+              )}
+            </section>
 
             {/* Assignments by Housekeeper Cards */}
             <div className="flex flex-col gap-4">

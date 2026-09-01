@@ -1,6 +1,6 @@
 /* Days Inn Hub PWA Service Worker (App Shell Cache + Offline Resilience + Web Push Alerts) */
 
-const CACHE_NAME = "daysinn-hub-v2";
+const CACHE_NAME = "daysinn-hub-v3";
 const STATIC_ASSETS = [
   "/",
   "/manifest.webmanifest",

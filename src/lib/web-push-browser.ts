@@ -4,7 +4,9 @@ import {
   savePushSubscription,
 } from "@/lib/push.functions";
 
-const SW_PATH = "/push-sw.js";
+// A second worker at the root scope replaced the app-shell worker (and vice
+// versa), so navigation and push behavior depended on which feature ran last.
+const SW_PATH = "/sw.js";
 
 export function webPushSupported() {
   return (
