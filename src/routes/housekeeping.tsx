@@ -21,7 +21,7 @@ import { ScreenDenied } from "@/components/ops/screen-guard";
 import { canViewScreen } from "@/lib/screen-access";
 import { HousekeeperLogin } from "@/components/housekeeping/housekeeper-login";
 import { useHousekeepingBoard } from "@/components/housekeeping/use-housekeeping-board";
-import { FloorPlan } from "@/components/floor-plan";
+import { ValdostaPropertyMap } from "@/components/housekeeping/valdosta-property-map";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { IssueDialog } from "@/components/housekeeping/issue-dialog";
 import { RoomDetailDialog } from "@/components/housekeeping/room-detail-dialog";
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/housekeeping")({
       {
         name: "description",
         content:
-          "Mobile-first housekeeping route and supervisor turn plan for Days Inn Wildwood I-75.",
+          "Mobile-first housekeeping route, live Valdosta property map, and supervisor turn plan.",
       },
       { property: "og:title", content: "Housekeeping Workspace — Days Inn Hub" },
       {
@@ -176,7 +176,6 @@ function HousekeepingWorkspace({
   const [mobileTab, setMobileTab] = useState<MobileTab>("route");
   const [activeRoom, setActiveRoom] = useState<RoomRow | null>(null);
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
-  const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
   const [routeFilter, setRouteFilter] = useState<RouteFilter>("todo");
   const [query, setQuery] = useState("");
   const [skipped, setSkipped] = useState<string[]>([]);
@@ -593,15 +592,7 @@ function HousekeepingWorkspace({
                   </div>
                 ) : mobileTab === "map" ? (
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <FloorPlan
-                      floor={mapFloor}
-                      rooms={board.rooms}
-                      onFloorChange={setMapFloor}
-                      onSelect={(id) => {
-                        const r = board.rooms.find((rm) => rm.id === id);
-                        if (r) setActiveRoom(r);
-                      }}
-                    />
+                    <ValdostaPropertyMap rooms={board.rooms} onSelect={setActiveRoom} />
                   </div>
                 ) : mobileTab === "issues" ? (
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
