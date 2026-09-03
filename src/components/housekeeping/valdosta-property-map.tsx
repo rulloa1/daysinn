@@ -399,6 +399,35 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
         </svg>
       </div>
 
+      {otherRooms.length > 0 ? (
+        <div className="border-t border-slate-200 px-4 py-4 sm:px-6">
+          <p className="text-[11px] font-bold tracking-[0.18em] text-slate-500 uppercase">
+            Other rooms
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Rooms outside the illustrated wings — tap to open.
+          </p>
+          <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
+            {otherRooms.map((room) => (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => onSelect(room)}
+                aria-label={`Open room ${room.number}`}
+                className="rounded-lg px-2 py-2 text-sm font-bold shadow-sm transition hover:brightness-110"
+                style={{
+                  backgroundColor: roomFill(room),
+                  color: textFill(room),
+                  opacity: roomOpacity(room.number),
+                }}
+              >
+                {room.number}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <footer className="space-y-3 border-t border-slate-200 px-4 py-4 sm:px-6">
         <div className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Room status legend">
           {LEGEND.map((item) => (
