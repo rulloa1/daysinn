@@ -413,8 +413,12 @@ function HousekeepingWorkspace({
                           type="button"
                           onClick={() => {
                             if (inProgress) {
-                              void board.setStatus(nextRoom, "vacant_clean");
-                              void board.setStage(nextRoom, null);
+                              // Sequential: the stage write bumps rooms.updated_at, which
+                              // would make the concurrent status RPC report a false conflict.
+                              void (async () => {
+                                await board.setStatus(nextRoom, "vacant_clean");
+                                await board.setStage(nextRoom, null);
+                              })();
                             } else {
                               void board.setStage(nextRoom, "in_progress");
                             }
