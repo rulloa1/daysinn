@@ -1,4 +1,5 @@
 import logoAsset from "@/assets/days-inn-logo.png.asset.json";
+import emblemAsset from "@/assets/days-inn-emblem.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export function BrandLockup({
@@ -8,24 +9,23 @@ export function BrandLockup({
 }: {
   className?: string;
   tone?: "ink" | "cream";
-  /** Sits the mark on a white plate, for use on the Congress Blue bars. */
+  /** Uses the sunburst emblem only, for use on the Congress Blue bars. */
   plate?: boolean;
 }) {
   return (
     <span className={cn("flex items-center gap-3", className)}>
       {plate ? (
-        <span className="flex items-center justify-center rounded-lg bg-white px-2.5 py-[7px]">
-          <img
-            src={logoAsset.url}
-            alt="Days Inn"
-            width={112}
-            height={56}
-            className="block h-[26px] w-auto"
-          />
-        </span>
+        <img
+          src={emblemAsset.url}
+          alt="Days Inn"
+          width={605}
+          height={309}
+          className="block h-7 w-auto"
+        />
       ) : (
         <img src={logoAsset.url} alt="Days Inn" width={112} height={56} className="h-8 w-auto" />
       )}
+
       <span
         className={cn(
           "hidden border-l pl-3 leading-tight sm:block",
