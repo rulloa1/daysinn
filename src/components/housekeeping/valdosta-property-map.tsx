@@ -52,6 +52,20 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
     [rooms],
   );
   const normalizedQuery = query.trim();
+  // Every room that the illustrated wings don't draw (upper floors, 143+) stays
+  // reachable through a compact grid so no room is unselectable from the map tab.
+  const otherRooms = useMemo(
+    () =>
+      rooms
+        .filter((room) => !VALDOSTA_ROOMS.has(room.number))
+        .sort((a, b) => {
+          const an = parseInt(a.number, 10);
+          const bn = parseInt(b.number, 10);
+          if (!Number.isNaN(an) && !Number.isNaN(bn)) return an - bn;
+          return a.number.localeCompare(b.number);
+        }),
+    [rooms],
+  );
 
   function roomOpacity(number: string) {
     return !normalizedQuery || number.includes(normalizedQuery) ? 1 : 0.26;
