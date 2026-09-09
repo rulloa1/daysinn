@@ -55,7 +55,6 @@ export function DashboardTabs({
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:overflow-visible sm:px-0">
       <div className="flex min-w-max items-center gap-2 border-b border-slate-200 pb-3 sm:min-w-0 sm:flex-wrap sm:gap-y-2">
-
         {visible.map((tab) => {
           const Icon = tab.icon;
           const on = active === tab.id;

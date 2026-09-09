@@ -184,7 +184,6 @@ export const setGuestDnd = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("rooms").update(patch).eq("number", guest.room);
 
-
     if (error) return { ok: false as const, dnd: guest.dnd, error: "Could not update the sign." };
 
     const { recordAudit } = await import("@/lib/audit.server");

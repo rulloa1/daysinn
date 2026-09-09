@@ -160,7 +160,9 @@ export function RewardsCalculator() {
                   >
                     <p className="text-[11px]">{tier.name}</p>
                     <p className="text-[9px] opacity-75 font-mono">
-                      {tier.multiplier === 1 ? "Base" : `+${Math.round((tier.multiplier - 1) * 100)}%`}
+                      {tier.multiplier === 1
+                        ? "Base"
+                        : `+${Math.round((tier.multiplier - 1) * 100)}%`}
                     </p>
                   </button>
                 );
@@ -189,15 +191,20 @@ export function RewardsCalculator() {
             </div>
 
             <p className="mt-2 text-xs text-white/70">
-              Estimated on \${totalSpend} room spend across {nights} {nights === 1 ? "night" : "nights"}.
+              Estimated on \${totalSpend} room spend across {nights}{" "}
+              {nights === 1 ? "night" : "nights"}.
               {basePoints > rawBasePoints && " (Includes 1,000 pt guaranteed stay minimum)"}
             </p>
 
             {/* Free Night Meter */}
             <div className="mt-6 rounded-xl bg-white/10 p-4">
               <div className="flex items-center justify-between text-xs text-white">
-                <span className="font-medium text-white/80">Progress toward Free Night (7,500 pts)</span>
-                <span className="font-mono font-bold text-[var(--gh-gold)]">{progressPercent}%</span>
+                <span className="font-medium text-white/80">
+                  Progress toward Free Night (7,500 pts)
+                </span>
+                <span className="font-mono font-bold text-[var(--gh-gold)]">
+                  {progressPercent}%
+                </span>
               </div>
               <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-black/40">
                 <div
@@ -206,7 +213,8 @@ export function RewardsCalculator() {
                 />
               </div>
               <p className="mt-2 text-[10px] text-white/50">
-                Free nights start at just 7,500 points at thousands of Wyndham Hotels &amp; Resorts worldwide.
+                Free nights start at just 7,500 points at thousands of Wyndham Hotels &amp; Resorts
+                worldwide.
               </p>
             </div>
 

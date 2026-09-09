@@ -194,9 +194,7 @@ export function OpsAssistant({ canAct = false }: { canAct?: boolean }) {
                 </pre>
               ) : null}
             </div>
-            {msg.role === "user" ? (
-              <User className="mt-1 h-4 w-4 shrink-0 text-slate-500" />
-            ) : null}
+            {msg.role === "user" ? <User className="mt-1 h-4 w-4 shrink-0 text-slate-500" /> : null}
           </div>
         ))}
         {busy ? (

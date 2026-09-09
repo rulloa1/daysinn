@@ -37,7 +37,10 @@ export function useRequestQueue(canTriage: boolean, staff: StaffIdentity) {
       ) => any;
       const [requestRes, roomRes] = await Promise.all([
         rpc("requests_board").select(REQUEST_COLUMNS).order("created_at", { ascending: false }),
-        supabase.from("rooms").select("id, number, floor, status, guest_name, dnd, hk_stage, assigned_name, updated_at").order("number"),
+        supabase
+          .from("rooms")
+          .select("id, number, floor, status, guest_name, dnd, hk_stage, assigned_name, updated_at")
+          .order("number"),
       ]);
       if (signal.cancelled) return;
       if (requestRes.error) {

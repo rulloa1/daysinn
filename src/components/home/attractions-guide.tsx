@@ -25,8 +25,8 @@ export function AttractionsGuideSection() {
             Nearby Highlights &amp; Driving Times
           </h2>
           <p className="mt-2 max-w-2xl text-[0.95rem] text-[var(--gh-body)]">
-            Located off I-75 Exit 329, just 8–10 minutes from Brownwood Paddock Square and convenient
-            to Florida's top natural springs and travel corridors.
+            Located off I-75 Exit 329, just 8–10 minutes from Brownwood Paddock Square and
+            convenient to Florida's top natural springs and travel corridors.
           </p>
         </div>
 
@@ -94,7 +94,9 @@ export function AttractionsGuideSection() {
                 </div>
               )}
 
-              <p className="mt-3 text-[0.9rem] leading-relaxed text-[var(--gh-body)]">{spot.body}</p>
+              <p className="mt-3 text-[0.9rem] leading-relaxed text-[var(--gh-body)]">
+                {spot.body}
+              </p>
             </div>
 
             <div className="mt-6 border-t border-slate-100 pt-4">

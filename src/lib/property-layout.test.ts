@@ -13,7 +13,7 @@ function roomRows(floor: 1 | 2) {
 }
 
 describe("authoritative property wing drawing", () => {
-it("orders the ground-floor sides from rooms 134/109 and places the breezeway between rooms 117 and 119", () => {
+  it("orders the ground-floor sides from rooms 134/109 and places the breezeway between rooms 117 and 119", () => {
     const rows = roomRows(1);
 
     expect(rows.map((row) => row.outer)).toEqual([
@@ -186,7 +186,7 @@ it("orders the ground-floor sides from rooms 134/109 and places the breezeway be
     expect(frontBlock(2).upstairsLeftStairwellAfter).toBe("201");
   });
 
-it("places the two authorized-personnel-only rooms (under 206, pool-facing, and under 209) before the lobby, breakfast, and dining area", () => {
+  it("places the two authorized-personnel-only rooms (under 206, pool-facing, and under 209) before the lobby, breakfast, and dining area", () => {
     expect(frontBlock(1).services).toEqual([
       { kind: "space", label: "Authorized Personnel Only", underRoom: "206" },
       { kind: "space", label: "Authorized Personnel Only", underRoom: "209" },

@@ -6,7 +6,6 @@ import { checkAvailability, type AvailabilityRow } from "@/lib/availability.func
 
 export type { AvailabilityRow };
 
-
 /**
  * Date/guest selection and the indicative availability snapshot behind the
  * booking hero. The numbers here are a property-side estimate only — the real
@@ -74,7 +73,6 @@ export function useAvailability() {
       setSearching(false);
     }
   }
-
 
   return {
     checkIn,

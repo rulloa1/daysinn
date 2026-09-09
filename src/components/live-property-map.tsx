@@ -218,4 +218,3 @@ export function LivePropertyMap({ pins, selected, dimmed, flash, shownLabel, onS
     </section>
   );
 }
-

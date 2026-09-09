@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-lockup";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy.functions";
 
-
 /** Email/password gate for the whole operations portal. */
 export function SignIn() {
   const [email, setEmail] = useState("");
@@ -59,7 +58,6 @@ export function SignIn() {
   }
 
   async function sendReset() {
-
     const target = email.trim();
     if (!isSupabaseConfigured) {
       toast.error("The live data service is not configured. Please contact an administrator.");

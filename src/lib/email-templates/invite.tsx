@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from "react";
 
 import {
   Body,
@@ -10,19 +10,15 @@ import {
   Link,
   Preview,
   Text,
-} from '@react-email/components'
+} from "@react-email/components";
 
 interface InviteEmailProps {
-  siteName: string
-  siteUrl: string
-  confirmationUrl: string
+  siteName: string;
+  siteUrl: string;
+  confirmationUrl: string;
 }
 
-export const InviteEmail = ({
-  siteName,
-  siteUrl,
-  confirmationUrl,
-}: InviteEmailProps) => (
+export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
       <style>{darkModeCss}</style>
@@ -32,58 +28,59 @@ export const InviteEmail = ({
       <Container style={container}>
         <Heading style={h1}>You've been invited</Heading>
         <Text style={text}>
-          You've been invited to join{' '}
+          You've been invited to join{" "}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          . Click the button below to accept the invitation and create your
-          account.
+          . Click the button below to accept the invitation and create your account.
         </Text>
         <Button className="dm-btn" style={button} href={confirmationUrl}>
           Accept Invitation
         </Button>
         <Text style={footer}>
-          If you weren't expecting this invitation, you can safely ignore this
-          email.
+          If you weren't expecting this invitation, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
   </Html>
-)
+);
 
-export default InviteEmail
+export default InviteEmail;
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }
+const main = {
+  backgroundColor: "#ffffff",
+  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+};
 const container = {
-  padding: '32px 28px',
-  maxWidth: '560px',
-  border: '1px solid #dbe4ee',
-  borderRadius: '14px',
-  borderTop: '6px solid #004986',
-}
+  padding: "32px 28px",
+  maxWidth: "560px",
+  border: "1px solid #dbe4ee",
+  borderRadius: "14px",
+  borderTop: "6px solid #004986",
+};
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#00243f',
-  margin: '0 0 20px',
-}
+  fontSize: "22px",
+  fontWeight: "bold" as const,
+  color: "#00243f",
+  margin: "0 0 20px",
+};
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: '#0065ab', textDecoration: 'underline' }
+  fontSize: "14px",
+  color: "#55575d",
+  lineHeight: "1.5",
+  margin: "0 0 25px",
+};
+const link = { color: "#0065ab", textDecoration: "underline" };
 const button = {
-  backgroundColor: '#004986',
-  color: '#ffffff',
-  fontSize: '14px',
-  border: '1px solid #004986',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+  backgroundColor: "#004986",
+  color: "#ffffff",
+  fontSize: "14px",
+  border: "1px solid #004986",
+  borderRadius: "8px",
+  padding: "12px 20px",
+  textDecoration: "none",
+};
+const footer = { fontSize: "12px", color: "#999999", margin: "30px 0 0" };
 // Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
 const darkModeCss = `
   @media (prefers-color-scheme: dark) {
@@ -91,4 +88,4 @@ const darkModeCss = `
   }
   [data-ogsc] .dm-btn { background-color: #d4af37 !important; color: #00243f !important; }
   [data-ogsb] .dm-btn { background-color: #d4af37 !important; color: #00243f !important; }
-`
+`;

@@ -371,7 +371,8 @@ export const STOPS = [
 export type GuestReview = {
   author: string;
   location: string;
-  travelType: "Road Tripper" | "The Villages Visitor" | "Family Stay" | "Pet Owner" | "Couples Stay";
+  travelType:
+    "Road Tripper" | "The Villages Visitor" | "Family Stay" | "Pet Owner" | "Couples Stay";
   rating: number;
   title: string;
   body: string;
@@ -556,4 +557,3 @@ export const FAQS = [
     a: "Members earn 10 points per dollar spent or a guaranteed 1,000 points per qualifying stay (whichever is more). You can redeem points starting at 7,500 points for free nights across thousands of Wyndham properties.",
   },
 ];
-

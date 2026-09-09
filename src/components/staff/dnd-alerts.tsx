@@ -27,7 +27,14 @@ function sinceLabel(iso: string | null) {
  */
 export function DndAlerts({ rooms }: { rooms: QueueRoom[] }) {
   const dndRooms = useMemo(() => rooms.filter(isDnd), [rooms]);
-  const key = useMemo(() => dndRooms.map((r) => r.number).sort().join(","), [dndRooms]);
+  const key = useMemo(
+    () =>
+      dndRooms
+        .map((r) => r.number)
+        .sort()
+        .join(","),
+    [dndRooms],
+  );
   const [setAt, setSetAt] = useState<Record<string, string>>({});
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [, forceTick] = useState(0);

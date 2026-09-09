@@ -1,15 +1,15 @@
-import { template as bookingUpdateTemplate } from './booking-update'
-import { template as requestConfirmationTemplate } from './request-confirmation'
-import { template as bookingAcknowledgementTemplate } from './booking-acknowledgement'
-import type { ComponentType } from 'react'
+import { template as bookingUpdateTemplate } from "./booking-update";
+import { template as requestConfirmationTemplate } from "./request-confirmation";
+import { template as bookingAcknowledgementTemplate } from "./booking-acknowledgement";
+import type { ComponentType } from "react";
 
 export interface TemplateEntry {
-  component: ComponentType<any>
-  subject: string | ((data: Record<string, any>) => string)
-  displayName?: string
-  previewData?: Record<string, any>
+  component: ComponentType<Record<string, unknown>>;
+  subject: string | ((data: Record<string, unknown>) => string);
+  displayName?: string;
+  previewData?: Record<string, unknown>;
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
-  to?: string
+  to?: string;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  'request-confirmation': requestConfirmationTemplate,
-  'booking-acknowledgement': bookingAcknowledgementTemplate,
-  'booking-update': bookingUpdateTemplate,
-}
+  "request-confirmation": requestConfirmationTemplate,
+  "booking-acknowledgement": bookingAcknowledgementTemplate,
+  "booking-update": bookingUpdateTemplate,
+};

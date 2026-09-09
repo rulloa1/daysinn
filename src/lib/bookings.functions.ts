@@ -22,10 +22,7 @@ export const updateBooking = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<UpdateBookingResult> => {
     const { supabase, userId } = context;
 
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const allowed = (roles ?? []).some((r) => r.role === "manager" || r.role === "staff");
     if (!allowed) return { ok: false, reason: "forbidden" };
 
@@ -49,10 +46,7 @@ export const updateBooking = createServerFn({ method: "POST" })
       guest_email: data.guest_email?.trim() || null,
     };
 
-    const { error: writeError } = await supabase
-      .from("bookings")
-      .update(patch)
-      .eq("id", data.id);
+    const { error: writeError } = await supabase.from("bookings").update(patch).eq("id", data.id);
     if (writeError) return { ok: false, reason: "invalid" };
 
     const { diffBooking, formatStayDate } = await import("./booking-changes");
@@ -63,11 +57,7 @@ export const updateBooking = createServerFn({ method: "POST" })
       return {
         ok: true,
         notified: false,
-        ...(changes.length === 0
-          ? { note: "no_changes" }
-          : !recipient
-            ? { note: "no_email" }
-            : {}),
+        ...(changes.length === 0 ? { note: "no_changes" } : !recipient ? { note: "no_email" } : {}),
       };
     }
 

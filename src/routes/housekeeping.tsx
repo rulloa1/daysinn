@@ -31,6 +31,7 @@ import { RoomSyncBanner } from "@/components/room-sync-banner";
 import { ShiftStart } from "@/components/housekeeping/shift-start";
 import { NavRail } from "@/components/front-desk/nav-rail";
 import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
+import { HousekeepingDashboardView } from "@/components/housekeeping/housekeeping-dashboard";
 import { toast } from "sonner";
 import type { StaffIdentity } from "@/lib/ops";
 import type { RoomRow } from "@/components/housekeeping/types";
@@ -139,6 +140,7 @@ function HousekeepingWorkspace({
 }) {
   const board = useHousekeepingBoard(staff, "all", "");
   const [mobileTab, setMobileTab] = useState<"route" | "map" | "issues" | "shift">("route");
+  const [desktopTab, setDesktopTab] = useState<"dashboard" | "turn_plan">("dashboard");
   const [activeRoom, setActiveRoom] = useState<RoomRow | null>(null);
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [mapFloor, setMapFloor] = useState<1 | 2 | "both">(1);
@@ -290,7 +292,6 @@ function HousekeepingWorkspace({
                             ? `Finish room ${nextRoom.number}`
                             : `Start room ${nextRoom.number}`}
                         </button>
-
 
                         <div className="mt-2.5 grid grid-cols-2 gap-2">
                           <button
@@ -510,206 +511,244 @@ function HousekeepingWorkspace({
           {/* SUPERVISOR TABLET VIEW (≥ 1024px) */}
           {/* ============================================================ */}
           <div className="hidden lg:flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Housekeeping Supervisor · Shift Turn Plan
-                </p>
-                <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#004986]">
-                  Turn Plan
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-2.5">
-                <Button
-                  type="button"
-                  onClick={() => toast.success("Auto-assigned unassigned rooms by zone.")}
-                  className="rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm hover:bg-[#004986]/90"
-                >
-                  <Plus className="mr-1.5 h-4 w-4" />
-                  Auto-assign 9 rooms
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => toast.info("Printing turn sheet...")}
-                  className="rounded-xl border-slate-300 bg-white text-xs font-semibold text-[#004986] hover:bg-slate-50"
-                >
-                  <Printer className="mr-1.5 h-4 w-4" />
-                  Print sheet
-                </Button>
-              </div>
-            </div>
-
-            {/* Light Advisory Panel ("Do This Next" for Supervisor) */}
-            <section className="rounded-2xl border border-[#E4D9B4] border-l-4 border-l-[#D4AF37] bg-[#FDFBF4] p-5 shadow-xs">
-              <p className="text-[11px] font-bold tracking-widest text-[#8A6D1F] uppercase">
-                Supervisor Recommendation
-              </p>
-              <h2 className="mt-1 text-base font-bold text-[#004986]">
-                Room 122 has a 4 PM arrival and no housekeeper assigned.
-              </h2>
-              <p className="mt-1 text-xs text-slate-600">
-                Teresa López finishes Room 209 in about 10 minutes and is located in the same
-                building.
-              </p>
-              <div className="mt-3 flex gap-2">
+            {/* View Mode Switcher Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => toast.success("Assigned Room 122 to Teresa López")}
-                  className="rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-bold text-[#004986] shadow-sm hover:bg-[#D4AF37]/90"
+                  onClick={() => setDesktopTab("dashboard")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs ${
+                    desktopTab === "dashboard"
+                      ? "bg-[#00244e] text-white shadow-blue-950/20"
+                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                  }`}
                 >
-                  Assign 122 to Teresa
+                  Property Aerial Dashboard
                 </button>
                 <button
                   type="button"
-                  onClick={() => toast.info("Filtering unassigned rooms")}
-                  className="rounded-xl border border-[#D9C88E] bg-white px-3.5 py-2 text-xs font-semibold text-[#8A6D1F] hover:bg-[#FDFBF4]"
+                  onClick={() => setDesktopTab("turn_plan")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs ${
+                    desktopTab === "turn_plan"
+                      ? "bg-[#00244e] text-white shadow-blue-950/20"
+                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                  }`}
                 >
-                  See all unassigned
+                  Supervisor Turn Plan Table
                 </button>
               </div>
-            </section>
 
-            {/* 4-Column Stat Grid */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="op-card p-5">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Rooms to turn
-                </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">
-                  {board.rooms.filter((r) => r.status.includes("dirty")).length}
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">3 tied to arrivals</p>
-              </div>
-
-              <div className="op-card p-5">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Unassigned
-                </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#B45309]">2</p>
-                <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
-              </div>
-
-              <div className="op-card p-5">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Avg turnover
-                </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">38m</p>
-                <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
-              </div>
-
-              <div className="op-card p-5">
-                <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                  Done today
-                </p>
-                <p className="mt-2 font-mono text-3xl font-bold text-[#0F7B4F]">{cleanCount}</p>
-                <p className="mt-1.5 text-xs text-slate-500">of {totalCount} planned</p>
-              </div>
+              {desktopTab === "turn_plan" && (
+                <div className="flex items-center gap-2.5">
+                  <Button
+                    type="button"
+                    onClick={() => toast.success("Auto-assigned unassigned rooms by zone.")}
+                    className="rounded-xl bg-[#004986] text-xs font-bold text-white shadow-sm hover:bg-[#004986]/90"
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" />
+                    Auto-assign 9 rooms
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => toast.info("Printing turn sheet...")}
+                    className="rounded-xl border-slate-300 bg-white text-xs font-semibold text-[#004986] hover:bg-slate-50"
+                  >
+                    <Printer className="mr-1.5 h-4 w-4" />
+                    Print sheet
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {/* Assignments by Housekeeper Cards */}
-            <div className="flex flex-col gap-4">
-              <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
-                Assignments by housekeeper
-              </p>
-
-              {[
-                {
-                  id: "hk-1",
-                  name: "Marisol R.",
-                  zone: "Main building · Floor 1",
-                  done: 4,
-                  total: 11,
-                  pct: 36,
-                  rooms: [
-                    { num: "114", status: "4 PM", color: "#0E7490", tint: "#E4F2F5" },
-                    { num: "113", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "121", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
-                    { num: "117", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "110", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
-                  ],
-                },
-                {
-                  id: "hk-2",
-                  name: "Ana G.",
-                  zone: "Main building · Floor 2",
-                  done: 7,
-                  total: 12,
-                  pct: 58,
-                  rooms: [
-                    { num: "202", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "205", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "201", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "206", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "209", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
-                  ],
-                },
-                {
-                  id: "hk-3",
-                  name: "Teresa L.",
-                  zone: "Building 2 · Floors 1–2",
-                  done: 9,
-                  total: 10,
-                  pct: 90,
-                  rooms: [
-                    { num: "209", status: "Now", color: "#B45309", tint: "#FBF0E2" },
-                    { num: "121", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "124", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
-                    { num: "125", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
-                  ],
-                },
-              ].map((member) => (
-                <div key={member.id} className="op-card p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">
-                        {member.name.slice(0, 2)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-800">{member.name}</p>
-                        <p className="text-xs text-slate-400">{member.zone}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <span className="font-mono text-xs font-bold text-slate-600">
-                        {member.done} / {member.total} ({member.pct}%)
-                      </span>
-                      <div className="h-2 w-36 overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-[#D4AF37]"
-                          style={{ width: `${member.pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-                    {member.rooms.map((rm, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold shadow-2xs"
-                        style={{ backgroundColor: rm.tint }}
-                      >
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: rm.color }}
-                        />
-                        <span className="font-mono font-bold text-[#004986]">{rm.num}</span>
-                        <span
-                          className="text-[10px] font-bold uppercase tracking-wider"
-                          style={{ color: rm.color }}
-                        >
-                          {rm.status}
-                        </span>
-                      </span>
-                    ))}
+            {desktopTab === "dashboard" ? (
+              <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-[#eef2f7]">
+                <HousekeepingDashboardView />
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                      Housekeeping Supervisor · Shift Turn Plan
+                    </p>
+                    <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#004986]">
+                      Turn Plan
+                    </h1>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Light Advisory Panel ("Do This Next" for Supervisor) */}
+                <section className="rounded-2xl border border-[#E4D9B4] border-l-4 border-l-[#D4AF37] bg-[#FDFBF4] p-5 shadow-xs">
+                  <p className="text-[11px] font-bold tracking-widest text-[#8A6D1F] uppercase">
+                    Supervisor Recommendation
+                  </p>
+                  <h2 className="mt-1 text-base font-bold text-[#004986]">
+                    Room 122 has a 4 PM arrival and no housekeeper assigned.
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Teresa López finishes Room 209 in about 10 minutes and is located in the same
+                    building.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toast.success("Assigned Room 122 to Teresa López")}
+                      className="rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-bold text-[#004986] shadow-sm hover:bg-[#D4AF37]/90"
+                    >
+                      Assign 122 to Teresa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toast.info("Filtering unassigned rooms")}
+                      className="rounded-xl border border-[#D9C88E] bg-white px-3.5 py-2 text-xs font-semibold text-[#8A6D1F] hover:bg-[#FDFBF4]"
+                    >
+                      See all unassigned
+                    </button>
+                  </div>
+                </section>
+
+                {/* 4-Column Stat Grid */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="op-card p-5">
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                      Rooms to turn
+                    </p>
+                    <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">
+                      {board.rooms.filter((r) => r.status.includes("dirty")).length}
+                    </p>
+                    <p className="mt-1.5 text-xs text-slate-500">3 tied to arrivals</p>
+                  </div>
+
+                  <div className="op-card p-5">
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                      Unassigned
+                    </p>
+                    <p className="mt-2 font-mono text-3xl font-bold text-[#B45309]">2</p>
+                    <p className="mt-1.5 text-xs text-slate-500">122 and 119</p>
+                  </div>
+
+                  <div className="op-card p-5">
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                      Avg turnover
+                    </p>
+                    <p className="mt-2 font-mono text-3xl font-bold text-[#004986]">38m</p>
+                    <p className="mt-1.5 text-xs text-emerald-600">target 45m</p>
+                  </div>
+
+                  <div className="op-card p-5">
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                      Done today
+                    </p>
+                    <p className="mt-2 font-mono text-3xl font-bold text-[#0F7B4F]">{cleanCount}</p>
+                    <p className="mt-1.5 text-xs text-slate-500">of {totalCount} planned</p>
+                  </div>
+                </div>
+
+                {/* Assignments by Housekeeper Cards */}
+                <div className="flex flex-col gap-4">
+                  <p className="text-[11px] font-bold tracking-widest text-slate-400 uppercase">
+                    Assignments by housekeeper
+                  </p>
+
+                  {[
+                    {
+                      id: "hk-1",
+                      name: "Marisol R.",
+                      zone: "Main building · Floor 1",
+                      done: 4,
+                      total: 11,
+                      pct: 36,
+                      rooms: [
+                        { num: "114", status: "4 PM", color: "#0E7490", tint: "#E4F2F5" },
+                        { num: "113", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
+                        { num: "121", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
+                        { num: "117", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
+                        { num: "110", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
+                      ],
+                    },
+                    {
+                      id: "hk-2",
+                      name: "Ana G.",
+                      zone: "Main building · Floor 2",
+                      done: 7,
+                      total: 12,
+                      pct: 58,
+                      rooms: [
+                        { num: "202", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
+                        { num: "205", status: "Turn", color: "#B45309", tint: "#FBF0E2" },
+                        { num: "201", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
+                        { num: "206", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
+                        { num: "209", status: "DND", color: "#7C3AED", tint: "#F1EAFC" },
+                      ],
+                    },
+                    {
+                      id: "hk-3",
+                      name: "Teresa L.",
+                      zone: "Building 2 · Floors 1–2",
+                      done: 9,
+                      total: 10,
+                      pct: 90,
+                      rooms: [
+                        { num: "209", status: "Now", color: "#B45309", tint: "#FBF0E2" },
+                        { num: "121", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
+                        { num: "124", status: "Done", color: "#0F7B4F", tint: "#E7F4EE" },
+                        { num: "125", status: "Stay", color: "#0065AB", tint: "#E5F0F9" },
+                      ],
+                    },
+                  ].map((member) => (
+                    <div key={member.id} className="op-card p-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 font-mono text-sm font-bold text-[#004986]">
+                            {member.name.slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800">{member.name}</p>
+                            <p className="text-xs text-slate-400">{member.zone}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <span className="font-mono text-xs font-bold text-slate-600">
+                            {member.done} / {member.total} ({member.pct}%)
+                          </span>
+                          <div className="h-2 w-36 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-[#D4AF37]"
+                              style={{ width: `${member.pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                        {member.rooms.map((rm, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold shadow-2xs"
+                            style={{ backgroundColor: rm.tint }}
+                          >
+                            <span
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: rm.color }}
+                            />
+                            <span className="font-mono font-bold text-[#004986]">{rm.num}</span>
+                            <span
+                              className="text-[10px] font-bold uppercase tracking-wider"
+                              style={{ color: rm.color }}
+                            >
+                              {rm.status}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>

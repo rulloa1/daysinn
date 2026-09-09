@@ -25,8 +25,8 @@ export function GuestReviewsSection() {
             Trusted by Travelers &amp; Families
           </h2>
           <p className="mt-2 max-w-2xl text-[0.95rem] text-[var(--gh-body)]">
-            See what recent road-trippers, snowbirds, and visitors to The Villages say about their stay
-            with us.
+            See what recent road-trippers, snowbirds, and visitors to The Villages say about their
+            stay with us.
           </p>
         </div>
 

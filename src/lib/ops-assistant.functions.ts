@@ -76,17 +76,17 @@ export const askOpsAssistant = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-.handler(async ({ data }): Promise<AssistantResponse> => {
+  .handler(async ({ data }): Promise<AssistantResponse> => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) {
       logAssistantFailure("LOVABLE_API_KEY is not configured");
       return UNAVAILABLE_RESPONSE;
     }
 
-const messages = data.messages.filter((message) => message.role !== "system");
+    const messages = data.messages.filter((message) => message.role !== "system");
 
     try {
-const gateway = createLovableAiGatewayProvider(key);
+      const gateway = createLovableAiGatewayProvider(key);
       const result = await generateText({
         model: gateway("google/gemini-3.7-flash"),
         system: SYSTEM_PROMPT,
