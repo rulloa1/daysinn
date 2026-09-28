@@ -175,7 +175,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
           viewBox="0 0 1400 740"
           role="img"
           aria-label="Digital property map of Days Inn Valdosta showing rooms 101 through 142, parking, lobby, registration, pool, stairs, ice and vending"
-          className="min-w-[880px] rounded-2xl bg-[#dbe3eb] shadow-inner"
+          className="min-w-[1150px] rounded-2xl bg-[#dbe3eb] shadow-inner sm:min-w-[880px]"
         >
           <defs>
             <linearGradient id="asphalt" x1="0" y1="0" x2="0" y2="1">
@@ -420,7 +420,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
                 type="button"
                 onClick={() => onSelect(room)}
                 aria-label={`Open room ${room.number}`}
-                className="rounded-lg px-2 py-2 text-sm font-bold shadow-sm transition hover:brightness-110"
+                className="min-h-[44px] rounded-lg px-2 py-2 text-sm font-bold shadow-sm transition hover:brightness-110"
                 style={{
                   backgroundColor: roomFill(room),
                   color: textFill(room),

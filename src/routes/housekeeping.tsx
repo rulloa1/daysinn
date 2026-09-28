@@ -259,6 +259,20 @@ function HousekeepingWorkspace({
     });
   }, [routeRooms, routeFilter, query, staffId]);
 
+  // Searching a room number scrolls the first match into view and highlights it.
+  const [highlightRoomId, setHighlightRoomId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!query.trim()) {
+      setHighlightRoomId(null);
+      return;
+    }
+    const first = visibleRooms[0];
+    if (!first) return;
+    setHighlightRoomId(first.id);
+    const el = document.getElementById(`hk-room-${first.id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [query, visibleRooms]);
+
   const initials = staff.name
     ? staff.name
         .split(" ")
@@ -607,9 +621,14 @@ function HousekeepingWorkspace({
                         return (
                           <button
                             key={room.id}
+                            id={`hk-room-${room.id}`}
                             type="button"
                             onClick={() => setActiveRoom(room)}
-                            className="flex min-h-[64px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition active:border-[#004986]"
+                            className={`flex min-h-[64px] items-center justify-between gap-3 rounded-xl border bg-white p-3.5 text-left shadow-xs transition active:border-[#004986] ${
+                              highlightRoomId === room.id
+                                ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/60"
+                                : "border-slate-200"
+                            }`}
                           >
                             <div className="flex min-w-0 items-center gap-3">
                               <span className={`h-10 w-1.5 shrink-0 rounded-full ${chip.bar}`} />
