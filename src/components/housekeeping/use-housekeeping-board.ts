@@ -191,18 +191,39 @@ export function useHousekeepingBoard(
    */
   const patchRoom = useCallback(
     async (room: RoomRow, local: Partial<RoomRow>, remote: RoomUpdate, failure: string) => {
-      const previous = allRooms;
+      // Only this room's changed fields are rolled back, so a concurrent
+      // realtime update to other rooms (or other fields) is never clobbered.
+      const before = allRooms.find((r) => r.id === room.id);
+      const restore = () =>
+        setAllRooms((prev) =>
+          prev.map((r) => {
+            if (r.id !== room.id || !before) return r;
+            const back: Partial<RoomRow> = {};
+            for (const key of Object.keys(local) as (keyof RoomRow)[]) {
+              (back as Record<string, unknown>)[key] = before[key];
+            }
+            return { ...r, ...back };
+          }),
+        );
       setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, ...local } : r)));
       if (!isSupabaseConfigured) {
-        setAllRooms(previous);
+        restore();
         toast.error(OFFLINE_MESSAGE);
         return false;
       }
-      const { error } = await supabase.from("rooms").update(remote).eq("id", room.id);
-      if (error) {
-        setAllRooms(previous);
-        toast.error(failure);
+      const { data, error } = await supabase
+        .from("rooms")
+        .update(remote)
+        .eq("id", room.id)
+        .select("id, updated_at");
+      if (error || !data?.length) {
+        restore();
+        toast.error(data && !data.length ? "You can't change a room assigned to someone else." : failure);
         return false;
+      }
+      const updatedAt = data[0]?.updated_at;
+      if (updatedAt) {
+        setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, updated_at: updatedAt } : r)));
       }
       return true;
     },
@@ -213,6 +234,10 @@ export function useHousekeepingBoard(
     async (room: RoomRow, toMe: boolean) => {
       if (!canTriage) {
         toast.error(NO_ACCESS_MESSAGE);
+        return;
+      }
+      if (room.assigned_staff_id && room.assigned_staff_id !== staff.id && !supervisor) {
+        toast.error("This room is assigned to someone else.");
         return;
       }
       const remote = toMe
@@ -234,7 +259,7 @@ export function useHousekeepingBoard(
         );
       }
     },
-    [canTriage, patchRoom, staff.id, staff.name],
+    [canTriage, patchRoom, staff.id, staff.name, supervisor],
   );
 
   /** Mark the transient cleaning stage (In Progress / Inspected). */
@@ -242,7 +267,11 @@ export function useHousekeepingBoard(
     async (room: RoomRow, stage: string | null) => {
       if (!canTriage) {
         toast.error(NO_ACCESS_MESSAGE);
-        return;
+        return false;
+      }
+      if (room.assigned_staff_id && room.assigned_staff_id !== staff.id && !supervisor) {
+        toast.error("This room is assigned to someone else.");
+        return false;
       }
       const ok = await patchRoom(
         room,
@@ -250,14 +279,15 @@ export function useHousekeepingBoard(
         { hk_stage: stage },
         "Couldn't update that room.",
       );
-      if (!ok) return;
+      if (!ok) return false;
       toast.success(
         stage === null
           ? `Room ${room.number} stage cleared`
           : `Room ${room.number} · ${stage === "in_progress" ? "In progress" : "Inspected"}`,
       );
+      return true;
     },
-    [canTriage, patchRoom],
+    [canTriage, patchRoom, staff.id, supervisor],
   );
 
   const toggleLinen = useCallback(
