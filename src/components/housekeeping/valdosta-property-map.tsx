@@ -387,14 +387,6 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
             </text>
           </g>
 
-          <g>
-            <circle cx="507" cy="198" r="10" fill="#f7c844" stroke="#fff" strokeWidth="3" />
-            <MapPin x="490" y="181" width="34" height="34" color="#062e51" fill="#f7c844" />
-            <text x="536" y="204" fontSize="17" fontWeight="900" fill="#ffffff">
-              FRONT OFFICE · LOBBY
-            </text>
-          </g>
-
           <g fill="#d8e0e8" fontSize="18" fontWeight="800" letterSpacing="6" opacity=".9">
             <text x="340" y="224">
               GUEST PARKING
@@ -416,7 +408,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
       {otherRooms.length > 0 ? (
         <div className="border-t border-slate-200 px-4 py-4 sm:px-6">
           <p className="text-[11px] font-bold tracking-[0.18em] text-slate-500 uppercase">
-            Other rooms
+            Other rooms · not drawn on the illustration
           </p>
           <p className="mt-1 text-xs text-slate-500">
             Rooms outside the illustrated wings — tap to open.
