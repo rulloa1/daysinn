@@ -32,6 +32,7 @@ import { OpsScreenSwitcher } from "@/components/ops/screen-switcher";
 import { toast } from "sonner";
 import type { StaffIdentity } from "@/lib/ops";
 import type { RoomRow } from "@/components/housekeeping/types";
+import { isRouteEligible } from "@/lib/housekeeping-runner";
 
 export const Route = createFileRoute("/housekeeping")({
   ssr: false,

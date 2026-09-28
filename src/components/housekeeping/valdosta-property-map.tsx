@@ -142,7 +142,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
               Days Inn · Valdosta
             </p>
             <h2 className="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">
-              Live property map
+              Property map
             </h2>
             <p className="mt-1 text-sm text-white/70">
               1827 West Hill Avenue · Tap a room to update it
@@ -153,7 +153,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-70" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-300" />
             </span>
-            Live room status
+            Room status · updates automatically
           </span>
         </div>
 
@@ -391,7 +391,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
             <circle cx="507" cy="198" r="10" fill="#f7c844" stroke="#fff" strokeWidth="3" />
             <MapPin x="490" y="181" width="34" height="34" color="#062e51" fill="#f7c844" />
             <text x="536" y="204" fontSize="17" fontWeight="900" fill="#ffffff">
-              YOU ARE HERE · ROOM 128
+              FRONT OFFICE · LOBBY
             </text>
           </g>
 

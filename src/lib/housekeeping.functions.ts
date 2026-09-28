@@ -29,6 +29,12 @@ export const signInHousekeeper = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "not_found" as const };
     }
 
+    // A roster name already linked to a different account can't be borrowed:
+    // picking someone else's name must never unlock their assignments.
+    if (row.user_id && row.user_id !== context.userId) {
+      return { ok: false as const, reason: "not_yours" as const };
+    }
+
     // Link this roster record to the signed-in account so row-level rules can
     // tell which rooms belong to this housekeeper.
     if (!row.user_id) {
