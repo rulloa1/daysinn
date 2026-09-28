@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { Search, ShieldCheck, Sparkles } from "lucide-react";
 import type { RoomRow } from "@/components/housekeeping/types";
 
 type Props = {
