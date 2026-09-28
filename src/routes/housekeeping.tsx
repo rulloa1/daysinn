@@ -178,7 +178,27 @@ function HousekeepingWorkspace({
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [routeFilter, setRouteFilter] = useState<RouteFilter>("todo");
   const [query, setQuery] = useState("");
-  const [skipped, setSkipped] = useState<string[]>([]);
+  const [finishing, setFinishing] = useState(false);
+  // Skips last for this shift on this device (cleared at the next day's shift start).
+  const skipKey = `daysinn.hk.skipped.${staff.id}.${new Date().toDateString()}`;
+  const [skipped, setSkippedState] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      setSkippedState(JSON.parse(window.localStorage.getItem(skipKey) ?? "[]"));
+    } catch {
+      setSkippedState([]);
+    }
+  }, [skipKey]);
+  const setSkipped = (update: (prev: string[]) => string[]) =>
+    setSkippedState((prev) => {
+      const next = update(prev);
+      try {
+        window.localStorage.setItem(skipKey, JSON.stringify(next));
+      } catch {
+        /* storage full or private mode: skip stays for this session only */
+      }
+      return next;
+    });
 
   // The phone flow opens on the shift hand-off screen once per person per day,
   // so a housekeeper confirms their sheet before the route view takes over.
@@ -201,19 +221,19 @@ function HousekeepingWorkspace({
 
   // My route: assigned rooms when there are any, otherwise the open turns.
   const routeRooms = useMemo(() => {
-    const base = assignedRooms.length ? assignedRooms : board.rooms;
+    // Supervisors work the whole board; housekeepers only their own sheet.
+    const base = board.supervisor ? board.rooms : assignedRooms;
     return [...base].sort(
       (a, b) =>
         routeWeight(a, staffId) - routeWeight(b, staffId) || a.number.localeCompare(b.number),
     );
-  }, [assignedRooms, board.rooms, staffId]);
+  }, [assignedRooms, board.rooms, board.supervisor, staffId]);
 
   const nextRoom = useMemo(
     () =>
       routeRooms.find(
         (r) =>
-          !skipped.includes(r.id) &&
-          (r.hk_stage === "in_progress" || r.status === "vacant_dirty" || r.status === "occupied"),
+          !skipped.includes(r.id) && isRouteEligible(r),
       ) ?? null,
     [routeRooms, skipped],
   );
@@ -226,7 +246,7 @@ function HousekeepingWorkspace({
         case "mine":
           return room.assigned_staff_id === staffId;
         case "todo":
-          return room.status === "vacant_dirty" || room.hk_stage === "in_progress";
+          return isRouteEligible(room);
         case "dnd":
           return room.dnd || room.status === "occupied_dnd";
         case "done":
@@ -350,7 +370,13 @@ function HousekeepingWorkspace({
                       </p>
                       <p className="mt-0.5 truncate text-sm font-bold text-white">{staff.name}</p>
                       <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-white/60">
-                        {board.syncSummary?.pending ? (
+                        {board.loading ? (
+                          <>Loading rooms…</>
+                        ) : board.syncSummary?.conflicts ? (
+                          <>
+                            <AlertTriangle className="h-3 w-3" /> {board.syncSummary.conflicts} change needs review
+                          </>
+                        ) : board.syncSummary?.pending ? (
                           <>
                             <WifiOff className="h-3 w-3" /> Saving offline
                           </>
@@ -411,22 +437,30 @@ function HousekeepingWorkspace({
 
                         <button
                           type="button"
-                          onClick={() => {
-                            if (inProgress) {
-                              // Sequential: the stage write bumps rooms.updated_at, which
-                              // would make the concurrent status RPC report a false conflict.
-                              void (async () => {
-                                await board.setStatus(nextRoom, "vacant_clean");
-                                await board.setStage(nextRoom, null);
-                              })();
-                            } else {
-                              void board.setStage(nextRoom, "in_progress");
+                          disabled={finishing}
+                          aria-busy={finishing}
+                          onClick={async () => {
+                            setFinishing(true);
+                            try {
+                              if (inProgress) {
+                                // Clear the stage only once the clean status is confirmed saved.
+                                const result = await board.setStatus(nextRoom, "vacant_clean");
+                                if (result === "synced") {
+                                  await board.setStage({ ...nextRoom, status: "vacant_clean" }, null);
+                                }
+                              } else {
+                                await board.setStage(nextRoom, "in_progress");
+                              }
+                            } finally {
+                              setFinishing(false);
                             }
                           }}
-                          className="mt-4 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
+                          className="mt-4 disabled:opacity-60 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] text-sm font-bold text-[#004986] shadow-sm transition active:scale-[0.99]"
                         >
                           <Sparkles className="h-4 w-4" />
-                          {inProgress
+                          {finishing
+                            ? "Saving…"
+                            : inProgress
                             ? `Finish room ${nextRoom.number}`
                             : `Start room ${nextRoom.number}`}
                         </button>
@@ -451,21 +485,27 @@ function HousekeepingWorkspace({
                             type="button"
                             onClick={() => {
                               setSkipped((prev) => [...prev, nextRoom.id]);
-                              toast.info(`Room ${nextRoom.number} moved down your route.`);
+                              toast.info(`Room ${nextRoom.number} skipped for this shift. Restore it any time.`);
                             }}
                             className="flex min-h-[44px] items-center justify-center gap-1 rounded-xl border border-white/35 text-xs font-semibold text-white transition active:bg-white/10"
                           >
                             <ChevronRight className="h-3.5 w-3.5" />
-                            Skip
+                            Skip for shift
                           </button>
                         </div>
                       </section>
                     ) : (
                       <section className="rounded-2xl border border-[#CDE7DA] bg-[#E7F4EE] p-5 text-center">
                         <Sparkles className="mx-auto h-6 w-6 text-[#0F7B4F]" />
-                        <p className="mt-2 text-sm font-bold text-[#0F7B4F]">Your route is clear</p>
+                        <p className="mt-2 text-sm font-bold text-[#0F7B4F]">
+                          {!board.supervisor && assignedRooms.length === 0
+                            ? "No rooms assigned to you yet"
+                            : "Your route is clear"}
+                        </p>
                         <p className="mt-1 text-xs text-slate-600">
-                          Nothing waiting on a cart right now. Check the map or flag an issue.
+                          {!board.supervisor && assignedRooms.length === 0
+                            ? `Ask a supervisor for your sheet, or claim an open room (${claimableRooms.length} waiting).`
+                            : "Nothing waiting on a cart right now. Check the map or flag an issue."}
                         </p>
                         {skipped.length ? (
                           <button
@@ -619,7 +659,7 @@ function HousekeepingWorkspace({
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-slate-50 p-3">
                           <p className="text-[10px] font-bold text-slate-400 uppercase">
-                            Rooms turned
+                            Assigned rooms now clean
                           </p>
                           <p className="font-mono text-xl font-bold text-[#0F7B4F]">{myDone}</p>
                         </div>
