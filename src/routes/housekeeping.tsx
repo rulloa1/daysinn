@@ -21,6 +21,7 @@ import { ScreenDenied } from "@/components/ops/screen-guard";
 import { canViewScreen } from "@/lib/screen-access";
 import { HousekeeperLogin } from "@/components/housekeeping/housekeeper-login";
 import { useHousekeepingBoard } from "@/components/housekeeping/use-housekeeping-board";
+import { finishRoom } from "@/components/housekeeping/finish-room";
 import { ValdostaPropertyMap } from "@/components/housekeeping/valdosta-property-map";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { IssueDialog } from "@/components/housekeeping/issue-dialog";
@@ -445,10 +446,7 @@ function HousekeepingWorkspace({
                             try {
                               if (inProgress) {
                                 // Clear the stage only once the clean status is confirmed saved.
-                                const result = await board.setStatus(nextRoom, "vacant_clean");
-                                if (result === "synced") {
-                                  await board.setStage({ ...nextRoom, status: "vacant_clean" }, null);
-                                }
+                                await finishRoom(board, nextRoom);
                               } else {
                                 await board.setStage(nextRoom, "in_progress");
                               }
