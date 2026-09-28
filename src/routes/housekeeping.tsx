@@ -511,7 +511,7 @@ function HousekeepingWorkspace({
                         {skipped.length ? (
                           <button
                             type="button"
-                            onClick={() => setSkipped([])}
+                            onClick={() => setSkipped(() => [])}
                             className="mt-3 min-h-[44px] rounded-xl border border-[#0F7B4F]/30 px-4 text-xs font-bold text-[#0F7B4F]"
                           >
                             Restore {skipped.length} skipped
