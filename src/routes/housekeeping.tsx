@@ -21,6 +21,7 @@ import { ScreenDenied } from "@/components/ops/screen-guard";
 import { canViewScreen } from "@/lib/screen-access";
 import { HousekeeperLogin } from "@/components/housekeeping/housekeeper-login";
 import { useHousekeepingBoard } from "@/components/housekeeping/use-housekeeping-board";
+import { finishRoom } from "@/components/housekeeping/finish-room";
 import { ValdostaPropertyMap } from "@/components/housekeeping/valdosta-property-map";
 import { MaintenanceTicketsPanel } from "@/components/maintenance-tickets-panel";
 import { IssueDialog } from "@/components/housekeeping/issue-dialog";
@@ -258,6 +259,20 @@ function HousekeepingWorkspace({
     });
   }, [routeRooms, routeFilter, query, staffId]);
 
+  // Searching a room number scrolls the first match into view and highlights it.
+  const [highlightRoomId, setHighlightRoomId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!query.trim()) {
+      setHighlightRoomId(null);
+      return;
+    }
+    const first = visibleRooms[0];
+    if (!first) return;
+    setHighlightRoomId(first.id);
+    const el = document.getElementById(`hk-room-${first.id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [query, visibleRooms]);
+
   const initials = staff.name
     ? staff.name
         .split(" ")
@@ -445,10 +460,7 @@ function HousekeepingWorkspace({
                             try {
                               if (inProgress) {
                                 // Clear the stage only once the clean status is confirmed saved.
-                                const result = await board.setStatus(nextRoom, "vacant_clean");
-                                if (result === "synced") {
-                                  await board.setStage({ ...nextRoom, status: "vacant_clean" }, null);
-                                }
+                                await finishRoom(board, nextRoom);
                               } else {
                                 await board.setStage(nextRoom, "in_progress");
                               }
@@ -609,9 +621,14 @@ function HousekeepingWorkspace({
                         return (
                           <button
                             key={room.id}
+                            id={`hk-room-${room.id}`}
                             type="button"
                             onClick={() => setActiveRoom(room)}
-                            className="flex min-h-[64px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition active:border-[#004986]"
+                            className={`flex min-h-[64px] items-center justify-between gap-3 rounded-xl border bg-white p-3.5 text-left shadow-xs transition active:border-[#004986] ${
+                              highlightRoomId === room.id
+                                ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/60"
+                                : "border-slate-200"
+                            }`}
                           >
                             <div className="flex min-w-0 items-center gap-3">
                               <span className={`h-10 w-1.5 shrink-0 rounded-full ${chip.bar}`} />
