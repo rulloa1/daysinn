@@ -8,6 +8,13 @@
       "when": 1789863468547,
       "tag": "0000_tighten_dnd_acknowledgement_access",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790556587364,
+      "tag": "0001_tighten_housekeeper_room_updates",
+      "breakpoints": true
     }
   ]
 }
