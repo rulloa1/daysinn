@@ -196,3 +196,13 @@ export function findNextDirtyRoomIndex(rooms: RunnerRoom[], currentIndex: number
   // If no dirty rooms left, move to next room sequentially or stay
   return Math.min(currentIndex + 1, rooms.length - 1);
 }
+
+/**
+ * Single source of truth for "does this room need a cleaning action now?".
+ * DND rooms are never actionable; occupied stayovers are left to the guest
+ * unless a cleaning has already been started.
+ */
+export function isRouteEligible(room: Pick<RunnerRoom, "status" | "dnd" | "hk_stage">): boolean {
+  if (room.dnd || room.status === "occupied_dnd") return false;
+  return room.status === "vacant_dirty" || room.hk_stage === "in_progress";
+}

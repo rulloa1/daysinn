@@ -105,7 +105,7 @@ export function ShiftStart({
         {claimable.length > 0 ? (
           <>
             <p className="mt-5 text-[0.62rem] font-bold tracking-[0.14em] text-[#4C5C74] uppercase">
-              Unclaimed nearby · tap to add
+              Unclaimed rooms to turn · tap to add
             </p>
             <div className="mt-2.5 flex flex-col gap-2">
               {claimable.slice(0, 6).map((room) => (

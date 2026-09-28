@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Ban, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,12 +40,13 @@ export function RoomDetailDialog({
   staff: NonNullable<StaffIdentity>;
   canTriage: boolean;
   onClose: () => void;
-  onSetStatus: (room: RoomRow, next: DbRoomStatus) => void;
-  onSetStage: (room: RoomRow, stage: string | null) => void;
+  onSetStatus: (room: RoomRow, next: DbRoomStatus) => Promise<unknown> | void;
+  onSetStage: (room: RoomRow, stage: string | null) => Promise<unknown> | void;
   onToggleLinen: (room: RoomRow) => void;
   onSetAssignment: (room: RoomRow, toMe: boolean) => void;
   onReportIssue: (room: RoomRow) => void;
 }) {
+  const [busy, setBusy] = useState(false);
   const mineOrFree = room ? !room.assigned_staff_id || room.assigned_staff_id === staff.id : false;
   const roomIssues = room ? issues.filter((i) => i.room === room.number) : [];
 
@@ -164,11 +166,19 @@ export function RoomDetailDialog({
                   {QUICK_STATUS.map((option) => (
                     <Button
                       key={option.status}
-                      disabled={!canTriage || room.status === option.status}
-                      onClick={() => {
-                        onSetStatus(room, option.status);
-                        // A room marked clean is done — get out of the way.
-                        if (option.status === "vacant_clean") onClose();
+                      disabled={busy || !canTriage || room.status === option.status}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          const result = await onSetStatus(room, option.status);
+                          // Only a confirmed save finishes the room; failures keep it open.
+                          if (result === "synced" && option.status === "vacant_clean") {
+                            if (room.hk_stage === "in_progress") await onSetStage({ ...room, status: "vacant_clean" }, null);
+                            onClose();
+                          }
+                        } finally {
+                          setBusy(false);
+                        }
                       }}
                       className={`h-12 text-base hover:opacity-90 ${option.className}`}
                     >
@@ -182,8 +192,15 @@ export function RoomDetailDialog({
                     <Button
                       key={stage.label}
                       variant="outline"
-                      disabled={!canTriage || (room.hk_stage ?? null) === stage.value}
-                      onClick={() => onSetStage(room, stage.value)}
+                      disabled={busy || !canTriage || (room.hk_stage ?? null) === stage.value}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          await onSetStage(room, stage.value);
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
                       className="h-11 border-cream/25 bg-transparent text-xs text-cream hover:bg-cream/10 hover:text-cream"
                     >
                       {stage.label}
