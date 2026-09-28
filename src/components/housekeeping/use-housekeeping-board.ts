@@ -39,6 +39,9 @@ const BUILDING_ORDER: BuildingName[] = ["Main Building", "Building 2", "Building
 /** The columns an optimistic room write is allowed to set. */
 type RoomUpdate = Database["public"]["Tables"]["rooms"]["Update"];
 
+/** Outcome of a status write; only "synced" means the live board changed. */
+export type StatusResult = "synced" | "conflict" | "queued" | "error" | "denied";
+
 const OFFLINE_MESSAGE = "Live room status is unavailable. Please check the data connection.";
 const NO_ACCESS_MESSAGE = "A manager needs to grant you staff access first.";
 
@@ -319,22 +322,24 @@ export function useHousekeepingBoard(
    * changed elsewhere first.
    */
   const setStatus = useCallback(
-    async (room: RoomRow, next: DbRoomStatus) => {
+    async (room: RoomRow, next: DbRoomStatus): Promise<StatusResult> => {
       if (!canTriage) {
         toast.error(NO_ACCESS_MESSAGE);
-        return;
+        return "denied";
       }
-      if (room.status === next) return;
-      const previous = allRooms;
-      setAllRooms((prev) =>
-        prev.map((r) =>
-          r.id === room.id ? { ...r, status: next, updated_at: new Date().toISOString() } : r,
-        ),
-      );
+      if (room.assigned_staff_id && room.assigned_staff_id !== staff.id && !supervisor) {
+        toast.error("This room is assigned to someone else.");
+        return "denied";
+      }
+      if (room.status === next) return "synced";
+      const before = { status: room.status, updated_at: room.updated_at };
+      const restore = () =>
+        setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, ...before } : r)));
+      setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, status: next } : r)));
       if (!isSupabaseConfigured) {
-        setAllRooms(previous);
+        restore();
         toast.error(OFFLINE_MESSAGE);
-        return;
+        return "error";
       }
 
       const change = createQueuedRoomStatusChange({
@@ -352,19 +357,18 @@ export function useHousekeepingBoard(
       refreshSyncSummary();
       if (result === "synced") {
         toast.success(`Room ${room.number} · ${DB_STATUS_LABEL[next]} · ${staff.name}`);
-        return;
+        return "synced";
       }
 
-      setAllRooms(previous);
+      restore();
       if (result === "conflict") {
-        toast.error(
-          "Room changed elsewhere. The live board was kept and this action needs review.",
-        );
-        return;
+        toast.error("Room changed elsewhere. The latest status is shown — please check and try again.");
+        return "conflict";
       }
-      toast.message("Room update saved on this device and will retry when you reconnect.");
+      toast.message("Not saved yet — this device will retry when you reconnect.");
+      return "queued";
     },
-    [allRooms, canTriage, refreshSyncSummary, staff],
+    [canTriage, refreshSyncSummary, staff, supervisor],
   );
 
   return {
