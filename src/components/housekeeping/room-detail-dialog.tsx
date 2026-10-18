@@ -28,6 +28,7 @@ export function RoomDetailDialog({
   issues,
   staff,
   canTriage,
+  supervisor = false,
   onClose,
   onSetStatus,
   onSetStage,
@@ -39,6 +40,7 @@ export function RoomDetailDialog({
   issues: IssueRow[];
   staff: NonNullable<StaffIdentity>;
   canTriage: boolean;
+  supervisor?: boolean;
   onClose: () => void;
   onSetStatus: (room: RoomRow, next: DbRoomStatus) => Promise<unknown> | void;
   onSetStage: (room: RoomRow, stage: string | null) => Promise<unknown> | void;
@@ -47,7 +49,9 @@ export function RoomDetailDialog({
   onReportIssue: (room: RoomRow) => void;
 }) {
   const [busy, setBusy] = useState(false);
-  const mineOrFree = room ? !room.assigned_staff_id || room.assigned_staff_id === staff.id : false;
+  const mineOrFree = room
+    ? supervisor || !room.assigned_staff_id || room.assigned_staff_id === staff.id
+    : false;
   const roomIssues = room ? issues.filter((i) => i.room === room.number) : [];
 
   return (
@@ -173,7 +177,6 @@ export function RoomDetailDialog({
                           const result = await onSetStatus(room, option.status);
                           // Only a confirmed save finishes the room; failures keep it open.
                           if (result === "synced" && option.status === "vacant_clean") {
-                            if (room.hk_stage === "in_progress") await onSetStage({ ...room, status: "vacant_clean" }, null);
                             onClose();
                           }
                         } finally {

@@ -10,6 +10,10 @@ describe("isRouteEligible", () => {
     expect(isRouteEligible({ status: "vacant_dirty", dnd: true })).toBe(false);
     expect(isRouteEligible({ status: "occupied_dnd", hk_stage: "in_progress" })).toBe(false);
   });
+  it("does not route blocked rooms even when a stale cleaning stage remains", () => {
+    expect(isRouteEligible({ status: "out_of_order", hk_stage: "in_progress" })).toBe(false);
+    expect(isRouteEligible({ status: "reserved", hk_stage: "in_progress" })).toBe(false);
+  });
   it("skips clean rooms and untouched stayovers", () => {
     expect(isRouteEligible({ status: "vacant_clean" })).toBe(false);
     expect(isRouteEligible({ status: "occupied" })).toBe(false);

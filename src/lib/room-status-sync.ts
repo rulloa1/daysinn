@@ -142,7 +142,8 @@ export function removeQueuedRoomStatusChange(id: string) {
 export function roomStatusQueueSummary(): RoomStatusQueueSummary {
   const changes = readQueuedRoomStatusChanges();
   return {
-    pending: changes.filter((change) => change.state === "pending").length,
+    pending: changes.filter((change) => change.state === "pending" || change.state === "error")
+      .length,
     conflicts: changes.filter((change) => change.state === "conflict").length,
     latest: changes.at(-1) ?? null,
   };

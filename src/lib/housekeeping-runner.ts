@@ -25,7 +25,10 @@ export type RunnerSortMode = "walking_order" | "priority_dirty_first" | "numeric
 /**
  * Returns a human-friendly wing/landmark descriptor for a given room number.
  */
-export function getRoomLandmark(roomNumber: string): { wing: string; landmark: string } {
+export function getRoomLandmark(roomNumber: string): {
+  wing: string;
+  landmark: string;
+} {
   const num = parseInt(roomNumber, 10);
   if (isNaN(num)) return { wing: "Main Building", landmark: "Property Ground" };
 
@@ -203,6 +206,12 @@ export function findNextDirtyRoomIndex(rooms: RunnerRoom[], currentIndex: number
  * unless a cleaning has already been started.
  */
 export function isRouteEligible(room: Pick<RunnerRoom, "status" | "dnd" | "hk_stage">): boolean {
-  if (room.dnd || room.status === "occupied_dnd") return false;
+  if (
+    room.dnd ||
+    room.status === "occupied_dnd" ||
+    room.status === "out_of_order" ||
+    room.status === "reserved"
+  )
+    return false;
   return room.status === "vacant_dirty" || room.hk_stage === "in_progress";
 }
