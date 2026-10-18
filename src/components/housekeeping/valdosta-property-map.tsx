@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search, ShieldCheck, Sparkles } from "lucide-react";
+import { isDndActive } from "@/lib/room-model";
 import type { RoomRow } from "@/components/housekeeping/types";
 
 type Props = {
@@ -24,6 +25,7 @@ const LEGEND: Array<{ status: RoomStatus; label: string }> = [
   { status: "occupied", label: "Occupied" },
   { status: "occupied_dnd", label: "DND" },
   { status: "out_of_order", label: "Out of order" },
+  { status: "reserved", label: "Reserved" },
 ];
 
 const TOP_ROOMS = Array.from({ length: 30 }, (_, index) => String(130 - index));
@@ -32,8 +34,8 @@ const VALDOSTA_ROOMS = new Set(["131", ...TOP_ROOMS, ...WEST_ROOMS]);
 
 function roomFill(room: RoomRow | undefined) {
   if (!room) return "#d8dee8";
+  if (isDndActive(room)) return ROOM_FILL.occupied_dnd;
   if (room.hk_stage === "in_progress") return "#0e93a7";
-  if (room.dnd) return ROOM_FILL.occupied_dnd;
   return ROOM_FILL[room.status] ?? "#64748b";
 }
 
@@ -102,7 +104,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
             onSelect(room);
           }
         }}
-        className={room ? "cursor-pointer outline-none" : undefined}
+        className={room ? "group cursor-pointer" : undefined}
         opacity={roomOpacity(number)}
       >
         <rect
@@ -114,7 +116,11 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
           fill={roomFill(room)}
           stroke="#ffffff"
           strokeWidth="2"
-          className={room ? "transition-[filter] hover:brightness-110" : undefined}
+          className={
+            room
+              ? "transition-[filter] hover:brightness-110 group-focus:stroke-slate-950 group-focus:stroke-[4px]"
+              : undefined
+          }
         />
         <text
           x={x + width / 2}
@@ -141,9 +147,7 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#f7c844]">
               Days Inn · Valdosta
             </p>
-            <h2 className="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">
-              Property map
-            </h2>
+            <h2 className="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">Property map</h2>
             <p className="mt-1 text-sm text-white/70">
               1827 West Hill Avenue · Tap a room to update it
             </p>
@@ -170,10 +174,32 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
         </label>
       </header>
 
+      {normalizedQuery ? (
+        <div className="border-b border-slate-200 p-4" aria-live="polite">
+          <p className="mb-2 text-sm font-semibold">
+            {rooms.filter((room) => room.number.includes(normalizedQuery)).length} matching rooms
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {rooms
+              .filter((room) => room.number.includes(normalizedQuery))
+              .map((room) => (
+                <button
+                  key={room.id}
+                  type="button"
+                  onClick={() => onSelect(room)}
+                  className="min-h-11 rounded-lg border border-slate-300 px-4 font-semibold focus-visible:outline-2"
+                >
+                  Open room {room.number}
+                </button>
+              ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="overflow-x-auto bg-[#e9eef4] p-3 sm:p-5">
         <svg
           viewBox="0 0 1400 740"
-          role="img"
+          role="group"
           aria-label="Digital property map of Days Inn Valdosta showing rooms 101 through 142, parking, lobby, registration, pool, stairs, ice and vending"
           className="min-w-[1150px] rounded-2xl bg-[#dbe3eb] shadow-inner sm:min-w-[880px]"
         >
@@ -367,16 +393,16 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
           </g>
 
           <g fill="#f8fafc" stroke="#90a0b3" strokeWidth="2">
-            <rect x="88" y="208" width="44" height="56" rx="5" />
-            <rect x="88" y="572" width="44" height="56" rx="5" />
+            <rect x="152" y="208" width="44" height="56" rx="5" />
+            <rect x="152" y="572" width="44" height="56" rx="5" />
             <rect x="712" y="145" width="54" height="54" rx="5" />
             <rect x="1269" y="81" width="54" height="54" rx="5" />
           </g>
           <g fill="#33475b" fontSize="10" fontWeight="800" textAnchor="middle">
-            <text x="110" y="239">
+            <text x="174" y="239">
               STAIRS
             </text>
-            <text x="110" y="603">
+            <text x="174" y="603">
               STAIRS
             </text>
             <text x="739" y="176">
@@ -457,8 +483,8 @@ export function ValdostaPropertyMap({ rooms, onSelect }: Props) {
             <Sparkles className="h-3.5 w-3.5" /> Status colors update with the board
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5" /> Fire and stair locations retained from the
-            posted plan
+            <ShieldCheck className="h-3.5 w-3.5" /> Illustrative layout — confirm landmark positions
+            with the property
           </span>
         </div>
       </footer>
