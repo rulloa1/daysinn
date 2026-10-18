@@ -74,6 +74,13 @@ describe("room-status-sync", () => {
     expect(roomStatusQueueSummary()).toMatchObject({ pending: 1, conflicts: 1 });
   });
 
+  it("keeps network failures visible in the retry banner", () => {
+    const change = createChange();
+    enqueueRoomStatusChange(change);
+    updateQueuedRoomStatusChange(change.id, { state: "error", lastError: "Offline" });
+    expect(roomStatusQueueSummary()).toMatchObject({ pending: 1, conflicts: 0 });
+  });
+
   it("ignores malformed stored data instead of exposing it to the status workflow", () => {
     storage.setItem(ROOM_STATUS_QUEUE_KEY, "{not valid json");
 

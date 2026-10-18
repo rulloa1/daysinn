@@ -61,45 +61,56 @@ export function useHousekeepingBoard(
   const [openIssues, setOpenIssues] = useState<IssueRow[]>([]);
   const [supervisor, setSupervisor] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [syncSummary, setSyncSummary] = useState({ pending: 0, conflicts: 0 });
-  const { canTriage, loading: roleLoading } = useStaffRole();
+  const { canTriage, isFrontDesk, loading: roleLoading } = useStaffRole();
   const alerts = useHousekeepingAlerts(staff);
 
   useEffect(() => {
     let active = true;
     async function loadSupervisor() {
-      if (!staff.id) return;
-      const { data } = await supabase
-        .from("staff_members")
-        .select("is_supervisor")
-        .eq("id", staff.id)
-        .maybeSingle();
-      if (active) setSupervisor(Boolean(data?.is_supervisor));
+      setSupervisor(isFrontDesk);
+      if (isFrontDesk) return;
+      try {
+        // Resolve authority from the authenticated account, never the selected roster name.
+        const { data, error } = await supabase.rpc("is_supervisor");
+        if (active) setSupervisor(!error && data === true);
+      } catch {
+        if (active) setSupervisor(false);
+      }
     }
     void loadSupervisor();
     return () => {
       active = false;
     };
-  }, [staff.id]);
+  }, [isFrontDesk]);
 
   useRealtimeRefresh({
     channel: "housekeeping-feed",
     tables: ["rooms", "requests"],
     onEvent: alerts.handleRoomEvent,
     onRefresh: async (signal) => {
-      const [roomRes, issueRes] = await Promise.all([
-        supabase.from("rooms").select(ROOM_COLUMNS).order("number"),
-        supabase
-          .from("requests")
-          .select(ISSUE_COLUMNS)
-          .neq("status", "done")
-          .order("created_at", { ascending: false }),
-      ]);
-      if (signal.cancelled) return;
-      if (roomRes.error) toast.error("Couldn't load rooms.");
-      setAllRooms((roomRes.data ?? []) as RoomRow[]);
-      setOpenIssues((issueRes.data ?? []) as IssueRow[]);
-      setLoading(false);
+      try {
+        const [roomRes, issueRes] = await Promise.all([
+          supabase.from("rooms").select(ROOM_COLUMNS).order("number"),
+          supabase
+            .from("requests")
+            .select(ISSUE_COLUMNS)
+            .neq("status", "done")
+            .order("created_at", { ascending: false }),
+        ]);
+        if (signal.cancelled) return;
+        // A failed refresh must not erase the last successfully loaded board.
+        if (!roomRes.error) setAllRooms((roomRes.data ?? []) as RoomRow[]);
+        if (!issueRes.error) setOpenIssues((issueRes.data ?? []) as IssueRow[]);
+        setLoadError(
+          roomRes.error || issueRes.error ? "Some housekeeping data could not be refreshed." : null,
+        );
+      } catch {
+        if (!signal.cancelled) setLoadError("The housekeeping connection could not be reached.");
+      } finally {
+        if (!signal.cancelled) setLoading(false);
+      }
     },
   });
 
@@ -157,9 +168,31 @@ export function useHousekeepingBoard(
       stayovers: rooms.filter((r) => isExtendedStay(r)).length,
       mineTotal: mine.length,
       mineLeft,
-      mineDone: mine.length - mineLeft,
+      mineDone: mine.filter((r) => r.status === "vacant_clean").length,
     };
   }, [rooms, mine]);
+
+  const refreshRoom = useCallback(async (roomId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("rooms")
+        .select(ROOM_COLUMNS)
+        .eq("id", roomId)
+        .maybeSingle();
+      if (error) throw error;
+      setAllRooms((current) =>
+        data
+          ? current.map((room) => (room.id === roomId ? (data as RoomRow) : room))
+          : current.filter((room) => room.id !== roomId),
+      );
+      return true;
+    } catch {
+      setLoadError(
+        "A room update could not be refreshed. Wait for the board to reconnect before making another change.",
+      );
+      return false;
+    }
+  }, []);
 
   const refreshSyncSummary = useCallback(() => {
     setSyncSummary(roomStatusQueueSummary());
@@ -172,12 +205,13 @@ export function useHousekeepingBoard(
     for (const change of readQueuedRoomStatusChanges()) {
       if (change.state === "conflict") continue;
       const result = await syncQueuedRoomStatusChange(change);
+      if (result === "synced" || result === "conflict") await refreshRoom(change.roomId);
       if (result === "synced") synced += 1;
       if (result === "conflict") conflicts += 1;
     }
     refreshSyncSummary();
     return { synced, conflicts };
-  }, [refreshSyncSummary]);
+  }, [refreshRoom, refreshSyncSummary]);
 
   useEffect(() => {
     refreshSyncSummary();
@@ -200,10 +234,10 @@ export function useHousekeepingBoard(
       const restore = () =>
         setAllRooms((prev) =>
           prev.map((r) => {
-            if (r.id !== room.id || !before) return r;
+            if (r.id !== room.id || !before || r.updated_at !== before.updated_at) return r;
             const back: Partial<RoomRow> = {};
             for (const key of Object.keys(local) as (keyof RoomRow)[]) {
-              (back as Record<string, unknown>)[key] = before[key];
+              if (r[key] === local[key]) (back as Record<string, unknown>)[key] = before[key];
             }
             return { ...r, ...back };
           }),
@@ -214,23 +248,37 @@ export function useHousekeepingBoard(
         toast.error(OFFLINE_MESSAGE);
         return false;
       }
-      const { data, error } = await supabase
-        .from("rooms")
-        .update(remote)
-        .eq("id", room.id)
-        .select("id, updated_at");
-      if (error || !data?.length) {
+      try {
+        const { data, error } = await supabase
+          .from("rooms")
+          .update(remote)
+          .eq("id", room.id)
+          .eq("updated_at", room.updated_at)
+          .select("id, updated_at");
+        if (error || !data?.length) {
+          restore();
+          await refreshRoom(room.id);
+          toast.error(
+            data && !data.length
+              ? "Room changed or access was denied. Review the refreshed room and try again."
+              : failure,
+          );
+          return false;
+        }
+        const updatedAt = data[0]?.updated_at;
+        if (updatedAt) {
+          setAllRooms((prev) =>
+            prev.map((r) => (r.id === room.id ? { ...r, updated_at: updatedAt } : r)),
+          );
+        }
+        return true;
+      } catch {
         restore();
-        toast.error(data && !data.length ? "You can't change a room assigned to someone else." : failure);
+        toast.error(failure);
         return false;
       }
-      const updatedAt = data[0]?.updated_at;
-      if (updatedAt) {
-        setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, updated_at: updatedAt } : r)));
-      }
-      return true;
     },
-    [allRooms],
+    [allRooms, refreshRoom],
   );
 
   const setAssignment = useCallback(
@@ -252,7 +300,10 @@ export function useHousekeepingBoard(
         : { assigned_staff_id: null, assigned_name: null, assigned_at: null };
       const ok = await patchRoom(
         room,
-        { assigned_staff_id: remote.assigned_staff_id, assigned_name: remote.assigned_name },
+        {
+          assigned_staff_id: remote.assigned_staff_id,
+          assigned_name: remote.assigned_name,
+        },
         remote,
         "Couldn't update the assignment.",
       );
@@ -331,10 +382,16 @@ export function useHousekeepingBoard(
         toast.error("This room is assigned to someone else.");
         return "denied";
       }
-      if (room.status === next) return "synced";
+      if (room.status === next && !(next === "vacant_clean" && room.hk_stage)) return "synced";
       const before = { status: room.status, updated_at: room.updated_at };
       const restore = () =>
-        setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, ...before } : r)));
+        setAllRooms((prev) =>
+          prev.map((r) =>
+            r.id === room.id && r.updated_at === before.updated_at && r.status === next
+              ? { ...r, ...before }
+              : r,
+          ),
+        );
       setAllRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, status: next } : r)));
       if (!isSupabaseConfigured) {
         restore();
@@ -356,19 +413,25 @@ export function useHousekeepingBoard(
       const result = await syncQueuedRoomStatusChange(change);
       refreshSyncSummary();
       if (result === "synced") {
+        await refreshRoom(room.id);
         toast.success(`Room ${room.number} · ${DB_STATUS_LABEL[next]} · ${staff.name}`);
         return "synced";
       }
 
       restore();
       if (result === "conflict") {
-        toast.error("Room changed elsewhere. The latest status is shown — please check and try again.");
+        const refreshed = await refreshRoom(room.id);
+        toast.error(
+          refreshed
+            ? "Room changed elsewhere. Review the refreshed room before trying again."
+            : "Room changed elsewhere. Could not refresh it yet; wait for the connection to recover.",
+        );
         return "conflict";
       }
       toast.message("Not saved yet — this device will retry when you reconnect.");
       return "queued";
     },
-    [canTriage, refreshSyncSummary, staff, supervisor],
+    [canTriage, refreshRoom, refreshSyncSummary, staff, supervisor],
   );
 
   return {
@@ -377,6 +440,7 @@ export function useHousekeepingBoard(
     buildings,
     counts,
     loading,
+    loadError,
     supervisor,
     canTriage,
     roleLoading,

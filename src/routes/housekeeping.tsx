@@ -45,7 +45,10 @@ export const Route = createFileRoute("/housekeeping")({
         content:
           "Mobile-first housekeeping route, live Valdosta property map, and supervisor turn plan.",
       },
-      { property: "og:title", content: "Housekeeping Workspace — Days Inn Hub" },
+      {
+        property: "og:title",
+        content: "Housekeeping Workspace — Days Inn Hub",
+      },
       {
         property: "og:description",
         content: "One room at a time on mobile, supervisor turn plan on tablet.",
@@ -155,16 +158,40 @@ function routeWeight(room: RoomRow, staffId: string | null) {
 
 function statusChip(room: RoomRow) {
   if (room.hk_stage === "in_progress")
-    return { label: "Cleaning", cls: "bg-[#E4F2F5] text-[#0E7490]", bar: "bg-[#0E7490]" };
+    return {
+      label: "Cleaning",
+      cls: "bg-[#E4F2F5] text-[#0E7490]",
+      bar: "bg-[#0E7490]",
+    };
   if (room.status === "vacant_clean")
-    return { label: "Ready", cls: "bg-[#E7F4EE] text-[#0F7B4F]", bar: "bg-[#0F7B4F]" };
+    return {
+      label: "Ready",
+      cls: "bg-[#E7F4EE] text-[#0F7B4F]",
+      bar: "bg-[#0F7B4F]",
+    };
   if (room.dnd || room.status === "occupied_dnd")
-    return { label: "DND", cls: "bg-[#F1EAFC] text-[#7C3AED]", bar: "bg-[#7C3AED]" };
+    return {
+      label: "DND",
+      cls: "bg-[#F1EAFC] text-[#7C3AED]",
+      bar: "bg-[#7C3AED]",
+    };
   if (room.status === "out_of_order")
-    return { label: "Out of order", cls: "bg-slate-100 text-slate-500", bar: "bg-slate-400" };
+    return {
+      label: "Out of order",
+      cls: "bg-slate-100 text-slate-500",
+      bar: "bg-slate-400",
+    };
   if (room.status === "occupied")
-    return { label: "Stay", cls: "bg-[#E5F0F9] text-[#0065AB]", bar: "bg-[#0065AB]" };
-  return { label: "Turn", cls: "bg-[#FBF0E2] text-[#B45309]", bar: "bg-[#B45309]" };
+    return {
+      label: "Stay",
+      cls: "bg-[#E5F0F9] text-[#0065AB]",
+      bar: "bg-[#0065AB]",
+    };
+  return {
+    label: "Turn",
+    cls: "bg-[#FBF0E2] text-[#B45309]",
+    bar: "bg-[#B45309]",
+  };
 }
 
 function HousekeepingWorkspace({
@@ -176,7 +203,9 @@ function HousekeepingWorkspace({
 }) {
   const board = useHousekeepingBoard(staff, "all", "");
   const [mobileTab, setMobileTab] = useState<MobileTab>("route");
-  const [activeRoom, setActiveRoom] = useState<RoomRow | null>(null);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const activeRoom = board.rooms.find((room) => room.id === activeRoomId) ?? null;
+  const setActiveRoom = (room: RoomRow | null) => setActiveRoomId(room?.id ?? null);
   const [issueRoom, setIssueRoom] = useState<RoomRow | null>(null);
   const [routeFilter, setRouteFilter] = useState<RouteFilter>("todo");
   const [query, setQuery] = useState("");
@@ -207,7 +236,11 @@ function HousekeepingWorkspace({
   const shiftKey = `daysinn.hk.shiftStarted.${staff.id}.${new Date().toDateString()}`;
   const [shiftStarted, setShiftStarted] = useState(true);
   useEffect(() => {
-    setShiftStarted(window.localStorage.getItem(shiftKey) === "1");
+    try {
+      setShiftStarted(window.localStorage.getItem(shiftKey) === "1");
+    } catch {
+      setShiftStarted(false);
+    }
   }, [shiftKey]);
 
   const staffId = staff.id ?? null;
@@ -232,11 +265,7 @@ function HousekeepingWorkspace({
   }, [assignedRooms, board.rooms, board.supervisor, staffId]);
 
   const nextRoom = useMemo(
-    () =>
-      routeRooms.find(
-        (r) =>
-          !skipped.includes(r.id) && isRouteEligible(r),
-      ) ?? null,
+    () => routeRooms.find((r) => !skipped.includes(r.id) && isRouteEligible(r)) ?? null,
     [routeRooms, skipped],
   );
 
@@ -323,7 +352,10 @@ function HousekeepingWorkspace({
     for (const room of board.rooms) {
       if (!room.assigned_staff_id) continue;
       const key = room.assigned_staff_id;
-      const entry = map.get(key) ?? { name: room.assigned_name || "Unnamed", rooms: [] };
+      const entry = map.get(key) ?? {
+        name: room.assigned_name || "Unnamed",
+        rooms: [],
+      };
       entry.rooms.push(room);
       map.set(key, entry);
     }
@@ -357,6 +389,14 @@ function HousekeepingWorkspace({
             onRetry={board.flushQueuedRoomStatusChanges}
           />
 
+          {board.loadError ? (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
+            >
+              {board.loadError} Displayed data may be out of date. Updates retry automatically.
+            </div>
+          ) : null}
           {/* ============================================================ */}
           {/* MOBILE PHONE ROUTE VIEW (< 1024px) */}
           {/* ============================================================ */}
@@ -368,7 +408,11 @@ function HousekeepingWorkspace({
                 claimable={claimableRooms}
                 onToggleClaim={(room, toMe) => void board.setAssignment(room, toMe)}
                 onStart={() => {
-                  window.localStorage.setItem(shiftKey, "1");
+                  try {
+                    window.localStorage.setItem(shiftKey, "1");
+                  } catch {
+                    // The shift can still start when browser storage is unavailable.
+                  }
                   setShiftStarted(true);
                 }}
               />
@@ -390,7 +434,8 @@ function HousekeepingWorkspace({
                           <>Loading rooms…</>
                         ) : board.syncSummary?.conflicts ? (
                           <>
-                            <AlertTriangle className="h-3 w-3" /> {board.syncSummary.conflicts} change needs review
+                            <AlertTriangle className="h-3 w-3" /> {board.syncSummary.conflicts}{" "}
+                            change needs review
                           </>
                         ) : board.syncSummary?.pending ? (
                           <>
@@ -474,8 +519,8 @@ function HousekeepingWorkspace({
                           {finishing
                             ? "Saving…"
                             : inProgress
-                            ? `Finish room ${nextRoom.number}`
-                            : `Start room ${nextRoom.number}`}
+                              ? `Finish room ${nextRoom.number}`
+                              : `Start room ${nextRoom.number}`}
                         </button>
 
                         <div className="mt-2.5 grid grid-cols-3 gap-2">
@@ -498,7 +543,9 @@ function HousekeepingWorkspace({
                             type="button"
                             onClick={() => {
                               setSkipped((prev) => [...prev, nextRoom.id]);
-                              toast.info(`Room ${nextRoom.number} skipped for this shift. Restore it any time.`);
+                              toast.info(
+                                `Room ${nextRoom.number} skipped for this shift. Restore it any time.`,
+                              );
                             }}
                             className="flex min-h-[44px] items-center justify-center gap-1 rounded-xl border border-white/35 text-xs font-semibold text-white transition active:bg-white/10"
                           >
@@ -727,7 +774,12 @@ function HousekeepingWorkspace({
                 >
                   {(
                     [
-                      { key: "route", label: "Route", Icon: Footprints, badge: turnCount },
+                      {
+                        key: "route",
+                        label: "Route",
+                        Icon: Footprints,
+                        badge: turnCount,
+                      },
                       { key: "map", label: "Map", Icon: MapIcon, badge: 0 },
                       {
                         key: "issues",
@@ -736,7 +788,12 @@ function HousekeepingWorkspace({
                         badge: board.openIssues.length,
                       },
                       { key: "shift", label: "Shift", Icon: Clock, badge: 0 },
-                    ] as { key: MobileTab; label: string; Icon: typeof Footprints; badge: number }[]
+                    ] as {
+                      key: MobileTab;
+                      label: string;
+                      Icon: typeof Footprints;
+                      badge: number;
+                    }[]
                   ).map(({ key, label, Icon, badge }) => (
                     <button
                       key={key}
@@ -1005,6 +1062,7 @@ function HousekeepingWorkspace({
         issues={board.openIssues}
         staff={staff}
         canTriage={board.canTriage}
+        supervisor={board.supervisor}
         onClose={() => setActiveRoom(null)}
         onSetStatus={board.setStatus}
         onSetStage={board.setStage}
